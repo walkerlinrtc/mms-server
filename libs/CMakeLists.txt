@@ -1,0 +1,5 @@
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/base")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/protocol")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/server")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sdk/http")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/codec")

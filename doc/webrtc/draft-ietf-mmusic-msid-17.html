@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17 -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>
+            
+    
+        draft-ietf-mmusic-msid-17
+    
+
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            @media only screen
+            and (min-width: 992px)
+            and (max-width: 1199px) {
+                body { font-size: 14pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (min-width: 768px)
+            and (max-width: 991px) {
+                body { font-size: 14pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (min-width: 480px)
+            and (max-width: 767px) {
+                body { font-size: 11pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (max-width: 479px) {
+                body { font-size: 8pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (min-width : 375px)
+            and (max-width : 667px) {
+                body { font-size: 9.5pt; }
+                div.content { width: 96ex; margin: 0; }
+            }
+            @media only screen
+            and (min-width: 1200px) {
+                body { font-size: 10pt; margin: 0 4em; }
+                div.content { width: 96ex; margin: 0; }
+            }
+            h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+                font-weight: bold;
+                /* line-height: 0pt; */
+                display: inline;
+                white-space: pre;
+                font-family: monospace;
+                font-size: 1em;
+                font-weight: bold;
+            }
+            pre {
+                font-size: 1em;
+                margin-top: 0px;
+                margin-bottom: 0px;
+            }
+            .pre {
+                white-space: pre;
+                font-family: monospace;
+            }
+            .header{
+                font-weight: bold;
+            }
+            .newpage {
+                page-break-before: always;
+            }
+            .invisible {
+                text-decoration: none;
+                color: white;
+            }
+            @media print {
+                body {
+                    margin-top: 5em;
+                    font-family: monospace;
+                    font-size: 10.5pt;
+                }
+                h1, h2, h3, h4, h5, h6 {
+                    font-size: 1em;
+                }
+
+                a:link, a:visited {
+                    color: inherit;
+                    text-decoration: none;
+                }
+                .noprint {
+                    display: none;
+                }
+            }
+            @media screen {
+                .grey, .grey a:link, .grey a:visited {
+                    color: #777;
+                }
+                .meta-info {
+                    background-color: #EEE;
+                    width: 96ex;
+                }
+                .top {
+                    border-top: 7px solid #EEE;
+                }
+                .pad {
+                    padding-top: 7px;
+                    line-height: 24px;
+                    padding-bottom: 4px;
+                }
+                .bgwhite  { background-color: white; }
+                .bgred    { background-color: #F44; }
+                .bggrey   { background-color: #666; }
+                .bgbrown  { background-color: #840; }
+                .bgorange { background-color: #FA0; }
+                .bgyellow { background-color: #EE0; }
+                .bgmagenta{ background-color: #F4F; }
+                .bgblue   { background-color: #66F; }
+                .bgcyan   { background-color: #4DD; }
+                .bggreen  { background-color: #4F4; }
+
+                .legend   { font-size: 90%; }
+                .cplate   { font-size: 70%; border: solid grey 1px; }
+            }
+
+            
+    .bgwhite  { background-color: white; }
+    .bgred    { background-color: #F44; }
+    .bggrey   { background-color: #666; }
+    .bgbrown  { background-color: #840; }
+    .bgorange { background-color: #FA0; }
+    .bgyellow { background-color: #EE0; }
+    .bgmagenta{ background-color: #F4F; }
+    .bgblue   { background-color: #66F; }
+    .bgcyan   { background-color: #4DD; }
+    .bggreen  { background-color: #4F4; }
+    .draftcontent { margin-top:1em;}
+
+        </style>
+        
+    <link rel="alternate" type="application/atom+xml" title="Document changes" href="https://datatracker.ietf.org/feed/document-changes/draft-ietf-mmusic-msid/">
+    <meta name="description" content="WebRTC MediaStream Identification in the Session Description Protocol (Internet-Draft, 2018)">
+
+        
+            <link rel="shortcut icon" href="https://www.ietf.org/lib/dt/8.1.0/ietf/images/ietf-icon-blue3.png">
+        
+        <link rel="apple-touch-icon" href="https://www.ietf.org/lib/dt/8.1.0/ietf/images/apple-touch-icon.png">
+    <script async="" src="./draft-ietf-mmusic-msid-17_files/api.js.下载"></script></head>
+    <body>
+        <div class="content" id="content">
+            
+<!-- [html-validate-disable-block no-inline-style, attr-quotes, void-style -- FIXME: it's everywhere in this old code] -->
+    
+    <div class="rfcmarkup">
+        <div class="noprint" style="height: .5em;">
+            <div onmouseover="this.style.cursor=&#39;pointer&#39;;" onclick="showLegend();" onmouseout="hideLegend()" style="height: .5em; min-height: .5em; width: 96ex; " class="meta-info bgred" title="Click for color legend.">
+            </div>
+            <div id="legend" class="meta-info noprint pre legend" style="position:absolute; top: 4px; left: 4ex; visibility:hidden; background-color: white; padding: 4px 9px 5px 7px; border: solid #345 1px; " onmouseover="showLegend();" onmouseout="hideLegend();">
+            </div>
+        </div>
+        
+            <div class="noprint">
+                <pre class="pre meta-info">[<a href="https://datatracker.ietf.org/" title="Document search and retrieval page">Search</a>] [<a href="https://www.ietf.org/archive/id/draft-ietf-mmusic-msid-17.txt" title="Plaintext version of this document">txt</a>|<a href="https://www.ietf.org/archive/id/draft-ietf-mmusic-msid-17.xml" title="XML source for this document">xml</a>|<a href="https://datatracker.ietf.org/doc/pdf/draft-ietf-mmusic-msid-17">pdfized</a>|<a href="https://datatracker.ietf.org/doc/draft-ietf-mmusic-msid/17/bibtex/" title="BibTex entry for this document">bibtex</a>] [<a href="https://datatracker.ietf.org/doc/draft-ietf-mmusic-msid/" title="Datatracker information for this document">Tracker</a>] [<a href="https://datatracker.ietf.org/group/mmusic/" title="The working group handling this document">WG</a>] [<a href="mailto:draft-ietf-mmusic-msid@ietf.org?subject=draft-ietf-mmusic-msid" title="Send email to the document authors">Email</a>] [<a href="https://www.ietf.org/rfcdiff?difftype=--hwdiff&amp;url2=draft-ietf-mmusic-msid-17.txt" title="Inline diff (wdiff)">Diff1</a>] [<a href="https://www.ietf.org/rfcdiff?url2=draft-ietf-mmusic-msid-17.txt" title="Side-by-side diff">Diff2</a>] [<a href="https://www.ietf.org/tools/idnits?url=https://www.ietf.org/archive/id/draft-ietf-mmusic-msid-17.txt" title="Run an idnits check of this document">Nits</a>]
+Versions: (<a href="https://datatracker.ietf.org/doc/html/draft-alvestrand-mmusic-msid">draft-alvestrand-mmusic-msid</a>)   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-00">00</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-01">01</a>         Standards Track
+          <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-02">02</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-03">03</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-04">04</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-05">05</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-06">06</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-07">07</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-08">08</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-09">09</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-10">10</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-11">11</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-12">12</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-13">13</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-14">14</a>                        
+          <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-15">15</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-16">16</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17"><b>17</b></a> <a href="https://datatracker.ietf.org/doc/html/rfc8830">rfc8830</a>                                              </pre>
+            </div>
+        
+        <div class="draftcontent"><pre>Network Working Group                                      H. Alvestrand
+Internet-Draft                                                    Google
+Intended status: Standards Track                       December 13, 2018
+Expires: June 16, 2019
+
+
+ <span class="h1">WebRTC MediaStream Identification in the Session Description Protocol</span>
+                       <span class="h1">draft-ietf-mmusic-msid-17</span>
+
+Abstract
+
+   This document specifies a Session Description Protocol (SDP) Grouping
+   mechanism for RTP media streams that can be used to specify relations
+   between media streams.
+
+   This mechanism is used to signal the association between the SDP
+   concept of "media description" and the WebRTC concept of
+   "MediaStream" / "MediaStreamTrack" using SDP signaling.
+
+   This document is a work item of the MMUSIC WG, whose discussion list
+   is mmusic@ietf.org.
+
+Requirements Language
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in <a href="https://datatracker.ietf.org/doc/html/rfc2119">RFC 2119</a> [<a href="https://datatracker.ietf.org/doc/html/rfc2119" title="&quot;Key words for use in RFCs to Indicate Requirement Levels&quot;">RFC2119</a>].
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of <a href="https://datatracker.ietf.org/doc/html/bcp78">BCP 78</a> and <a href="https://datatracker.ietf.org/doc/html/bcp79">BCP 79</a>.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at <a href="https://datatracker.ietf.org/drafts/current/">http://datatracker.ietf.org/drafts/current/</a>.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on June 16, 2019.
+
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 1]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-2"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+Copyright Notice
+
+   Copyright (c) 2018 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to <a href="https://datatracker.ietf.org/doc/html/bcp78">BCP 78</a> and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (<a href="https://trustee.ietf.org/license-info">http://trustee.ietf.org/license-info</a>) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1">1</a>.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-3">3</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.1">1.1</a>.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-3">3</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.2">1.2</a>.  Structure Of This Document  . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-3">3</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.3">1.3</a>.  Why A New Mechanism Is Needed . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-4">4</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.4">1.4</a>.  The WEBRTC MediaStream  . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-4">4</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-2">2</a>.  The Msid Mechanism  . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-5">5</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3">3</a>.  Procedures  . . . . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-6">6</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.1">3.1</a>.  Handling of non-signalled tracks  . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-7">7</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2">3.2</a>.  Detailed Offer/Answer Procedures  . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-9">9</a>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.1">3.2.1</a>.  Generating the initial offer  . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-9">9</a>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.2">3.2.2</a>.  Answerer processing of the Offer  . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-9">9</a>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.3">3.2.3</a>.  Generating the answer . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-10">10</a>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.4">3.2.4</a>.  Offerer processing of the answer  . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-10">10</a>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.5">3.2.5</a>.  Modifying the session . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-10">10</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.3">3.3</a>.  Example SDP description . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-10">10</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-4">4</a>.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-11">11</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-4.1">4.1</a>.  Attribute registration in existing registries . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-11">11</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-5">5</a>.  Security Considerations . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-12">12</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-6">6</a>.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-12">12</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-7">7</a>.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-12">12</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-7.1">7.1</a>.  Normative References  . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-12">12</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-7.2">7.2</a>.  Informative References  . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-13">13</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-A">Appendix A</a>.  Design considerations, rejected alternatives . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-14">14</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B">Appendix B</a>.  Change log . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-14">14</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.1">B.1</a>.  Changes from alvestrand-rtcweb-msid-00 to -01 . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-14">14</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.2">B.2</a>.  Changes from alvestrand-rtcweb-msid-01 to -02 . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-15">15</a>
+     B.3.  Changes from alvestrand-rtcweb-msid-02 to mmusic-msid-00   15
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.4">B.4</a>.  Changes from alvestrand-mmusic-msid-00 to -01 . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-15">15</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.5">B.5</a>.  Changes from alvestrand-mmusic-msid-01 to -02 . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-15">15</a>
+     B.6.  Changes from alvestrand-mmusic-msid-02 to ietf-mmusic-00   15
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.7">B.7</a>.  Changes from mmusic-msid-00 to -01  . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-16">16</a>
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 2]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-3"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.8">B.8</a>.  Changes from mmusic-msid-01 to -02  . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-16">16</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.9">B.9</a>.  Changes from mmusic-msid-02 to -03  . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-16">16</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.10">B.10</a>. Changes from mmusic-msid-03 to -04  . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-16">16</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.11">B.11</a>. Changes from -04 to -05 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-16">16</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.12">B.12</a>. Changes from -05 to -06 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-16">16</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.13">B.13</a>. Changes from -06 to -07 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-17">17</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.14">B.14</a>. Changes from -07 to -08 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-17">17</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.15">B.15</a>. Changes from -08 to -09 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-17">17</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.16">B.16</a>. Changes from -09 to -10 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-18">18</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.17">B.17</a>. Changes from -10 to -11 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-18">18</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.18">B.18</a>. Changes from -11 to -12 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-18">18</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.19">B.19</a>. Changes from -12 to -13 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-18">18</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.20">B.20</a>. Changes from -13 to -14 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-18">18</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.21">B.21</a>. Changes from -14 to -15 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-18">18</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.22">B.22</a>. Changes from -15 to -16 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-19">19</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.23">B.23</a>. Changes from -16 to -17 . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-19">19</a>
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#page-19">19</a>
+
+<span class="h2"><a class="selflink" id="section-1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1">1</a>.  Introduction</span>
+
+<span class="h3"><a class="selflink" id="section-1.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.1">1.1</a>.  Terminology</span>
+
+   This document uses terminology from [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-rtcweb-overview">I-D.ietf-rtcweb-overview</a>].  In
+   addition, the following terms are used as described below:
+
+   RTP stream  Defined in [<a href="https://datatracker.ietf.org/doc/html/rfc7656" title="&quot;A Taxonomy of Semantics and Mechanisms for Real-Time Transport Protocol (RTP) Sources&quot;">RFC7656</a>] as a stream of RTP packets
+      containing media data.
+
+   MediaStream  Defined in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.CR-mediacapture-streams-20160519">W3C.CR-mediacapture-streams-20160519</a>]as an
+      assembly of MediaStreamTracks.  One MediaStream can contain
+      multiple MediaStreamTracks, of the same or different types.
+
+   MediaStreamTrack  Defined in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.CR-mediacapture-streams-20160519">W3C.CR-mediacapture-streams-20160519</a>]as
+      an unidirectional flow of media data (either audio or video, but
+      not both).  Corresponds to the [<a href="https://datatracker.ietf.org/doc/html/rfc7656" title="&quot;A Taxonomy of Semantics and Mechanisms for Real-Time Transport Protocol (RTP) Sources&quot;">RFC7656</a>] term "Source Stream".
+      One MediaStreamTrack can be present in zero, one or multiple
+      MediaStreams.
+
+   Media description  Defined in [<a href="https://datatracker.ietf.org/doc/html/rfc4566" title="&quot;SDP: Session Description Protocol&quot;">RFC4566</a>] as a set of fields starting
+      with an "m=" field and terminated by eitehr the next "m=" field or
+      by the end of the session description.
+
+<span class="h3"><a class="selflink" id="section-1.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.2">1.2</a>.  Structure Of This Document</span>
+
+   This document adds a new Session Description Protocol (SDP) [<a href="https://datatracker.ietf.org/doc/html/rfc4566" title="&quot;SDP: Session Description Protocol&quot;">RFC4566</a>]
+   mechanism that can attach identifiers to the RTP streams and
+   attaching identifiers to the groupings they form.  It is designed for
+   use with WebRTC[I-D.ietf-rtcweb-overview] .
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 3]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-4"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.3">Section 1.3</a> gives the background on why a new mechanism is needed.
+
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-2">Section 2</a> gives the definition of the new mechanism.
+
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3">Section 3</a> gives the necessary semantic information and procedures for
+   using the msid attribute to signal the association of
+   MediaStreamTracks to MediaStreams in support of the WebRTC API
+   [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.WD-webrtc-20160531">W3C.WD-webrtc-20160531</a>].
+
+<span class="h3"><a class="selflink" id="section-1.3" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.3">1.3</a>.  Why A New Mechanism Is Needed</span>
+
+   When media is carried by RTP [<a href="https://datatracker.ietf.org/doc/html/rfc3550" title="&quot;RTP: A Transport Protocol for Real-Time Applications&quot;">RFC3550</a>], each RTP stream is
+   distinguished inside an RTP session by its SSRC; each RTP session is
+   distinguished from all other RTP sessions by being on a different
+   transport association (strictly speaking, 2 transport associations,
+   one used for RTP and one used for RTCP, unless RTP/RTCP multiplexing
+   [<a href="https://datatracker.ietf.org/doc/html/rfc5761" title="&quot;Multiplexing RTP Data and Control Packets on a Single Port&quot;">RFC5761</a>] is used).
+
+   SDP [<a href="https://datatracker.ietf.org/doc/html/rfc4566" title="&quot;SDP: Session Description Protocol&quot;">RFC4566</a>] gives a format for describing an SDP session that can
+   contain multiple media descriptions.  According to the model used in
+   [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-rtcweb-jsep">I-D.ietf-rtcweb-jsep</a>], each media description describes exactly one
+   media source, and if multiple media sources are carried in an RTP
+   session, this is signalled using BUNDLE
+   [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-mmusic-sdp-bundle-negotiation">I-D.ietf-mmusic-sdp-bundle-negotiation</a>]; if BUNDLE is not used, each
+   media source is carried in its own RTP session.
+
+   The SDP grouping framework [<a href="https://datatracker.ietf.org/doc/html/rfc5888" title="&quot;The Session Description Protocol (SDP) Grouping Framework&quot;">RFC5888</a>] can be used to group media
+   descriptions.  However, for the use case of WebRTC, there is the need
+   for an application to specify some application-level information
+   about the association between the media description and the group.
+   This is not possible using the SDP grouping framework.
+
+<span class="h3"><a class="selflink" id="section-1.4" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-1.4">1.4</a>.  The WEBRTC MediaStream</span>
+
+   The W3C WebRTC API specification [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.WD-webrtc-20160531">W3C.WD-webrtc-20160531</a>] specifies
+   that communication between WebRTC entities is done via MediaStreams,
+   which contain MediaStreamTracks.  A MediaStreamTrack is generally
+   carried using a single SSRC in an RTP session (forming an RTP stream.
+   The collision of terminology is unfortunate.)  There might possibly
+   be additional SSRCs, possibly within additional RTP sessions, in
+   order to support functionality like forward error correction or
+   simulcast.  These additional SSRCs are not affected by this
+   specification.
+
+   MediaStreamTracks are unidirectional; they carry media on one
+   direction only.
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 4]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-5"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   In the RTP specification, RTP streams are identified using the SSRC
+   field.  Streams are grouped into RTP Sessions, and also carry a
+   CNAME.  Neither CNAME nor RTP session correspond to a MediaStream.
+   Therefore, the association of an RTP stream to MediaStreams need to
+   be explicitly signaled.
+
+   WebRTC defines a mapping (documented in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-rtcweb-jsep">I-D.ietf-rtcweb-jsep</a>]) where
+   one SDP media description is used to describe each MediaStreamTrack,
+   and the BUNDLE mechanism [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-mmusic-sdp-bundle-negotiation">I-D.ietf-mmusic-sdp-bundle-negotiation</a>] is
+   used to group MediaStreamTracks into RTP sessions.  Therefore, the
+   need is to specify the ID of a MediaStreamTrack and its associated
+   MediaStream for each media description, which can be accomplished
+   with a media-level SDP attribute.
+
+   This usage is described in <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3">Section 3</a>.
+
+<span class="h2"><a class="selflink" id="section-2" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-2">2</a>.  The Msid Mechanism</span>
+
+   This document defines a new SDP [<a href="https://datatracker.ietf.org/doc/html/rfc4566" title="&quot;SDP: Session Description Protocol&quot;">RFC4566</a>] media-level "msid"
+   attribute.  This new attribute allows endpoints to associate RTP
+   streams that are described in different media descriptions with the
+   same MediaStreams as defined in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.WD-webrtc-20160531">W3C.WD-webrtc-20160531</a>], and to
+   carry an identifier for each MediaStreamTrack in its "appdata" field.
+
+   The value of the "msid" attribute consists of an identifier and an
+   optional "appdata" field.
+
+   The name of the attribute is "msid".
+
+   The value of the attribute is specified by the following ABNF
+   [<a href="https://datatracker.ietf.org/doc/html/rfc5234" title="&quot;Augmented BNF for Syntax Specifications: ABNF&quot;">RFC5234</a>] grammar:
+
+     msid-value = msid-id [ SP msid-appdata ]
+     msid-id = 1*64token-char ; see <a href="https://datatracker.ietf.org/doc/html/rfc4566">RFC 4566</a>
+     msid-appdata = 1*64token-char  ; see <a href="https://datatracker.ietf.org/doc/html/rfc4566">RFC 4566</a>
+
+
+   An example msid value for a group with the identifier "examplefoo"
+   and application data "examplebar" might look like this:
+
+     msid:examplefoo examplebar
+
+
+   The identifier is a string of ASCII characters that are legal in a
+   "token", consisting of between 1 and 64 characters.
+
+   Application data (msid-appdata) is carried on the same line as the
+   identifier, separated from the identifier by a space.
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 5]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-6"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   The identifier (msid-id) uniquely identifies a group within the scope
+   of an SDP description.
+
+   There may be multiple msid attributes in a single media description.
+   This represents the case where a single MediaStreamTrack is present
+   in multiple MediaStreams; the value of "msid-appdata" MUST be
+   identical for all occurences.
+
+   Multiple media descriptions with the same value for msid-id and msid-
+   appdata are not permitted.
+
+   Endpoints can update the associations between RTP streams as
+   expressed by msid attributes at any time.
+
+   The msid attributes depend on the association of RTP streams with
+   media descriptions, but does not depend on the association of RTP
+   streams with RTP transports; therefore, its mux category (as defined
+   in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-mmusic-sdp-mux-attributes">I-D.ietf-mmusic-sdp-mux-attributes</a>]) is NORMAL - the process of
+   deciding on MSID attributes doesn't have to take into consideration
+   whether the RTP streams are bundled or not.
+
+<span class="h2"><a class="selflink" id="section-3" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3">3</a>.  Procedures</span>
+
+   This section describes the procedures for associating media
+   descriptions representing MediaStreamTracks within MediaStreams as
+   defined in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.WD-webrtc-20160531">W3C.WD-webrtc-20160531</a>].
+
+   In the Javascript API described in that specification, each
+   MediaStream and MediaStreamTrack has an "id" attribute, which is a
+   DOMString.
+
+   The value of the "msid-id" field in the msid consists of the "id"
+   attribute of a MediaStream, as defined in the MediaStream's WebIDL
+   specification.  The special value "-" indicates "no MediaStream".
+
+   The value of the "msid-appdata" field in the msid, if present,
+   consists of the "id" attribute of a MediaStreamTrack, as defined in
+   the MediaStreamTrack's WebIDL specification.
+
+   When an SDP session description is updated, a specific "msid-id"
+   value continues to refer to the same MediaStream, and a specific
+   "msid-appdata" to the same MediaStreamTrack.  There is no memory
+   apart from the currently valid SDP descriptions; if an msid
+   "identifier" value disappears from the SDP and appears in a later
+   negotiation, it will be taken to refer to a new MediaStream.
+
+   If the MSID attribute does not conform to the ABNF given here, it
+   SHOULD be ignored.
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 6]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-7"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   The following is a high level description of the rules for handling
+   SDP updates.  Detailed procedures are in <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2">Section 3.2</a>.
+
+   o  When a new msid "identifier" value occurs in a session
+      description, and it is not "-", the recipient can signal to its
+      application that a new MediaStream has been added.
+
+   o  When a session description is updated to have media descriptions
+      with an msid "identifier" value, with one or more different
+      "appdata" values, the recipient can signal to its application that
+      new MediaStreamTracks have been added, and which MediaStream it
+      has been added to.  This is done for each different msid
+      "identifier" value, including the special value "-", which
+      indicates that a MediaStreamTrack has been added with no
+      corresponding MediaStream.
+
+   o  If an msid "identifier" value with no "appdata" value appears, it
+      means that the sender did not inform the recipient of the desired
+      identifier of the MediaStreamTrack, and the recipient will assign
+      the "id" value of the created MediaStreamTrack on its own.  All
+      msid in a media section that do not have an "appdata" value are
+      assumed to refer to the same MediaStreamTrack.
+
+   o  When a session description is updated to no longer list any msid
+      attribute on a specific media description, the recipient can
+      signal to its application that the corresponding MediaStreamTrack
+      has ended.
+
+   In addition to signaling that the track is ended when its msid
+   attribute disappears from the SDP, the track will also be signaled as
+   being ended when all associated SSRCs have disappeared by the rules
+   of <a href="https://datatracker.ietf.org/doc/html/rfc3550#section-6.3.4">[RFC3550] section&nbsp;6.3.4</a> (BYE packet received) and 6.3.5 (timeout),
+   or when the corresponding media description is disabled by setting
+   the port number to zero.  Changing the direction of the media
+   description (by setting "sendonly", "recvonly" or "inactive"
+   attributes) will not end the MediaStreamTrack.
+
+   The association between SSRCs and media descriptions is specified in
+   [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-rtcweb-jsep">I-D.ietf-rtcweb-jsep</a>].
+
+<span class="h3"><a class="selflink" id="section-3.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.1">3.1</a>.  Handling of non-signalled tracks</span>
+
+   Entities that do not use msid will not send msid.  This means that
+   there will be some incoming RTP packets that the recipient has no
+   predefined MediaStream id value for.
+
+   Note that this handling is triggered by incoming RTP packets, not by
+   SDP negotiation.
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 7]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-8"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   When MSID is used, the only time this can happen is when, after the
+   initial negotiation, a negotiation is performed where the answerer
+   adds a MediaStreamTrack to an already established connection and
+   starts sending data before the answer is received by the offerer.
+   For initial negotiation, packets won't flow until the ICE candidates
+   and fingerprints have been exchanged, so this is not an issue.
+
+   The recipient of those packets will perform the following steps:
+
+   o  When RTP packets are initially received, it will create an
+      appropriate MediaStreamTrack based on the type of the media
+      (carried in PayloadType), and use the MID RTP header extension
+      [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-mmusic-sdp-bundle-negotiation">I-D.ietf-mmusic-sdp-bundle-negotiation</a>] (if present) to associate
+      the RTP packets with a specific media section.
+
+   o  If the connection is not in the RTCSignalingState "stable", it
+      will wait at this point.
+
+   o  When the connection is in the RTCSignalingState "stable", it will
+      assign ID values.
+
+   The following steps are performed to assign ID values:
+
+   o  If there is an msid attribute, it will use that attribute to
+      populate the "id" field of the MediaStreamTrack and associated
+      MediaStreams, as described above.
+
+   o  If there is no msid attribute, the identifier of the
+      MediaStreamTrack will be set to a randomly generated string, and
+      it will be signalled as being part of a MediaStream with the
+      WebIDL "label" attribute set to "Non-WebRTC stream".
+
+   o  After deciding on the "id" field to be applied to the
+      MediaStreamTrack, the track will be signalled to the user.
+
+   The process above may involve a considerable amount of buffering
+   before the stable state is entered.  If the implementation wishes to
+   limit this buffering, it MUST signal to the user that media has been
+   discarded.
+
+   It follows from the above that MediaStreamTracks in the "default"
+   MediaStream cannot be closed by removing the msid attribute; the
+   application must instead signal these as closed when the SSRC
+   disappears according to the rules of <a href="https://datatracker.ietf.org/doc/html/rfc3550#section-6.3.4">RFC 3550 section&nbsp;6.3.4</a> and 6.3.5
+   or by disabling the media description by setting its port to zero.
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 8]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-9"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+<span class="h3"><a class="selflink" id="section-3.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2">3.2</a>.  Detailed Offer/Answer Procedures</span>
+
+   These procedures are given in terms of <a href="https://datatracker.ietf.org/doc/html/rfc3264">RFC 3264</a>-recommended sections.
+   They describe the actions to be taken in terms of MediaStreams and
+   MediaStreamTracks; they do not include event signalling inside the
+   application, which is described in JSEP.
+
+<span class="h4"><a class="selflink" id="section-3.2.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.1">3.2.1</a>.  Generating the initial offer</span>
+
+   For each media description in the offer, if there is an associated
+   outgoing MediaStreamTrack, the offerer adds one "a=msid" attribute to
+   the section for each MediaStream with which the MediaStreamTrack is
+   associated.  The "identifier" field of the attribute is set to the
+   WebIDL "id" attribute of the MediaStream.  If the sender wishes to
+   signal identifiers for the MediaStreamTracks, the "appdata" field is
+   set to the WebIDL "id" attribute of the MediaStreamTrack; otherwise
+   it is omitted.
+
+<span class="h4"><a class="selflink" id="section-3.2.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.2">3.2.2</a>.  Answerer processing of the Offer</span>
+
+   For each media description in the offer, and for each "a=msid"
+   attribute in the media description, the receiver of the offer will
+   perform the following steps:
+
+   o  Extract the "appdata" field of the "a=msid" attribute, if present.
+
+   o  If the "appdata" field exists: Check if a MediaStreamTrack with
+      the same WebIDL "id" attribute as the "appdata" field already
+      exists, and is not in the "ended" state.  If it is not found,
+      create it.
+
+   o  If the "appdata" field does not exist, and a MediaStreamTrack is
+      not associated with this media section, create one and associate
+      it with this media section for future use.
+
+   o  Extract the "identifier" field of the "a=msid" attribte.
+
+   o  Check if a MediaStream with the same WebIDL "id" attribute already
+      exists.  If not, create it.
+
+   o  Add the MediaStreamTrack to the MediaStream
+
+   o  Signal to the user that a new MediaStreamTrack is available.
+
+
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                 [Page 9]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-10"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+<span class="h4"><a class="selflink" id="section-3.2.3" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.3">3.2.3</a>.  Generating the answer</span>
+
+   The answer is generated in exactly the same manner as the offer.
+   "a=msid" values in the offer do not influence the answer.
+
+<span class="h4"><a class="selflink" id="section-3.2.4" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.4">3.2.4</a>.  Offerer processing of the answer</span>
+
+   The answer is processed in exactly the same manner as the offer.
+
+<span class="h4"><a class="selflink" id="section-3.2.5" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.2.5">3.2.5</a>.  Modifying the session</span>
+
+   On subsequent exchanges, precisely the same procedure as for the
+   initial offer/answer is followed, but with one additional step in the
+   parsing of the offer and answer:
+
+   o  For each MediaStreamTrack that has been created as a result of
+      previous offer/answer exchanges, and is not in the "ended" state,
+      check to see if there is still an "a=msid" attribute in the
+      present SDP whose "appdata" field is the same as the WebIDL "id"
+      attribute of the track.
+
+   o  If no such attribute is found, stop the MediaStreamTrack.  This
+      will set its state to "ended".
+
+<span class="h3"><a class="selflink" id="section-3.3" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.3">3.3</a>.  Example SDP description</span>
+
+   The following SDP description shows the representation of a WebRTC
+   PeerConnection with two MediaStreams, each of which has one audio and
+   one video track.  Only the parts relevant to the MSID are shown.
+
+   Line wrapping, empty lines and comments are added for clarity.  They
+   are not part of the SDP.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 10]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-11"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   # First MediaStream - id is 4701...
+   m=audio 56500 UDP/TLS/RTP/SAVPF 96 0 8 97 98
+   a=msid:47017fee-b6c1-4162-929c-a25110252400
+          f83006c5-a0ff-4e0a-9ed9-d3e6747be7d9
+
+   m=video 56502 UDP/TLS/RTP/SAVPF 100 101
+   a=msid:47017fee-b6c1-4162-929c-a25110252400
+          b47bdb4a-5db8-49b5-bcdc-e0c9a23172e0
+
+   # Second MediaStream - id is 6131....
+   m=audio 56503 UDP/TLS/RTP/SAVPF 96 0 8 97 98
+   a=msid:61317484-2ed4-49d7-9eb7-1414322a7aae
+          b94006c5-cade-4e0a-9ed9-d3e6747be7d9
+
+   m=video 56504 UDP/TLS/RTP/SAVPF 100 101
+   a=msid:61317484-2ed4-49d7-9eb7-1414322a7aae
+          f30bdb4a-1497-49b5-3198-e0c9a23172e0
+
+
+
+<span class="h2"><a class="selflink" id="section-4" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-4">4</a>.  IANA Considerations</span>
+
+<span class="h3"><a class="selflink" id="section-4.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-4.1">4.1</a>.  Attribute registration in existing registries</span>
+
+   This document requests IANA to register the "msid" attribute in the
+   "att-field (media level only)" registry within the SDP parameters
+   registry, according to the procedures of [<a href="https://datatracker.ietf.org/doc/html/rfc4566" title="&quot;SDP: Session Description Protocol&quot;">RFC4566</a>]
+
+   The required information for "msid" is:
+
+   o  Contact name, email: IETF, contacted via mmusic@ietf.org, or a
+      successor address designated by IESG
+
+   o  Attribute name: msid
+
+   o  Long-form attribute name: MediaStream group Identifier
+
+   o  Subject to charset: The attribute value contains only ASCII
+      characters, and is therefore not subject to the charset attribute.
+
+   o  Purpose: The attribute can be used to signal the relationship
+      between a WebRTC MediaStream and a set of media descriptions.
+
+   o  Appropriate values: The details of appropriate values are given in
+      RFC XXXX.
+
+   o  MUX category: NORMAL
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 11]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-12"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   The MUX category is defined in [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-I-D.ietf-mmusic-sdp-mux-attributes">I-D.ietf-mmusic-sdp-mux-attributes</a>].
+
+<span class="h2"><a class="selflink" id="section-5" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-5">5</a>.  Security Considerations</span>
+
+   An adversary with the ability to modify SDP descriptions has the
+   ability to switch around tracks between MediaStreams.  This is a
+   special case of the general security consideration that modification
+   of SDP descriptions needs to be confined to entities trusted by the
+   application.
+
+   If implementing buffering as mentioned in <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-3.1">Section 3.1</a>, the amount of
+   buffering should be limited to avoid memory exhaustion attacks.
+
+   Careless generation of identifiers can leak privacy-sensitive
+   information.  [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#ref-W3C.CR-mediacapture-streams-20160519">W3C.CR-mediacapture-streams-20160519</a>] recommends that
+   identifiers are generated using UUID class 3 or 4 as a basis, which
+   avoids such leakage.
+
+   No other attacks have been identified that depend on this mechanism.
+
+<span class="h2"><a class="selflink" id="section-6" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-6">6</a>.  Acknowledgements</span>
+
+   This note is based on sketches from, among others, Justin Uberti and
+   Cullen Jennings.
+
+   Special thanks to Flemming Andreassen, Ben Campbell, Miguel Garcia,
+   Martin Thomson, Ted Hardie, Adam Roach, Magnus Westerlund, Alissa
+   Cooper, Sue Hares and Paul Kyzivat for their work in reviewing this
+   draft, with many specific language suggestions.
+
+<span class="h2"><a class="selflink" id="section-7" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-7">7</a>.  References</span>
+
+<span class="h3"><a class="selflink" id="section-7.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-7.1">7.1</a>.  Normative References</span>
+
+   [<a id="ref-I-D.ietf-mmusic-sdp-mux-attributes">I-D.ietf-mmusic-sdp-mux-attributes</a>]
+              Nandakumar, S., "A Framework for SDP Attributes when
+              Multiplexing", <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-sdp-mux-attributes-12">draft-ietf-mmusic-sdp-mux-attributes-12</a>
+              (work in progress), January 2016.
+
+   [<a id="ref-I-D.ietf-rtcweb-jsep">I-D.ietf-rtcweb-jsep</a>]
+              Uberti, J., Jennings, C., and E. Rescorla, "Javascript
+              Session Establishment Protocol", <a href="https://datatracker.ietf.org/doc/html/draft-ietf-rtcweb-jsep-14">draft-ietf-rtcweb-jsep-14</a>
+              (work in progress), March 2016.
+
+   [<a id="ref-RFC2119">RFC2119</a>]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", <a href="https://datatracker.ietf.org/doc/html/bcp14">BCP 14</a>, <a href="https://datatracker.ietf.org/doc/html/rfc2119">RFC 2119</a>, DOI 10.17487/
+              <a href="https://datatracker.ietf.org/doc/html/rfc2119">RFC2119</a>, March 1997,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc2119">http://www.rfc-editor.org/info/rfc2119</a>&gt;.
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 12]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-13"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   [<a id="ref-RFC3550">RFC3550</a>]  Schulzrinne, H., Casner, S., Frederick, R., and V.
+              Jacobson, "RTP: A Transport Protocol for Real-Time
+              Applications", STD 64, <a href="https://datatracker.ietf.org/doc/html/rfc3550">RFC 3550</a>, DOI 10.17487/RFC3550,
+              July 2003, &lt;<a href="https://www.rfc-editor.org/info/rfc3550">http://www.rfc-editor.org/info/rfc3550</a>&gt;.
+
+   [<a id="ref-RFC4566">RFC4566</a>]  Handley, M., Jacobson, V., and C. Perkins, "SDP: Session
+              Description Protocol", <a href="https://datatracker.ietf.org/doc/html/rfc4566">RFC 4566</a>, DOI 10.17487/RFC4566,
+              July 2006, &lt;<a href="https://www.rfc-editor.org/info/rfc4566">http://www.rfc-editor.org/info/rfc4566</a>&gt;.
+
+   [<a id="ref-RFC5234">RFC5234</a>]  Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax
+              Specifications: ABNF", STD 68, <a href="https://datatracker.ietf.org/doc/html/rfc5234">RFC 5234</a>, DOI 10.17487/
+              <a href="https://datatracker.ietf.org/doc/html/rfc5234">RFC5234</a>, January 2008,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5234">http://www.rfc-editor.org/info/rfc5234</a>&gt;.
+
+   [<a id="ref-W3C.CR-mediacapture-streams-20160519">W3C.CR-mediacapture-streams-20160519</a>]
+              Burnett, D., Bergkvist, A., Jennings, C., Narayanan, A.,
+              and B. Aboba, "Media Capture and Streams", World Wide Web
+              Consortium CR CR-mediacapture-streams-20160519, May 2016,
+              &lt;<a href="https://www.w3.org/TR/2016/CR-mediacapture-streams-20160519">http://www.w3.org/TR/2016/</a>
+              <a href="https://www.w3.org/TR/2016/CR-mediacapture-streams-20160519">CR-mediacapture-streams-20160519</a>&gt;.
+
+   [<a id="ref-W3C.WD-webrtc-20160531">W3C.WD-webrtc-20160531</a>]
+              Wilson, C. and J. Kalliokoski, "WebRTC 1.0: Real-time
+              Communication Between Browsers", World Wide Web Consortium
+              WD WD-webrtc-20160531, May 2016,
+              &lt;<a href="https://www.w3.org/TR/2016/WD-webrtc-20160531">http://www.w3.org/TR/2016/WD-webrtc-20160531</a>&gt;.
+
+<span class="h3"><a class="selflink" id="section-7.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#section-7.2">7.2</a>.  Informative References</span>
+
+   [<a id="ref-I-D.ietf-mmusic-sdp-bundle-negotiation">I-D.ietf-mmusic-sdp-bundle-negotiation</a>]
+              Holmberg, C., Alvestrand, H., and C. Jennings,
+              "Negotiating Media Multiplexing Using the Session
+              Description Protocol (SDP)", <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-sdp-bundle-negotiation-29">draft-ietf-mmusic-sdp-bundle-</a>
+              <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-sdp-bundle-negotiation-29">negotiation-29</a> (work in progress), April 2016.
+
+   [<a id="ref-I-D.ietf-rtcweb-overview">I-D.ietf-rtcweb-overview</a>]
+              Alvestrand, H., "Overview: Real Time Protocols for
+              Browser-based Applications", <a href="https://datatracker.ietf.org/doc/html/draft-ietf-rtcweb-overview-15">draft-ietf-rtcweb-overview-15</a>
+              (work in progress), January 2016.
+
+   [<a id="ref-RFC5761">RFC5761</a>]  Perkins, C. and M. Westerlund, "Multiplexing RTP Data and
+              Control Packets on a Single Port", <a href="https://datatracker.ietf.org/doc/html/rfc5761">RFC 5761</a>, DOI 10.17487/
+              <a href="https://datatracker.ietf.org/doc/html/rfc5761">RFC5761</a>, April 2010,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5761">http://www.rfc-editor.org/info/rfc5761</a>&gt;.
+
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 13]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-14"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   [<a id="ref-RFC5888">RFC5888</a>]  Camarillo, G. and H. Schulzrinne, "The Session Description
+              Protocol (SDP) Grouping Framework", <a href="https://datatracker.ietf.org/doc/html/rfc5888">RFC 5888</a>, DOI
+              10.17487/RFC5888, June 2010,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5888">http://www.rfc-editor.org/info/rfc5888</a>&gt;.
+
+   [<a id="ref-RFC7656">RFC7656</a>]  Lennox, J., Gross, K., Nandakumar, S., Salgueiro, G., and
+              B. Burman, Ed., "A Taxonomy of Semantics and Mechanisms
+              for Real-Time Transport Protocol (RTP) Sources", <a href="https://datatracker.ietf.org/doc/html/rfc7656">RFC 7656</a>,
+              DOI 10.17487/RFC7656, November 2015,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc7656">http://www.rfc-editor.org/info/rfc7656</a>&gt;.
+
+<span class="h2"><a class="selflink" id="appendix-A" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-A">Appendix A</a>.  Design considerations, rejected alternatives</span>
+
+   One suggested mechanism has been to use CNAME instead of a new
+   attribute.  This was abandoned because CNAME identifies a
+   synchronization context; one can imagine both wanting to have tracks
+   from the same synchronization context in multiple MediaStreams and
+   wanting to have tracks from multiple synchronization contexts within
+   one MediaStream (but the latter is impossible, since a MediaStream is
+   defined to impose synchronization on its members).
+
+   Another suggestion has been to put the msid value within an attribute
+   of RTCP SR (sender report) packets.  This doesn't offer the ability
+   to know that you have seen all the tracks currently configured for a
+   MediaStream.
+
+   A suggestion that survived for a number of drafts was to define
+   "msid" as a generic mechanism, where the particular semantics of this
+   usage of the mechanism would be defined by an "a=wms-semantic"
+   attribute.  This was removed in April 2015.
+
+<span class="h2"><a class="selflink" id="appendix-B" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B">Appendix B</a>.  Change log</span>
+
+   This appendix should be deleted before publication as an RFC.
+
+<span class="h3"><a class="selflink" id="appendix-B.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.1">B.1</a>.  Changes from alvestrand-rtcweb-msid-00 to -01</span>
+
+   Added track identifier.
+
+   Added inclusion-by-reference of <a href="https://datatracker.ietf.org/doc/html/draft-lennox-mmusic-source-selection">draft-lennox-mmusic-source-selection</a>
+   for track muting.
+
+   Some rewording.
+
+
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 14]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-15"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+<span class="h3"><a class="selflink" id="appendix-B.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.2">B.2</a>.  Changes from alvestrand-rtcweb-msid-01 to -02</span>
+
+   Split document into sections describing a generic grouping mechanism
+   and sections describing the application of this grouping mechanism to
+   the WebRTC MediaStream concept.
+
+   Removed the mechanism for muting tracks, since this is not central to
+   the MSID mechanism.
+
+<span class="h3"><a class="selflink" id="appendix-B.3" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.3">B.3</a>.  Changes from alvestrand-rtcweb-msid-02 to mmusic-msid-00</span>
+
+   Changed the draft name according to the wishes of the MMUSIC group
+   chairs.
+
+   Added text indicting cases where it's appropriate to have the same
+   appdata for multiple SSRCs.
+
+   Minor textual updates.
+
+<span class="h3"><a class="selflink" id="appendix-B.4" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.4">B.4</a>.  Changes from alvestrand-mmusic-msid-00 to -01</span>
+
+   Increased the amount of explanatory text, much based on a review by
+   Miguel Garcia.
+
+   Removed references to BUNDLE, since that spec is under active
+   discussion.
+
+   Removed distinguished values of the MSID identifier.
+
+<span class="h3"><a class="selflink" id="appendix-B.5" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.5">B.5</a>.  Changes from alvestrand-mmusic-msid-01 to -02</span>
+
+   Changed the order of the "msid-semantic: " attribute's value fields
+   and allowed multiple identifiers.  This makes the attribute useful as
+   a marker for "I understand this semantic".
+
+   Changed the syntax for "identifier" and "appdata" to be "token".
+
+   Changed the registry for the "msid-semantic" attribute values to be a
+   new registry, based on advice given in Atlanta.
+
+<span class="h3"><a class="selflink" id="appendix-B.6" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.6">B.6</a>.  Changes from alvestrand-mmusic-msid-02 to ietf-mmusic-00</span>
+
+   Updated terminology to refer to m-lines rather than RTP sessions when
+   discussing SDP formats and the ability of other linking mechanisms to
+   refer to SSRCs.
+
+   Changed the "default" mechanism to return independent streams after
+   considering the synchronization problem.
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 15]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-16"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   Removed the space from between "msid-semantic" and its value, to be
+   consistent with <a href="https://datatracker.ietf.org/doc/html/rfc5576">RFC 5576</a>.
+
+<span class="h3"><a class="selflink" id="appendix-B.7" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.7">B.7</a>.  Changes from mmusic-msid-00 to -01</span>
+
+   Reworked msid mechanism to be a per-m-line attribute, to align with
+   <a href="https://datatracker.ietf.org/doc/html/draft-roach-mmusic-unified-plan">draft-roach-mmusic-unified-plan</a>.
+
+<span class="h3"><a class="selflink" id="appendix-B.8" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.8">B.8</a>.  Changes from mmusic-msid-01 to -02</span>
+
+   Corrected several missed cases where the word "ssrc" was not changed
+   to "M-line".
+
+   Added pointer to unified-plan (which should be moved to point to
+   -jsep)
+
+   Removed suggestion that ssrc-group attributes can be used with "msid-
+   semantic", it is now only the msid-semantic registry.
+
+<span class="h3"><a class="selflink" id="appendix-B.9" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.9">B.9</a>.  Changes from mmusic-msid-02 to -03</span>
+
+   Corrected even more cases where the word "ssrc" was not changed to
+   "M-line".
+
+   Added the functionality of using an asterisk (*) in the msid-semantic
+   line, in order to remove the need for listing all msids in the msid-
+   semantic line whne only one msid-semantic is in use.
+
+   Removed some now-unnecessary text.
+
+<span class="h3"><a class="selflink" id="appendix-B.10" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.10">B.10</a>.  Changes from mmusic-msid-03 to -04</span>
+
+   Changed title to reflect focus on WebRTC MediaStreams
+
+   Added a section on receiver-side media stream control, using the
+   "msid-control" attribute.
+
+<span class="h3"><a class="selflink" id="appendix-B.11" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.11">B.11</a>.  Changes from -04 to -05</span>
+
+   Removed the msid-control section after WG discussion.
+
+   Removed some text that seemed only to pertain to resolved issues.
+
+<span class="h3"><a class="selflink" id="appendix-B.12" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.12">B.12</a>.  Changes from -05 to -06</span>
+
+   Addressed issues found in Fleming Andreassen's review
+
+   Referenced JSEP rather than unified-plan for the M-line mapping model
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 16]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-17"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   Relaxed MSID definition to allow "token-char" in values rather than
+   a-z 0-9 hyphen; tightened ABNF by adding length description to it.
+
+   Deleted discussion of abandoned alternatives, as part of preparing
+   for publication.
+
+   Added a "detailed procedures" section to the WMS semantics
+   description.
+
+   Added IANA registration of the "msid-semantic" attribute.
+
+<span class="h3"><a class="selflink" id="appendix-B.13" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.13">B.13</a>.  Changes from -06 to -07</span>
+
+   Changed terminology from referring to "WebRTC device" to referring to
+   "entities that implement the WMS semantic".
+
+   Changed names for ABNF constructions based on a proposal by Paul
+   Kyzivat.
+
+   Included a section on generic offer/answer semantics.
+
+<span class="h3"><a class="selflink" id="appendix-B.14" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.14">B.14</a>.  Changes from -07 to -08</span>
+
+   Removed <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B">Appendix B</a> that described the (now obsolete) ssrc-specific
+   usage of MSID.
+
+   Adopted a restructuring of the IANA section based on a suggestion
+   from Martin Thomson.
+
+   A number of text and ABNF clarifications based on suggestions from
+   Ted Hardie, Paul Kyzivat and Adam Roach.
+
+   Changed the "non-signalled track handling" to create a single stream
+   with multiple tracks again, according to discussions at TPAC in
+   November 2014
+
+<span class="h3"><a class="selflink" id="appendix-B.15" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.15">B.15</a>.  Changes from -08 to -09</span>
+
+   Removed "wms-semantic" and all mention of multiple semantics for
+   msid, as agreed at the Dallas IETF, March 2015.
+
+   Addressed a number of review comments from Fleming Andresen and
+   others.
+
+   Changed the term "m-line" to "media description", since that is the
+   term used in <a href="https://datatracker.ietf.org/doc/html/rfc4566">RFC 4566</a>.
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 17]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-18"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+   Tried to make sure this document does not describe the API to the
+   application.
+
+<span class="h3"><a class="selflink" id="appendix-B.16" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.16">B.16</a>.  Changes from -09 to -10</span>
+
+   Addressed review comments from Paul Kyzivat.
+
+<span class="h3"><a class="selflink" id="appendix-B.17" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.17">B.17</a>.  Changes from -10 to -11</span>
+
+   Defined the semantics of multiple MSIDs in a media section to be a
+   MediaStreamTrack present in multiple MediaStreams.
+
+   Made an explicit note that MediaStreamTracks are unidirectional.
+
+   Disallowed the option of sending multiple media sections with the
+   same msid (id and appdata identical).
+
+<span class="h3"><a class="selflink" id="appendix-B.18" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.18">B.18</a>.  Changes from -11 to -12</span>
+
+   Added mux-category to the IANA considerations section.
+
+<span class="h3"><a class="selflink" id="appendix-B.19" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.19">B.19</a>.  Changes from -12 to -13</span>
+
+   Modified registration description to delete dependency on -4566-bis
+
+<span class="h3"><a class="selflink" id="appendix-B.20" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.20">B.20</a>.  Changes from -13 to -14</span>
+
+   Addressed nits found in Gen-ART review
+
+<span class="h3"><a class="selflink" id="appendix-B.21" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.21">B.21</a>.  Changes from -14 to -15</span>
+
+   Added the terminology section.  Switched from "(RTP) media stream" to
+   "RTP stream" per <a href="https://datatracker.ietf.org/doc/html/rfc7656">RFC 7656</a>.
+
+   Added a mention of random ID generation to the security
+   considerations section.
+
+   Moved definition pointers for MediaStream and MediaStreamTrack to the
+   "mediacapture-streams" document.
+
+   Added note that syntactically invalid MSID fields SHOULD be ignored.
+
+   Various small changes based on review feedback during IESG
+   processing.
+
+
+
+
+
+
+
+<span class="grey">Alvestrand                Expires June 16, 2019                [Page 18]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-19"></span>
+<span class="grey">Internet-Draft                 MSID in SDP                 December 2018</span>
+
+
+<span class="h3"><a class="selflink" id="appendix-B.22" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.22">B.22</a>.  Changes from -15 to -16</span>
+
+   Added the special "-" value that means "no MediaStream".
+
+   Changed instances of a MediaStreamTrack being "closed" to saying it's
+   "ended", in accordance with WebRTC terminology.
+
+<span class="h3"><a class="selflink" id="appendix-B.23" href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-msid-17#appendix-B.23">B.23</a>.  Changes from -16 to -17</span>
+
+   Added text to allow omitting track identifiers, per JSEP PR #850
+
+Author's Address
+
+   Harald Alvestrand
+   Google
+   Kungsbron 2
+   Stockholm  11122
+   Sweden
+
+   Email: harald@alvestrand.no
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Alvestrand                Expires June 16, 2019                [Page 19]
+</pre></div>
+    </div>
+
+            
+        </div>
+        
+    
+    <script>
+        var legend_html = 'Color legend:<br> \
+        <table> \
+        <tr><td>Unknown:</td>                   <td><span class="bgwhite">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Draft:</td>                     <td><span class="bgred">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Informational:</td>             <td><span class="bgorange">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Experimental:</td>              <td><span class="bgyellow">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Best Common Practice:</td>      <td><span class="bgmagenta">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Proposed Standard:</td>         <td><span class="bgblue">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Draft Standard (old designation):</td> <td><span class="bgcyan">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Internet Standard:</td>         <td><span class="bggreen">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Historic:</td>                  <td><span class="bggrey">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Obsolete:</td>                  <td><span class="bgbrown">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        </table>';
+        function showLegend() {
+            var elem = document.getElementById('legend');
+            elem.innerHTML = legend_html
+            elem.style.visibility='visible';
+        }
+        function hideLegend() {
+            var elem = document.getElementById('legend');
+            elem.style.visibility='hidden';
+            elem.innerHTML = "";
+        }
+    </script>
+
+<script type="text/javascript">(function(){window['__CF$cv$params']={r:'70483be6bb35643b',m:'VEiGIESeoL6SgLAt7kionfcS1kUa1qjNiVtejYZlO1w-1651405139-0-AUcpbsAMZEZ+6hSwBWqTusCdgT1DvTs34ijdSMCe6p0Pj8Dwn2iRbE7xUf/yEX0qniTBHxWyy8y11GGwrpH6pNYwU5TQzfZ/uN7Vw9rJO0PztANfbar6eDmUuwkZAW6MCSyVv46ZVNlSh7tqXaAoYFS/4FV/f4Tt2C/h5JC2/Vvi',s:[0xe9447e0587,0x3ad5dd3bb4],}})();</script>
+</body></html>

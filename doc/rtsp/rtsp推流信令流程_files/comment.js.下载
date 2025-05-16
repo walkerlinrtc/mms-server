@@ -1,0 +1,80 @@
+
+function getNowFormatDate(dayCnt,hourCnt) {
+    var date = new Date();
+    date.setDate(date.getDate()+dayCnt);
+    date.setHours(date.getHours()+hourCnt);
+
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+        + " " + date.getHours() + seperator2 + date.getMinutes()
+        + seperator2 + date.getSeconds();
+    return currentdate;
+}
+
+function delegateApi(id){
+
+    //点击提交评论内容
+    $('body').delegate('.comment-submit','click',function(){
+        var content = $.trim($(this).parent().prev().children("textarea").val());//根据布局结构获取当前评论内容
+        $(this).parent().prev().children("textarea").val("");//获取完内容后清空输入框
+        if(""==content){
+            alert("评论内容不能为空!");
+        }else{
+            var cmdata = new Object();
+            cmdata.content = content;
+            cmdata.author = "游客";//测试用数据
+            cmdata.doc_id = id;  // 文档id
+            cmdata.time = getNowFormatDate(0,0);
+            var replyswitch = $(this).attr("replyswitch");//获取回复开关锁属性
+            $.ajax({
+                type:"POST",
+                url:"/wapi/DocComment/insert",
+                data:JSON.stringify(cmdata),
+                contentType: "application/json", //必须有
+                success:function(data){
+                    console.log("shit");
+                    console.log(data);
+                    if(typeof(data.error)=="undefined"){
+                        alert("评论成功");
+                        window.location.reload();
+                    }else{
+                        //有错误信息
+                        alert(data.error);
+                    }
+
+                }
+            });
+        }
+
+
+    });
+    //点击"回复"按钮显示或隐藏回复输入框
+    $("body").delegate(".comment-reply","click",function(){
+        if($(this).next().length>0){//判断出回复div已经存在,去除掉
+            $(this).next().remove();
+        }else{//添加回复div
+            $(".comment-reply").next().remove();//删除已存在的所有回复div
+            //添加当前回复div
+            var parent_id = $(this).attr("comment_id");//要回复的评论id
+
+            var divhtml = "";
+            if('off'==$(this).attr("replyswitch")){//二级评论回复后三级评论不再提供回复功能,将关闭属性附加到"提交回复"按钮"
+                divhtml = "<div class='div-reply-txt' style='width:98%;padding:3px;' replyid='2'><div><textarea class='txt-reply' replyid='2' style='width: 100%; height: 60px;'></textarea></div><div style='margin-top:5px;text-align:right;'><a class='comment-submit'  parent_id='"+parent_id+"' style='font-size:14px;text-decoration:none;background-color:#63B8FF;' href='javascript:void(0);' replyswitch='off' >提交回复</a></div></div>";
+            }else{
+                divhtml = "<div class='div-reply-txt' style='width:98%;padding:3px;' replyid='2'><div><textarea class='txt-reply' replyid='2' style='width: 100%; height: 60px;'></textarea></div><div style='margin-top:5px;text-align:right;'><a class='comment-submit'  parent_id='"+parent_id+"' style='font-size:14px;text-decoration:none;background-color:#63B8FF;' href='javascript:void(0);'>提交回复</a></div></div>";
+            }
+            $(this).after(divhtml);
+        }
+    });
+
+}

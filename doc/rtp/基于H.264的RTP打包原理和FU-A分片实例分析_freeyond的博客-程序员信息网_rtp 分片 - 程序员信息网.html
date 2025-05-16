@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)https://www.i4k.xyz/article/freeyond/77918253 -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="keywords" content="基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片">
+<meta name="description" content="本文分析了基于H.264编码格式的RTP打包原理，并使用一个实例分析了非交错模式下FU-A分片单元的组包">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网</title>
+<script type="text/javascript" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/moneybile.js.下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(6).txt"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(7).txt"></script><script type="text/javascript" async="" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/js"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(8).txt" id="google_shimpl"></script><script async="" type="text/javascript" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/cmp2.js.下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/hm.js.下载"></script><script async="" type="text/javascript" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/choice.js.下载"></script><script async="" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(9).txt" crossorigin="anonymous" data-checked-head="true"></script>
+
+<script type="text/javascript" async="true">
+(function() {
+    var host = 'www.themoneytizer.com';
+    var element = document.createElement('script');
+    var firstScript = document.getElementsByTagName('script')[0];
+    var url = 'https://quantcast.mgr.consensu.org'
+        .concat('/choice/', '6Fv0cGNfc_bw8', '/', host, '/choice.js');
+    var uspTries = 0;
+    var uspTriesLimit = 3;
+    element.async = true;
+    element.type = 'text/javascript';
+    element.src = url;
+
+    firstScript.parentNode.insertBefore(element, firstScript);
+
+    function makeStub() {
+        var TCF_LOCATOR_NAME = '__tcfapiLocator';
+        var queue = [];
+        var win = window;
+        var cmpFrame;
+
+        function addFrame() {
+            var doc = win.document;
+            var otherCMP = !!(win.frames[TCF_LOCATOR_NAME]);
+
+            if (!otherCMP) {
+                if (doc.body) {
+                    var iframe = doc.createElement('iframe');
+
+                    iframe.style.cssText = 'display:none';
+                    iframe.name = TCF_LOCATOR_NAME;
+                    doc.body.appendChild(iframe);
+                } else {
+                    setTimeout(addFrame, 5);
+                }
+            }
+            return !otherCMP;
+        }
+
+        function tcfAPIHandler() {
+            var gdprApplies;
+            var args = arguments;
+
+            if (!args.length) {
+                return queue;
+            } else if (args[0] === 'setGdprApplies') {
+                if (
+                    args.length > 3 &&
+                    args[2] === 2 &&
+                    typeof args[3] === 'boolean'
+                ) {
+                    gdprApplies = args[3];
+                    if (typeof args[2] === 'function') {
+                        args[2]('set', true);
+                    }
+                }
+            } else if (args[0] === 'ping') {
+                var retr = {
+                    gdprApplies: gdprApplies,
+                    cmpLoaded: false,
+                    cmpStatus: 'stub'
+                };
+
+                if (typeof args[2] === 'function') {
+                    args[2](retr);
+                }
+            } else {
+                queue.push(args);
+            }
+        }
+
+        function postMessageEventHandler(event) {
+            var msgIsString = typeof event.data === 'string';
+            var json = {};
+
+            try {
+                if (msgIsString) {
+                    json = JSON.parse(event.data);
+                } else {
+                    json = event.data;
+                }
+            } catch (ignore) {}
+
+            var payload = json.__tcfapiCall;
+
+            if (payload) {
+                window.__tcfapi(
+                    payload.command,
+                    payload.version,
+                    function(retValue, success) {
+                        var returnMsg = {
+                            __tcfapiReturn: {
+                                returnValue: retValue,
+                                success: success,
+                                callId: payload.callId
+                            }
+                        };
+                        if (msgIsString) {
+                            returnMsg = JSON.stringify(returnMsg);
+                        }
+                        event.source.postMessage(returnMsg, '*');
+                    },
+                    payload.parameter
+                );
+            }
+        }
+
+        while (win) {
+            try {
+                if (win.frames[TCF_LOCATOR_NAME]) {
+                    cmpFrame = win;
+                    break;
+                }
+            } catch (ignore) {}
+
+            if (win === window.top) {
+                break;
+            }
+            win = win.parent;
+        }
+        if (!cmpFrame) {
+            addFrame();
+            win.__tcfapi = tcfAPIHandler;
+            win.addEventListener('message', postMessageEventHandler, false);
+        }
+    };
+
+    if (typeof module !== 'undefined') {
+        module.exports = makeStub;
+    } else {
+        makeStub();
+    }
+
+    var uspStubFunction = function() {
+        var arg = arguments;
+        if (typeof window.__uspapi !== uspStubFunction) {
+            setTimeout(function() {
+                if (typeof window.__uspapi !== 'undefined') {
+                    window.__uspapi.apply(window.__uspapi, arg);
+                }
+            }, 500);
+        }
+    };
+
+    var checkIfUspIsReady = function() {
+        uspTries++;
+        if (window.__uspapi === uspStubFunction && uspTries < uspTriesLimit) {
+            console.warn('USP is not accessible');
+        } else {
+            clearInterval(uspInterval);
+        }
+    };
+
+    if (typeof window.__uspapi === 'undefined') {
+        window.__uspapi = uspStubFunction;
+        var uspInterval = setInterval(checkIfUspIsReady, 6000);
+    }
+})();
+</script>
+
+<style type="text/css"> .qc-cmp-button.qc-cmp-secondary-button:hover {    background-color: #368bd6 !important;    border-color: transparent !important;  }  .qc-cmp-button.qc-cmp-secondary-button:hover {    color: #ffffff !important;  }  .qc-cmp-button.qc-cmp-secondary-button {    color: #368bd6 !important;  }  .qc-cmp-button.qc-cmp-secondary-button {    background-color: #eee !important;    border-color: transparent !important;  } </style><meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><link rel="stylesheet" type="text/css" href="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/adtags.css"><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/hb_313926_12694.js.下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/gpt.js.下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/wrapper_hb_313926_12694.js.下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/js(1)"></script><meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><link rel="preload" href="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(10).txt" as="script"><script type="text/javascript" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(10).txt"></script><meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/pubads_impl_2022062701.js.下载" async=""></script><script async="" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/22377623070"></script><link rel="preload" href="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(10).txt" as="script"><script type="text/javascript" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(10).txt"></script><meta http-equiv="origin-trial" content="AuMIhPiI/SulZt/mn9DI6CjtPpnhRnD0zwQS3nDwCFdErMazWrGpX9kJWNg6LMgDfoN4yP8Ib6N5Zf7CF8mSmwsAAABgeyJvcmlnaW4iOiJodHRwczovL3RoZW1vbmV5dGl6ZXIuY29tOjQ0MyIsImZlYXR1cmUiOiJQcml2YWN5U2FuZGJveEFkc0FQSXMiLCJleHBpcnkiOjE2NjEyOTkxOTl9"></head>
+<body aria-hidden="false" style="padding: 0px 0px 154px;">
+
+<header>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?05262d71472bf0e4bc5c8eb5b8f53beb";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<script async="" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/js(2)"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-09T1MX082E');
+</script>
+<script data-ad-client="ca-pub-2993295930109741" async="" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(11).txt" data-checked-head="true"></script>
+<script data-ad-client="ca-pub-3994464140431603" async="" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/f(11).txt" data-checked-head="true"></script>
+<script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/adtags.js.下载" type="text/javascript"></script>
+<link href="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/bootstrap.css" rel="stylesheet">
+<link href="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/style.css" rel="stylesheet">
+<link href="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/css.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/jquery.min.js.下载"></script>
+<div id="header" style="background-color: rgb(170, 114, 174);">
+<div class="container">
+<div class="row">
+<div class="col-md-4 logo-div">
+<div class="logo-inner">
+<div class="logo-name">
+<a href="https://www.i4k.xyz/">
+<span>程序员信息网</span>
+<small>程序员信息网，程序员的信息网</small>
+</a>
+</div>
+<br>
+<div class="links-home">
+<a href="https://www.i4k.xyz/">首页 /</a>
+<a href="https://www.i4k.xyz/article/freeyond/77918253#">联系我们 /</a>
+<a href="https://www.i4k.xyz/copyright" rel="nofollow,noindex" target="_blank">版权申明
+/</a>
+<a href="https://www.i4k.xyz/privacy-policy" rel="nofollow,noindex" target="_blank">隐私条款</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="info-sec">
+<div class="container">
+<div class="row">
+<div class="col-md-2" style="width:100%;">
+<div class="social-link" style="float:right;">
+<form id="searchForm" action="https://www.i4k.xyz/searchArticle" method="post">
+<div>
+<input type="text" name="qc" style="width:200px;"> <input type="submit" value="搜索" style="color:black;">
+</div>
+</form>
+</div>
+</div>
+<div style="clear:both;"></div>
+</div>
+</div>
+</div>
+</header><iframe name="__tcfapiLocator" style="display: none;" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/saved_resource(3).html"></iframe><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important;" data-ad-status="unfilled"><ins id="aswift_0_expand" style="border: none; height: 0px; width: 0px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_0_anchor" style="border: none; height: 0px; width: 0px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block;"><iframe id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0;width:undefinedpx;height:undefinedpx;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/ads.html" data-google-container-id="a!1" data-load-complete="true"></iframe></ins></ins></ins>
+
+<div class="container" style="height: auto !important;">
+<div class="row" style="height: auto !important;">
+
+<div id="ad_1"><div id="91649-1"><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/gen.js.下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/requestform.js.下载"></script></div></div>
+<div style="clear:both;"></div>
+<div class="col-md-8" style="height: auto !important; min-height: 0px !important;">
+<h2 style="line-height: 32px;">
+<span>基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片</span>
+</h2>
+<p style="margin-bottom:5px;">技术标签：&nbsp;<span><a href="https://www.i4k.xyz/searchArticle?qc=%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E8%A7%A3%E7%A0%81&amp;page=1" title="音视频编解码">音视频编解码</a>&nbsp;&nbsp;</span><span><a href="https://www.i4k.xyz/searchArticle?qc=%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE&amp;page=1" title="流媒体协议">流媒体协议</a>&nbsp;&nbsp;</span><span><a href="https://www.i4k.xyz/searchArticle?qc=RTSP+RTCP+RTP&amp;page=1" title="RTSP+RTCP+RTP">RTSP+RTCP+RTP</a>&nbsp;&nbsp;</span><span><a href="https://www.i4k.xyz/searchArticle?qc=RTP%E5%8D%8F%E8%AE%AE&amp;page=1" title="RTP协议">RTP协议</a>&nbsp;&nbsp;</span><span><a href="https://www.i4k.xyz/searchArticle?qc=RTP%E6%89%93%E5%8C%85%E5%88%86%E6%9E%90&amp;page=1" title="RTP打包分析">RTP打包分析</a>&nbsp;&nbsp;</span><span><a href="https://www.i4k.xyz/searchArticle?qc=h-264%E7%A0%81%E6%B5%81%E7%BB%93%E6%9E%84&amp;page=1" title="h-264码流结构">h-264码流结构</a>&nbsp;&nbsp;</span><span><a href="https://www.i4k.xyz/searchArticle?qc=RTSP%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE&amp;page=1" title="RTSP流媒体协议">RTSP流媒体协议</a>&nbsp;&nbsp;</span>
+</p>
+<div style="clear:both;"></div>
+<div style="padding:5px 5px 5px 5px;word-wrap: break-word; word-break: normal;max-width: 850px;" id="article_content">
+<span><div id="content_views" class="markdown_views prism-atom-one-dark">
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+<path stroke-linecap="round" d="M5,0 0,2.5 5,5z" id="raphael-marker-block" style="-webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></path>
+</svg>
+<h3 id="1-h264码流结构">1. H.264码流结构</h3>
+<p>  H.264编码规范从逻辑上划分为视频编码层（VCL）和网络提取层（NAL）。 <br>   VCL数据是由编码器直接输出的原始数据比特串（SODB），它表示图像被压缩后的编码比特流。 <br>   VCL数据要在网络上传输或者存储到磁盘上之前，需要先被封装或映射进NAL单元（NALU）中，每个NAL单元之前需要添加StartCodePrefix，最后形成H.264码流，H.264码流结构如图1-1所示（<strong>annex-b byte stream format，详见H.264建议书附录B部分</strong>）。 <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909212953435" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图1-1 H.264码流结构
+</center>
+<br>   关于H.264码流结构的详细内容可以参考我的另一篇文章：
+<br>   《
+<a href="http://blog.csdn.net/freeyond/article/details/77855880" target="_blank" rel="noopener noreferrer">H.264码流格式</a>》
+<p></p>
+<h3 id="2-nalu结构">2. NALU结构</h3>
+<p>  H.264码流由NALU序列组成，通过RTP协议封装和传输H.264码流实际上就是对H.264序列中NALU的封装和传输。在介绍RTP打包封装H.264码流之前，我们先来简单了解NALU的结构。 <br>   NAL单元（NAL Unit,简称NALU）由1个NAL头（NAL Header）和1个RBSP（或EBSP）组成。 <br>   NAL头（NAL Header）长度为1个字节，由“forbidden_zero_bit”、“nal_ref_idc”和“nal_unit_type”三个字段组成。NAL Header结构如果图2-1所示： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909213253303" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图2-1 NAL Header结构
+</center>
+<br>   F：forbidden_zero_bit，1位，初始为0，当NAL单元在网络传输过程中识别为错误时，可设置该字段为 1，以便接收方纠错或丢掉该单元。
+<br>   NRI：nal_ref_idc，2 位，用来指示该NALU 的重要性等级。值越大，越重要，解码器在解码处理不过来的时候，可以丢掉重要性为0的NALU。
+<br>   TYPE：nal_unit_type ，5 位，指出NALU 的类型。
+<br> nal_unit_type 是指包含在NALU中的 RBSP 数据结构的类型，取值如下图所示：
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909213410713" alt="这里写图片描述" title="">
+<br>
+<center>
+图 2-2 nal_unit_type
+</center>
+<br>   nal_unit_type的值在1到5之间的NALU称为VCL NALU，其余的称为非VCL NALU。
+<br>   通过图2-2可以看到，nal_unit_type的取值除了H.264编码占用了一部分以外（取值为0~23），剩下的一部分（取值为24~31）在RTP打包时会使用。
+<p></p>
+<h3 id="3-rtp打包模式">3. RTP打包模式</h3>
+<h4 id="31-rtp包结构">3.1 RTP包结构</h4>
+<p>  RTP包由rtp header和rtp payload组成，RTP包结构如图3-1所示： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909213531989" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图 3-1 RTP包结构
+</center>
+<br>   使用RTP打包H.264码流时，定义了三个不同的载荷结构：单一NAL单元包、组合包和分片单元。
+<br>   接收者可以通过payload的第一个字节识别载荷结构，我们称它为payload header。
+<br>   payload header总是被格式化为NALU header，也就是说它和NALU header的结构一致，各字段具有相同意义。
+<br>   payload header的TYPE字段用于描述payload中NALU的类型，通过图2-2可以看到，RTP打包时使用了24~31之间的TYPE值。
+<br>   图3-2描述了payload中NALU类型和载荷结构分类。
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909213656221" alt="这里写图片描述" title="">
+<br>
+<center>
+图 3-2 NALU类型和载荷结构
+</center>
+<p></p>
+<h4 id="32-载荷结构">3.2 载荷结构</h4>
+<p>  载荷结构分为单个NAL单元包、组合包和分片单元三种类型。 <br>   需要注意的是载荷结构并不等同于打包模式，它只是打包模式的子集，每个打包模式都支持若干个载荷结构，我们将在下一节描述每种打包模式支持的载荷结构。</p>
+<h5 id="321-单个nal单元包">3.2.1 单个NAL单元包</h5>
+<p>  单个NAL单元包是指，H.264码流（NALU序列）中的每个NALU都独立封装成一个RTP包，不拆分，不组合。 <br>   单个NAL单元包的打包示意图如下： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909213822516" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图 3-3 单个NAL单元包
+</center>
+<br>   单个NAL单元包必须只包含TYPE为1~23的NAL单元。这意味着组合包和分片单元不可以用在单个NAL单元包中。一个封装单个NAL单元包到RTP的NAL单元流的RTP序号必须符合NAL单元的解码顺序。单个NAL单元包的结构如图3-4所示。
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909213912247" alt="这里写图片描述" title="">
+<br>
+<center>
+图 3-4 单个NAL单元包结构
+</center>
+<p></p>
+<h5 id="322-组合包">3.2.2 组合包</h5>
+<p>  组合包是指，H.264码流（NALU序列）中有若干NALU尺寸特别小，因此可以将多个NALU进行组合后封装进一个RTP包。 <br>   组合包的打包示意图如下： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214000781" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图 3-5 组合包
+</center>
+<p></p>
+<h5 id="323-分片单元fus">3.2.3 分片单元（FUs）</h5>
+<p>  分片单元是指，H.264码流（NALU序列）中NALU长度超过MTU大小限制，因此需要将这样的NALU进行分片。 <br>   FU-A分片单元的打包示意图如下： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214051396" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图 3-6 FU-A分片单元
+</center>
+<br>   分片只定义于单个NAL单元不用于任何组合包。NAL单元的一个分片由整数个连续NAL单元字节组成。每个NAL单元字节必须正好是该NAL单元一个分片的一部分。相同NAL单元的分片必须使用递增的RTP序号连续顺序发送（第一和最后分片之间没有其他的RTP包）。相似,NAL单元必须按照RTP顺序号的顺序装配。
+<br>   当一个NAL单元被分片运送在分片单元（FUs）中时，被引用为分片NAL单元。 STAPs，MTAP不可以被分片。FUs不可以嵌套。即,一个FU 不可以包含另一个FU。
+<br>   运送FU的RTP时戳被设置成被分片NALU的时戳。
+<br>   图3-7表示FU-A的RTP荷载格式。 FU-A由1字节的分片单元指示（FU indicator），1字节的分片单元头（FU Header），和分片单元荷载（FU payload）组成。
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214154339" alt="这里写图片描述" title="">
+<br>
+<center>
+图 3-7 FU-A分片结构
+</center>
+<br>   FU indicator结构如下：
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214235948" alt="这里写图片描述" title="">
+<br>
+<center>
+图 3-8 FU indicator结构
+</center>
+<br>   FU indicator结构和payload header结构一致，TYPE为28代表FU-A分片，TYPE为29代表FU-B分片。
+<br>   Fu header结构如下：
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214312869" alt="这里写图片描述" title="">
+<br>
+<center>
+ 图 3-9 FU header结构
+</center>
+<br>   S：1 bit，开始位
+<br>   当设置成1,开始位指示分片NAL单元的开始。当跟随的FU荷载不是分片NAL单元荷载的开始，开始位设为0。
+<br>   E：1 bit，结束位
+<br>   当设置成1, 结束位指示分片NAL单元的结束，即, 荷载的最后字节也是分片NAL单元的最后一个字节。当跟随的FU荷载不是分片NAL单元的最后分片,结束位设置为0。
+<br>   R：1 bit，保留位
+<br>   保留位必须设置为0，接收者必须忽略该位。
+<br>   TYPE：5 bit，NALU类型
+<br>   与被分片的NALU类型一致。
+<p></p>
+<h4 id="33-打包模式">3.3 打包模式</h4>
+<p>  基于H.264码流的RTP打包模式分为三种： <br>   (1)单NAL单元模式 <br>   (2)非交错模式 <br>   (3)交错模式 <br>   图3-10总结了每种打包模式支持的NALU类型： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214447242" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图 3-10 打包模式支持的NALU类型
+</center>
+<p></p>
+<h3 id="4-非交错打包模式组帧实例分析">4. 非交错打包模式组帧实例分析</h3>
+<p>  抓包实例文件下载地址： <br>   <a href="http://download.csdn.net/download/freeyond/9971564">FU-A分片实例.7z</a> <br>   文件“FU-A分片实例.7z”中包含两个文件： <br>   (1) FUA_SLICE.pcap，抓取的一段基于H.264码流的RTP包，打包模式为非交错模式，包含两种载荷结构：单个NAL单元包和FU-A分片单元。 <br>   (2) frame.bin，从抓包文件中组出一个完整的IDR帧，包括SPS、PPS、SEI和4个IDR_SLICE。 <br>   FUA_SLICE.pcap中一个完整的IDR帧包括序列号从23861到23896的RTP包，组帧示意图如下： <br> <img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214643843" alt="这里写图片描述" title=""> <br> </p>
+<center>
+图 4-1 IDR组帧
+</center>
+<br>   从图4-1可以看出，一个IDR帧包括了4个IDR_SLICE，每个IDR_SLICE都是完整图像的一部分，可以被独立解码。
+<br>   frame.bin中包含的就是从RTP包序列号23861到23896组装的完整IDR帧，其NALU序列为：SPS+PPS+SEI+SEI+IDR_SLICE(0)+ IDR_SLICE(1)+ IDR_SLICE(2)+ IDR_SLICE(3),如果4-2所示：
+<br>
+<img src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/20170909214944463" alt="这里写图片描述" title="">
+<br>
+<center>
+图 4-2 NALU序列
+</center>
+<p></p>
+</div></span>
+</div><div class="google-auto-placed ap_container" style="width: 100%; height: auto; clear: both; text-align: center;"><ins data-ad-format="auto" class="adsbygoogle adsbygoogle-noablate" data-ad-client="ca-pub-8705509105161355" data-adsbygoogle-status="done" style="display: block; margin: auto; background-color: transparent; height: 280px;" data-ad-status="filled"><ins id="aswift_1_expand" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none; height: 280px; width: 750px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;"><ins id="aswift_1_anchor" style="border: none; height: 280px; width: 750px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block; overflow: visible;"><iframe id="aswift_1" name="aswift_1" style="left:0;position:absolute;top:0;border:0;width:750px;height:280px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="750" height="280" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/ads(1).html" data-google-container-id="a!2" data-google-query-id="CMXo9dzR1_gCFSnyTAIdxpgPUw" data-load-complete="true"></iframe></ins></ins></ins></div>
+<div style="float:right;">
+<div class="article-copyright">
+<span class="creativecommons"> <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"> </a> <span>
+版权声明：本文为博主原创文章，遵循<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"> CC 4.0 BY-SA </a>版权协议，转载请附上原文出处链接和本声明。
+</span>
+<div class="article-source-link2222">
+本文链接：<a href="https://blog.csdn.net/freeyond/article/details/77918253">https://blog.csdn.net/freeyond/article/details/77918253</a>
+</div>
+</span>
+</div>
+</div>
+<div style="clear:both;"></div>
+<div id="cprt" style="float:right;font-size:12px;padding-top:15px;">
+<a href="https://www.i4k.xyz/copyright" rel="nofollow,noindex" target="_blank">原作者删帖</a>&nbsp;&nbsp;
+ <a href="https://www.i4k.xyz/copyright" rel="nofollow,noindex" target="_blank">不实内容删帖</a>&nbsp;&nbsp;
+<a href="https://www.i4k.xyz/copyright" title="投诉本文含广告或垃圾信息">广告或垃圾文章投诉</a>
+</div>
+<div style="clear:both;"></div>
+<hr>
+
+<div id="ad_2"><div id="91649-30"><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/gen.js(1).下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/requestform.js(1).下载"></script></div></div>
+<h3><span>智能推荐</span></h3>
+<div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/jamin_liu_90/5020560" rel="bookmark">MATLAB中彩色图像转灰度图像 的三种方式（MATLAB程序）_jamin_liu_91的博客-程序员信息网_matlab彩色转灰度图</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">在数字图像中，彩色图像-&amp;amp;gt;灰色图像，一般有以下三种方式：下面就以上三种方式，利用MATLAB软件实现的表达：1、取平均值和仅取Green色2、利用灰度转换公式以上是简易的程序，不足之处，请不吝赐教。...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/shb2058/5020559" rel="bookmark">drat中构造方法_石博的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">首先和Java相同，如果没有自己定义构造方法，那么默认有一个无参的构造方法。不同点:dart中如果你定义了构造方法，那么无参的构造方法将会失效，而且你自己也不能实现一个无参的构造方法。需要自己实现一个无参方法需要类名.构造方法名字 来定义，如下class Person { String name; Person(String name) { this.name = ...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/u011552404/5020558" rel="bookmark">1.概述_西厂程序员的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">此博客为博主在学习，2011年人民邮电出版社出版，作者是Claudia Salzberg、Rodriguez、Gordon Fischer、Steven Smolski的图书《Linux内核编程》时，依照每章的课后习题从网上搜集整理的相关知识。大家可以参考阅读，序号为题号，链接为网络来源！-------------------------------------------------------...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/weixin_34235135/5020556" rel="bookmark">windows phone 7 平台搭建_weixin_34235135的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">Windowsphone7手机在市场上已经销售一段时间，在刚刚销售Windowsphone7手机时，面对安卓和诺基亚操作系统的威胁，很多媒体对这个操作系统表示担忧，现在的迹象已经表明，这些媒体的担忧的多余的，因为现在的Windowsphone7手机已近大量缺货，可见其受欢迎程度，还在迷茫是不是开发Windowsphone7的程序员可以打消顾虑了，正式起航开...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/weixin_39884144/5020549" rel="bookmark">python对数据进行分类_使用python对高光谱数据进行处理和分类_weixin_39884144的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">目的加载遥感图像的.mat数据进行呈图显示将.mat的数据转化为python后续算法处理的csv文件存储训练模型，观察分类效果，在图中显示与原图对比方法使用超强的spectral包！目的1 - 代码加载遥感图像的.mat数据进行呈图显示part1 . 加载数据#refer:https://github.com/KGPML/Hyperspectral/blob/master/Decoder_Spat...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/weixin_30745641/5020548" rel="bookmark">国内著名黑客信息_weixin_30745641的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">万涛（中国鹰派联盟创始人）同义词 黑客教父一般指万涛（中国鹰派联盟创始人）万涛，中国鹰派联盟网站创始人。中国黑客的教父级人物，创办鹰派联盟（现已转型成非营利组织：鹰眼安全文化网）。中文名万涛外文名WANTAO别名老鹰国籍中国民族汉族出生地广东东山毕业院校北京北方交通大学主要成就创办鹰盟代表作品《班门弄斧：中国鹰派点评阿扁演讲》祖...</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="ad_3"><script></script></div>
+<h3><span>随便推点</span></h3>
+<div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/diaomo9737/101724544" rel="bookmark">Open Cascade：计算体积_diaomo9737的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">TopoDS_Shape shape;...GProp_GProps System;BRepGProp::LinearProperties(shape, System);BRepGProp::SurfaceProperties(shape, System);BRepGProp::VolumeProperties(shape, System);System.Ma...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/vn9PLgZvnPs1522s82g/102849517" rel="bookmark">快手直播平台演进之路_LiveVideoStack_的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">快手作为目前世界上领先的直播平台，在业务形态不断拓展的过程中，也经历了直播架构的不断演变，从完全采用第三方解决方案，到目前自建源站、自研连麦解决方案、自建超高密度转码集群...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/InternetJava/114268088" rel="bookmark">海康摄像头取流地址格式介绍_小小白兔兔的博客-程序员信息网_海康摄像头流地址</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">https://blog.csdn.net/xiejiashu/article/details/71786187https://www.jianshu.com/p/8efcea89b11f例如：老设备：rtsp://admin:123456@192.168.1.230:554/ch33/main/av_stream新设备：rtsp://admin:123456@192.168.1.230:554/Streaming/Channels/1?transportmode=unicast...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/m0_61452003/120152056" rel="bookmark">加热浴行业调研报告 - 市场现状分析与发展前景预测（2021-2027年）_普通网友的博客-程序员信息网</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">加热浴市场的企业竞争态势 该报告涉及的主要国际市场参与者有IKA、PolyScience、NSW、LAUDA、JULABO、Thermo Fisher Scientific、Bionics Scientific Technologies、Kant Plastology、Sheldon Manufacturing、Grant Instruments、Marshall Scientific、Bio-Rad、Accumax India等。这些参与者的市场份额、收入、公司概况和SWOT分析都包含在加...</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/basycia/51862125" rel="bookmark">ArrayList输出的几种方法_雪飞静的博客-程序员信息网_arraylist java 输出</a>
+</h3>
+ </header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">ArrayList输出的几种方法！！！import java.util.ArrayList;import java.util.Iterator;import java.util.List;public class ArrayList1 {	public static void main(String args[]) { List list = new ArrayList();	</p>
+</div>
+</div>
+</div>
+<div style="padding-top:6px;padding-bottom:6px;">
+<div class="loop-wrap clearfix">
+<header class="loop-data">
+<h3 style="margin-top:0px;border-bottom-style: none;padding-bottom: 0px;margin-bottom: 0px;overflow:hidden;line-height:30px;">
+<a href="https://www.i4k.xyz/article/qq_27816307/54670678" rel="bookmark">intellij配置EJB项目入门_阿扣扣Zzz的博客-程序员信息网_idea创建ejb项目</a>
+</h3>
+</header>
+<div class="mh-excerpt">
+<p style="line-height:25px;">intellij配置EJB项目入门使用的环境 -jdk1.8 -wildfly10在intellij上配置一个入门级的EJB项目竟然浪费了一天时间，感觉自己碰到了所有网上提到的容易出现的问题（还是笨啊喂 –&gt;_–&gt;），感觉要记录下来，也防止自己以后再犯intellij新建ejb项目的流程1 创建一个总的容器project新建一个java项目（就是简单的java项目别多想。。。），</p>
+</div>
+</div>
+</div>
+</div>
+<div id="bottomads">
+</div>
+</div>
+<div class="col-md-4">
+
+<div id="ad_4"><div id="91649-2"><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/gen.js(2).下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/requestform.js(2).下载"></script></div></div>
+<h3>
+<span>推荐文章</span>
+</h3>
+<div style="padding:5px 5px 0px 5px;word-wrap: break-word; word-break: normal;">
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/FEATHER2016/77455494">Friend-Graph_mrxs的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/ccblogs/105334928">Python基础语法（十六）_一个有梦想的叫花子！的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/CongBird/70884640">把一个div的值通过点击事件传到另一个div中_CongBird的博客-程序员信息网_div 如何传值</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/u013289188/36923447">python网络爬虫入门（一）——简单的博客爬虫_FrancisRZ的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/qq_36624681/54670506">UVA10815-5.3-Andy's First Dictionary(集合set的用法）_DLKKILL的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/danpob13624/106778523">使用容器化的Oracle XE和现有的Oracle XE实例进行Docker Java App部署_danpob13624的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/long375577908/76849989">android的makefile -- Android.mk_longroey的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/weixin_29044713/119484224">性能压测服务器502报错,一种交易系统的性能测试方法及相关服务器_里小咸的博客-程序员信息网</a></li>
+</ul>
+</div>
+
+<div id="ad_5"><div id="91649-20"><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/gen.js(3).下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/requestform.js(3).下载"></script></div></div>
+<h3>
+<span>热门文章</span>
+</h3>
+<div style="padding:5px 5px 0px 5px;word-wrap: break-word; word-break: normal;">
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/qq_55996124/118667424">idea配置Tomcat（社区+旗舰通通解决）_DU777DU的博客-程序员信息网_社区版idea配置tomcat</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/aizhouqian5537/101684366">matlab mse函数_aizhouqian5537的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/swiftlinlei/81163374">Vue2.0-mint-ui解决移动端苹果手机有滚动穿透的问题_swiftlinlei的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/chenxiaoran666/81251960">【洛谷1494】[国家集训队] 小Z的袜子（莫队）_chenxiaoran666的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/qq1742517469/121000108">STM32CubeMX——环境配置以及实例编译烧写_厘米同学的博客-程序员信息网_stm32cubemx编译</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/weixin_30443747/95130755">3.android下Makefile编写规范_weixin_30443747的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/weixin_30600197/95276454">Linux服务器配置多台虚拟主机_CGGAO的博客-程序员信息网</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a href="https://www.i4k.xyz/article/u013087553/68927119">[Android] 图像各种处理系列文章合集_新助锦鹏的博客-程序员信息网</a></li>
+</ul>
+</div>
+
+<div id="ad_6"></div>
+<h3>
+<span>相关标签</span>
+</h3>
+<div style="padding:5px 5px 0px 5px;word-wrap: break-word; word-break: normal;">
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="音视频编解码" href="https://www.i4k.xyz/searchArticle?qc=%E9%9F%B3%E8%A7%86%E9%A2%91%E7%BC%96%E8%A7%A3%E7%A0%81&amp;page=1">音视频编解码</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="流媒体协议" href="https://www.i4k.xyz/searchArticle?qc=%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE&amp;page=1">流媒体协议</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="RTSP+RTCP+RTP" href="https://www.i4k.xyz/searchArticle?qc=RTSP+RTCP+RTP&amp;page=1">RTSP+RTCP+RTP</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="RTP协议" href="https://www.i4k.xyz/searchArticle?qc=RTP%E5%8D%8F%E8%AE%AE&amp;page=1">RTP协议</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="RTP打包分析" href="https://www.i4k.xyz/searchArticle?qc=RTP%E6%89%93%E5%8C%85%E5%88%86%E6%9E%90&amp;page=1">RTP打包分析</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="h-264码流结构" href="https://www.i4k.xyz/searchArticle?qc=h-264%E7%A0%81%E6%B5%81%E7%BB%93%E6%9E%84&amp;page=1">h-264码流结构</a></li>
+</ul>
+<ul style="list-style: none;padding-left:0px;">
+<li style="padding-top: 6px;padding-bottom: 6px;border-bottom:1px solid #EBEBEB;line-height:20px;">
+<a title="RTSP流媒体协议" href="https://www.i4k.xyz/searchArticle?qc=RTSP%E6%B5%81%E5%AA%92%E4%BD%93%E5%8D%8F%E8%AE%AE&amp;page=1">RTSP流媒体协议</a></li>
+</ul>
+</div>
+<div id="mbads-sider">
+</div>
+
+<div id="ad_7"><div id="91649-6"><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/gen.js(4).下载"></script><script src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/requestform.js(4).下载"></script></div></div>
+</div>
+<div id="ad_8"></div>
+<div id="ad_9"></div>
+<div id="ad_10"></div>
+</div>
+</div>
+
+<div class="google-auto-placed" style="width: 100%; height: auto; clear: both; text-align: center;"><ins data-ad-format="auto" class="adsbygoogle adsbygoogle-noablate" data-ad-client="ca-pub-8705509105161355" data-adsbygoogle-status="done" style="display: block; margin: 10px auto; background-color: transparent; height: 280px;"><ins id="aswift_2_expand" style="border: none; height: 280px; width: 1200px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;"><ins id="aswift_2_anchor" style="border: none; height: 280px; width: 1200px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block;"></ins></ins></ins></div><footer>
+<div class="footer-sec" id="footer-sec" style="background-color: rgb(170, 114, 174);">
+<div class="container">
+<div class="row">
+<script type="text/javascript"></script>
+<div class="col-md-12 foo-inner">
+Copyright © 2018-2022 - All Rights Reserved - <a th:href="${domain}" th:text="${domain}" style="color:white;"></a> <span style="color:red;">网站内容人工审核和清理中！</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+        var num = Math.floor(Math.random() * 10) + 1;
+        if (num == 1) {
+            $('#header').css('background-color', '#ff00ff');
+            $('#footer-sec').css('background-color', '#ff00ff');
+        } else if (num == 2) {
+            $('#header').css('background-color', '#442525');
+            $('#footer-sec').css('background-color', '#442525');
+        } else if (num == 3) {
+            $('#header').css('background-color', '#bf6f6f');
+            $('#footer-sec').css('background-color', '#bf6f6f');
+        } else if (num == 4) {
+            $('#header').css('background-color', '#a69e9e');
+            $('#footer-sec').css('background-color', '#a69e9e');
+        } else if (num == 5) {
+            $('#header').css('background-color', '#929961');
+            $('#footer-sec').css('background-color', '#929961');
+        } else if (num == 6) {
+            $('#header').css('background-color', '#5d956d');
+            $('#footer-sec').css('background-color', '#5d956d');
+        } else if (num == 7) {
+            $('#header').css('background-color', '#5395a4');
+            $('#footer-sec').css('background-color', '#5395a4');
+        } else if (num == 8) {
+            $('#header').css('background-color', '#837dcc');
+            $('#footer-sec').css('background-color', '#837dcc');
+        } else if (num == 9) {
+            $('#header').css('background-color', '#aa72ae');
+            $('#footer-sec').css('background-color', '#aa72ae');
+        } else if (num == 10) {
+            $('#header').css('background-color', '#0c739b');
+            $('#footer-sec').css('background-color', '#0c739b');
+        } else {
+            $('#header').css('background-color', '#0c739b');
+            $('#footer-sec').css('background-color', '#0c739b');
+        }
+    </script>
+</footer>
+
+<script>
+    window.onload = function () {
+        var ad_1 = "<div id=\"91649-1\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=1\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=1\"><\/script><\/div>";
+        var ad_2 = "<div id=\"91649-30\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=30\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=30\"><\/script><\/div>";
+        var ad_3 = "<script><\/script>";
+        var ad_4 = "<div id=\"91649-2\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=2\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=2\"><\/script><\/div>";
+        var ad_5 = "<div id=\"91649-20\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=20\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=20\"><\/script><\/div>";
+        var ad_6 = "";
+        var ad_7 = "<div id=\"91649-6\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=6\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=6\"><\/script><\/div>";
+        var ad_8 = "";
+        var ad_9 = "";
+        var ad_10 = "";
+        var ad_11 = "<div id=\"91649-3\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=3\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=3\"><\/script><\/div>";
+        var ad_12 = "<div id=\"91649-19\"><script src=\"\/\/ads.themoneytizer.com\/s\/gen.js?type=19\"><\/script><script src=\"\/\/ads.themoneytizer.com\/s\/requestform.js?siteId=91649\u0026formatId=19\"><\/script><\/div>";
+        $('#ad_1').html(ad_1);
+        $('#ad_2').html(ad_2);
+        $('#ad_3').html(ad_3);
+        $('#ad_4').html(ad_4);
+        $('#ad_5').html(ad_5);
+        $('#ad_6').html(ad_6);
+        $('#ad_7').html(ad_7);
+        $('#ad_8').html(ad_8);
+        $('#ad_9').html(ad_9);
+        $('#ad_10').html(ad_10);
+        $('#ad_11').html(ad_11);
+        $('#ad_12').html(ad_12);
+    }
+</script>
+
+
+<script src="https://player.adtelligent.com/prebidlink/460187/hbw_master_313926_12694.js" async=""></script><iframe name="googlefcPresent" style="display: none; width: 0px; height: 0px; border: none; z-index: -1000; left: -1000px; top: -1000px;" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/saved_resource(4).html"></iframe><iframe name="googlefcInactive" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/saved_resource(5).html" style="display: none; width: 0px; height: 0px; border: none; z-index: -1000; left: -1000px; top: -1000px;"></iframe><iframe name="googlefcLoaded" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/saved_resource(6).html" style="display: none; width: 0px; height: 0px; border: none; z-index: -1000; left: -1000px; top: -1000px;"></iframe><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" data-anchor-status="displayed" style="display: block; width: 100% !important; height: 129px !important; bottom: 0px; clear: none !important; float: none !important; left: 0px; margin: 0px !important; max-height: none !important; max-width: none !important; opacity: 1; overflow: visible !important; padding: 0px !important; position: fixed; right: auto !important; top: auto !important; vertical-align: baseline !important; visibility: visible !important; z-index: 2147483647; background: rgb(250, 250, 250) !important;" data-ad-status="filled" data-anchor-shown="true"><div class="grippy-host"></div><ins id="aswift_4_expand" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none !important; height: 124px !important; width: 100% !important; margin: 0px !important; padding: 0px !important; position: relative !important; visibility: visible !important; background-color: transparent !important; display: inline-table !important; inset: auto !important; clear: none !important; float: none !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; vertical-align: baseline !important; z-index: auto !important;"><ins id="aswift_4_anchor" style="border: none !important; height: 124px !important; width: 100% !important; margin: 0px !important; padding: 0px !important; position: relative !important; visibility: visible !important; background-color: transparent !important; display: block !important; inset: auto !important; clear: none !important; float: none !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; vertical-align: baseline !important; z-index: auto !important;"><iframe id="aswift_4" name="aswift_4" style="width: 1005px !important; height: 124px !important; display: block; margin: 0px auto;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="1005" height="124" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/zrt_lookup.html" data-google-container-id="a!5" data-google-query-id="CMvZ39zR1_gCFarBTAIdeCsGjA" data-load-complete="true"></iframe></ins></ins></ins><iframe src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/aframe.html" width="0" height="0" style="display: none;"></iframe></body><iframe id="google_esf" name="google_esf" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/zrt_lookup(1).html" style="display: none;"></iframe><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important; width: 100vw !important; height: 100vh !important; inset: 0px auto auto 0px !important; clear: none !important; float: none !important; margin: 0px !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; padding: 0px !important; position: fixed !important; vertical-align: baseline !important; visibility: visible !important; z-index: 2147483647 !important; background: transparent !important;" aria-hidden="true" data-ad-status="filled" data-vignette-loaded="true"><ins id="aswift_3_expand" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none !important; height: 100vh !important; width: 100vw !important; margin: 0px !important; padding: 0px !important; position: relative !important; visibility: visible !important; background-color: transparent !important; display: inline-table !important; inset: auto !important; clear: none !important; float: none !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; vertical-align: baseline !important; z-index: auto !important;"><ins id="aswift_3_anchor" style="border: none !important; height: 100vh !important; width: 100vw !important; margin: 0px !important; padding: 0px !important; position: relative !important; visibility: visible !important; background-color: transparent !important; display: block !important; inset: auto !important; clear: none !important; float: none !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; vertical-align: baseline !important; z-index: auto !important;"><iframe id="aswift_3" name="aswift_3" style="width: 100vw !important; height: 100vh !important; inset: 0px auto auto 0px !important; position: absolute !important; clear: none !important; display: inline !important; float: none !important; margin: 0px !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; padding: 0px !important; vertical-align: baseline !important; visibility: visible !important; z-index: auto !important;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="" height="" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./基于H.264的RTP打包原理和FU-A分片实例分析_freeyond的博客-程序员信息网_rtp 分片 - 程序员信息网_files/zrt_lookup(2).html" data-google-container-id="a!4" data-google-query-id="CMrZ39zR1_gCFarBTAIdeCsGjA" data-load-complete="true"></iframe></ins></ins></ins></html>

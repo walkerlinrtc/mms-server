@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)https://datatracker.ietf.org/doc/rfc9725/ -->
+<html data-bs-theme="light" lang="en" prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>
+            
+        RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)
+
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/import.css" rel="stylesheet">
+        <link href="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/import(1).css" rel="stylesheet">
+        <link rel="stylesheet" href="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/ietf.css">
+        <link rel="stylesheet" href="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/select2.css">
+        
+        <script type="text/javascript" async="" defer="" src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/matomo.js.下载"></script><script src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/theme.js.下载"></script>
+        <style>
+            .inline { display: inline; }
+        </style>
+        
+        
+    
+
+
+
+
+<meta property="og:title" content="RFC 9725: WebRTC-HTTP Ingestion Protocol (WHIP)">
+<meta property="og:url" content="https://datatracker.ietf.org/doc/rfc9725/">
+<link rel="canonical" href="https://datatracker.ietf.org/doc/rfc9725/">
+<meta property="og:site_name" content="IETF Datatracker">
+<meta property="og:description" content="This document describes a simple HTTP-based protocol that will allow WebRTC-based ingestion of content into streaming services and/or Content Delivery Networks (CDNs). This document updates RFCs 8840 and 8842.">
+<meta property="og:type" content="article">
+
+<meta property="og:image" content="https://static.ietf.org/dt/12.39.0/ietf/images/ietf-logo-card.png">
+<meta property="og:image:alt" content="Logo of the IETF">
+<meta property="article:section" content="IETF - Internet Engineering Task Force">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<meta property="article:author" content="Sergio Garcia Murillo">
+<meta property="article:author" content="Dr. Alex Gouaillard">
+
+
+
+    <link rel="alternate" type="application/atom+xml" href="https://datatracker.ietf.org/feed/document-changes/rfc9725/" aria-label="Document changes" data-bs-original-title="Document changes">
+    <meta name="description" content="WebRTC-HTTP Ingestion Protocol (WHIP) (RFC 9725, March 2025)">
+
+        <script type="module" crossorigin="" src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/embedded-7b7be54b.js.下载"></script>
+<link href="https://static.ietf.org/dt/12.39.0/assets/create-pinia-singleton-f4ededae.js" type="text/javascript" crossorigin="anonymous" rel="modulepreload" as="script">
+<link href="https://static.ietf.org/dt/12.39.0/assets/Scrollbar-5c371c0f.js" type="text/javascript" crossorigin="anonymous" rel="modulepreload" as="script">
+        
+
+<link rel="apple-touch-icon" sizes="180x180" href="https://static.ietf.org/dt/12.39.0/ietf/images/ietf-logo-nor-180.png">
+<link rel="icon" sizes="32x32" href="https://static.ietf.org/dt/12.39.0/ietf/images/ietf-logo-nor-32.png">
+<link rel="icon" sizes="16x16" href="https://static.ietf.org/dt/12.39.0/ietf/images/ietf-logo-nor-16.png">
+<link rel="manifest" href="https://datatracker.ietf.org/site.webmanifest">
+<link rel="mask-icon" href="https://static.ietf.org/dt/12.39.0/ietf/images/ietf-logo-nor-mask.svg" color="#ffffff">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="theme-color" content="#ffffff">
+        <script src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/ietf.js.下载"></script>
+        
+    </head>
+    <body class="navbar-offset position-relative" data-group-menu-data-url="/group/groupmenu.json">
+        
+        <noscript><iframe class="status" title="Site status" src="/status/latest"></iframe></noscript>
+<div class="vue-embed" data-component="Status"></div>
+        <a class="visually-hidden visually-hidden-focusable" href="https://datatracker.ietf.org/doc/rfc9725/#content">Skip to main content</a>
+        <nav class="navbar navbar-expand-lg fixed-top bg-secondary-subtle">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="https://datatracker.ietf.org/">
+                    
+
+
+
+<img alt="IETF Logo" class="d-lm-none me-2" src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/ietf-logo-nor-white.svg">
+
+<img alt="IETF Logo" class="d-dm-none me-2" src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/ietf-logo-nor.svg">
+                    Datatracker
+                    
+                </a>
+                <div class="collapse navbar-collapse" id="navbar-collapse">
+                    <ul class="nav navbar-nav flex-nowrap">
+                        
+
+
+
+
+<li class="nav-item dropdown">
+    
+        <a href="https://datatracker.ietf.org/doc/rfc9725/#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Groups
+        </a>
+        <ul class="dropdown-menu mt-n1">
+        
+    <li class="dropdown-header">By area/parent</li>
+    
+
+
+
+    <li class="dropend group-menu group-parent-2010">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#ART">
+            Apps &amp; Realtime
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/asap/">asap — Automatic SIP trunking And Peering</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/asdf/">asdf — A Semantic Definition Format for Data and Interactions of Things</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/calext/">calext — Calendaring Extensions</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/cbor/">cbor — Concise Binary Object Representation Maintenance and Extensions</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/cellar/">cellar — Codec Encoding for LossLess Archiving and Realtime transmission</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dispatch/">dispatch — Dispatch</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dkim/">dkim — Domain Keys Identified Mail</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ecrit/">ecrit — Emergency Context Resolution with Internet Technologies</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/emailcore/">emailcore — Revision of core Email specifications</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/jmap/">jmap — JSON Mail Access Protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mailmaint/">mailmaint — Mail Maintenance</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mediaman/">mediaman — Media Type Maintenance</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mimi/">mimi — More Instant Messaging Interoperability</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mlcodec/">mlcodec — Machine Learning for Audio Coding</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/regext/">regext — Registration Protocols Extensions</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/rpp/">rpp — RESTful Provisioning Protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/satp/">satp — Secure Asset Transfer Protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/sipcore/">sipcore — Session Initiation Protocol Core</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/sml/">sml — Structured Email</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/stir/">stir — Secure Telephone Identity Revisited</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/vcon/">vcon — Virtualized Conversations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/wimse/">wimse — Workload Identity in Multi System Environments</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/artarea/">artarea — Applications and Real-Time Area Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-1008">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#GEN">
+            General
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/gendispatch/">gendispatch — General Area Dispatch</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ianabis/">ianabis — Update to IANA Considerations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/modpod/">modpod — MODeration PrOceDures</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/genarea/">genarea — General Area Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-1052">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#INT">
+            Internet
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/6lo/">6lo — IPv6 over Networks of Resource-constrained Nodes</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/6man/">6man — IPv6 Maintenance</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/add/">add — Adaptive DNS Discovery</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/bpf/">bpf — BPF/eBPF</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/deleg/">deleg — DNS Delegation</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dhc/">dhc — Dynamic Host Configuration</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dmm/">dmm — Distributed Mobility Management</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dnssd/">dnssd — Extensions for Scalable DNS Service Discovery</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dprive/">dprive — DNS PRIVate Exchange</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/drip/">drip — Drone Remote ID Protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dtn/">dtn — Delay/Disruption Tolerant Networking</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/intarea/">intarea — Internet Area Working Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/madinas/">madinas — MAC Address Device Identification for Network and Application Services</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ntp/">ntp — Network Time Protocols</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/schc/">schc — Static Context Header Compression</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/snac/">snac — Stub Network Auto Configuration for IPv6</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/tiptop/">tiptop — Taking IP To Other Planets</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-1193">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#OPS">
+            Ops &amp; Management
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/anima/">anima — Autonomic Networking Integrated Model and Approach</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/bmwg/">bmwg — Benchmarking Methodology</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dnsop/">dnsop — Domain Name System Operations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/green/">green — Getting Ready for Energy-Efficient Networking</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/grow/">grow — Global Routing Operations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/iotops/">iotops — IOT Operations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ippm/">ippm — IP Performance Measurement</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ivy/">ivy — Network Inventory YANG</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mboned/">mboned — MBONE Deployment</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mops/">mops — Media OPerationS</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/netconf/">netconf — Network Configuration</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/netmod/">netmod — Network Modeling</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/nmop/">nmop — Network Management Operations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/opsawg/">opsawg — Operations and Management Area Working Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/sidrops/">sidrops — SIDR Operations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/srv6ops/">srv6ops — SRv6 Operations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/v6ops/">v6ops — IPv6 Operations</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/opsarea/">opsarea — Operations &amp; Management Area Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-1249">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#RTG">
+            Routing
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/babel/">babel — Babel routing protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/bess/">bess — BGP Enabled ServiceS</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/bfd/">bfd — Bidirectional Forwarding Detection</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/bier/">bier — Bit Indexed Explicit Replication</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/cats/">cats — Computing-Aware Traffic Steering</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ccamp/">ccamp — Common Control and Measurement Plane</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/detnet/">detnet — Deterministic Networking</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/idr/">idr — Inter-Domain Routing</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/lisp/">lisp — Locator/ID Separation Protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/lsr/">lsr — Link State Routing</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/lsvr/">lsvr — Link State Vector Routing</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/manet/">manet — Mobile Ad-hoc Networks</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mpls/">mpls — Multiprotocol Label Switching</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/nvo3/">nvo3 — Network Virtualization Overlays</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/pals/">pals — Pseudowire And LDP-enabled Services</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/pce/">pce — Path Computation Element</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/pim/">pim — Protocols for IP Multicast</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/rift/">rift — Routing In Fat Trees</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/roll/">roll — Routing Over Low power and Lossy networks</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/rtgwg/">rtgwg — Routing Area Working Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/savnet/">savnet — Source Address Validation in Intra-domain and Inter-domain Networks</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/spring/">spring — Source Packet Routing in Networking</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/teas/">teas — Traffic Engineering Architecture and Signaling</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/tvr/">tvr — Time-Variant Routing</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/rtgarea/">rtgarea — Routing Area Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-1260">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#SEC">
+            Security
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ace/">ace — Authentication and Authorization for Constrained Environments</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/acme/">acme — Automated Certificate Management Environment</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/cose/">cose — CBOR Object Signing and Encryption</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dance/">dance — DANE Authentication for Network Clients Everywhere</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/dult/">dult — Detecting Unwanted Location Trackers</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/emu/">emu — EAP Method Update</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ipsecme/">ipsecme — IP Security Maintenance and Extensions</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/jose/">jose — Javascript Object Signing and Encryption</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/keytrans/">keytrans — Key Transparency</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/kitten/">kitten — Common Authentication Technology Next Generation</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/lake/">lake — Lightweight Authenticated Key Exchange</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/lamps/">lamps — Limited Additional Mechanisms for PKIX and SMIME</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/mls/">mls — Messaging Layer Security</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/oauth/">oauth — Web Authorization Protocol</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ohai/">ohai — Oblivious HTTP Application Intermediation</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/openpgp/">openpgp — Open Specification for Pretty Good Privacy</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ppm/">ppm — Privacy Preserving Measurement</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/pquip/">pquip — Post-Quantum Use In Protocols</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/privacypass/">privacypass — Privacy Pass</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/radext/">radext — RADIUS EXTensions</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/rats/">rats — Remote ATtestation ProcedureS</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/scim/">scim — System for Cross-domain Identity Management</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/scitt/">scitt — Supply Chain Integrity, Transparency, and Trust</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/secdispatch/">secdispatch — Security Dispatch</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/spice/">spice — Secure Patterns for Internet CrEdentials</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/sshm/">sshm — Secure Shell Maintenance</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/suit/">suit — Software Updates for Internet of Things</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/teep/">teep — Trusted Execution Environment Provisioning</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/tls/">tls — Transport Layer Security</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/uta/">uta — Using TLS in Applications</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/saag/">saag — Security Area Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-2412">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/wg/#WIT">
+            Web and Internet Transport
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/aipref/">aipref — AI Preferences</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/avtcore/">avtcore — Audio/Video Transport Core Maintenance</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/ccwg/">ccwg — Congestion Control Working Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/cdni/">cdni — Content Delivery Networks Interconnection</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/core/">core — Constrained RESTful Environments</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/happy/">happy — Heuristics and Algorithms to Prioritize Protocol deploYment</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/httpapi/">httpapi — Building Blocks for HTTP APIs</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/httpbis/">httpbis — HTTP</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/masque/">masque — Multiplexed Application Substrate over QUIC Encryption</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/moq/">moq — Media Over QUIC</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/nfsv4/">nfsv4 — Network File System Version 4</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/quic/">quic — QUIC</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/scone/">scone — Standard Communication with Network Elements</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/tcpm/">tcpm — TCP Maintenance and Minor Extensions</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/tsvwg/">tsvwg — Transport and Services Working Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/webtrans/">webtrans — WebTransport</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/wg/wish/">wish — WebRTC Ingest Signaling over HTTPS</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/witarea/">witarea — Web and Internet Transport Area Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-7">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/program/">
+            IAB
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Top Level Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/group/iab/">iab — Internet Architecture Board</a></li><li class="dropdown-divider"></li><li class="dropdown-header">IAB Programs</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/program/edm/">edm — Evolvability, Deployability, &amp; Maintainability</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/program/eimpact/">eimpact — Environmental Impacts of Internet Technology</a></li><li class="dropdown-divider"></li><li class="dropdown-header">IAB Administrative Support Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/iabasg/iabisoc/">iabisoc — IAB-ISOC Policy Coordination</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/iabasg/ietf3gpp/">ietf3gpp — IETF-3GPP</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/iabasg/ietfiana/">ietfiana — IETF-IANA</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/iabasg/ietfieee/">ietfieee — IETF-IEEE</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/iabasg/ietfw3c/">ietfw3c — IETF-W3C</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/ag/iabopen/">iabopen — IAB Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-3">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/rg/">
+            IRTF
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Research Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/cfrg/">cfrg — Crypto Forum</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/dinrg/">dinrg — Decentralization of the Internet Research Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/gaia/">gaia — Global Access to the Internet for All</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/hrpc/">hrpc — Human Rights Protocol Considerations</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/iccrg/">iccrg — Internet Congestion Control</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/icnrg/">icnrg — Information-Centric Networking</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/maprg/">maprg — Measurement and Analysis for Protocols</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/nmrg/">nmrg — Network Management</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/panrg/">panrg — Path Aware Networking RG</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/pearg/">pearg — Privacy Enhancements and Assessments Research Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/qirg/">qirg — Quantum Internet Research Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/rasprg/">rasprg — Research and Analysis of Standard-Setting Processes Research Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/sustain/">sustain — Sustainability and the Internet Proposed Research Group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/t2trg/">t2trg — Thing-to-Thing</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rg/ufmrg/">ufmrg — Usable Formal Methods Research Group</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Research Area Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rag/anrw/">anrw — ACM/IRTF Applied Networking Research Workshop</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/rag/irtfopen/">irtfopen — IRTF Open Meeting</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-2309">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/adm/">
+            IETF LLC
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Administrative Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/adm/legal-consult/">legal-consult — Legal consultation group</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/adm/llc-board/">llc-board — IETF Administration LLC Board of Directors</a></li><li><a class="dropdown-item" href="https://datatracker.ietf.org/adm/llc-staff/">llc-staff — IETF LLC employees</a></li></ul></li>
+
+    <li class="dropend group-menu group-parent-1876">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/rfcedtyp/">
+            RFC Editor
+        </a>
+    <ul class="dropdown-menu ms-n1 mt-n1 overflow-shadows"><li class="dropdown-header">Editorial Stream Working Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/edwg/rswg/">rswg — RFC Series Working Group</a></li><li class="dropdown-divider"></li><li class="dropdown-header">Editorial Stream Approval Groups</li><li><a class="dropdown-item" href="https://datatracker.ietf.org/edappr/rsab/">rsab — RFC Series Approval Board</a></li></ul></li>
+
+
+    <li class="dropend">
+        <a class="dropdown-item dropdown-toggle " href="https://datatracker.ietf.org/group/">
+            Other
+        </a>
+        
+
+
+<ul class="dropdown-menu ms-n1">
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/ag/">Active AGs</a>
+        </li>
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/area/">Active Areas</a>
+        </li>
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/dir/">Active Directorates</a>
+        </li>
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/iabworkshop/">Active IAB Workshops</a>
+        </li>
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/program/">Active Programs</a>
+        </li>
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/rag/">Active RAGs</a>
+        </li>
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/team/">Active Teams</a>
+        </li>
+    
+    
+</ul>
+
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li class="dropdown-header">New work</li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/group/chartering/">
+            Chartering groups
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/wg/bofs/">
+            BOFs
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/bof-requests">
+            BOF Requests
+        </a>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li class="dropdown-header">Other groups</li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/group/concluded/">
+            Concluded groups
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/list/nonwg">
+            Non-WG lists
+        </a>
+    </li>
+    
+    </ul>
+</li>
+
+<li class="nav-item dropdown">
+    
+        <a href="https://datatracker.ietf.org/doc/rfc9725/#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Documents
+        </a>
+        <ul class="dropdown-menu mt-n1">
+        
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/search">
+            Search
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/recent">
+            Recent I-Ds
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/submit/">
+            I-D submission
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/ad">
+            IESG dashboard
+        </a>
+    </li>
+    
+    
+        <li><hr class="dropdown-divider">
+        </li>
+    
+    <li class="dropdown-header">
+        RFC streams
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/stream/iab/">
+            IAB
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/stream/irtf/">
+            IRTF
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/stream/ise/">
+            ISE
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/stream/editorial/">
+            Editorial
+        </a>
+    </li>
+    
+        <li><hr class="dropdown-divider">
+        </li>
+    
+    <li class="dropdown-header">
+        Subseries
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/std">
+            STD
+        </a>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/bcp">
+            BCP
+        </a>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/fyi">
+            FYI
+        </a>
+    </li>
+    
+    </ul>
+</li>
+
+<li class="nav-item dropdown">
+    
+        <a href="https://datatracker.ietf.org/doc/rfc9725/#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Meetings
+        </a>
+        <ul class="dropdown-menu mt-n1">
+        
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/agenda">
+            Agenda
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/materials">
+            Materials
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/floor-plan">
+            Floor plan
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://www.ietf.org/how/meetings/register/">
+            Registration
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/important-dates/">
+            Important dates
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/secr/sreq/">
+            Request a session
+        </a>
+    </li>
+    
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/requests">
+            Session requests
+        </a>
+    </li>
+    
+    
+        
+            <li><hr class="dropdown-divider">
+            </li>
+        
+        <li class="dropdown-header">
+            Upcoming meetings
+        </li>
+    
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/upcoming">
+            Upcoming meetings
+        </a>
+    </li>
+    
+        
+            <li><hr class="dropdown-divider">
+            </li>
+        
+        <li class="dropdown-header">
+            Past meetings
+        </li>
+    
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/meeting/past">
+            Past meetings
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://www.ietf.org/how/meetings/past/">
+            Meeting proceedings
+        </a>
+    </li>
+    
+    </ul>
+</li>
+
+<li class="nav-item dropdown">
+    
+        <a href="https://datatracker.ietf.org/doc/rfc9725/#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Other
+        </a>
+        <ul class="dropdown-menu mt-n1">
+        
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/ipr/">
+            IPR disclosures
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/liaison/">
+            Liaison statements
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/iesg/agenda/">
+            IESG agenda
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/nomcom/">
+            NomComs
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/doc/downref">
+            Downref registry
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/stats/">
+            Statistics
+        </a>
+        <ul class="dropdown-menu mt-n1">
+            <li>
+                <a class="dropdown-item " href="https://datatracker.ietf.org/stats/document/">
+                    I-Ds/RFCs
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item " href="https://datatracker.ietf.org/stats/meeting/">
+                    Meetings
+                </a>
+            </li>
+            
+        </ul>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/api/">
+            API Help
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " href="https://datatracker.ietf.org/release/">
+            Release notes
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item " target="_blank" href="https://status.ietf.org/">
+            System status
+        </a>
+    </li>
+    
+        <li><hr class="dropdown-divider">
+        </li>
+    
+    <li>
+        <a class="dropdown-item text-danger " target="_blank" href="https://github.com/ietf-tools/datatracker/issues/new/choose">
+            <i class="bi bi-bug">
+            </i>
+            Report a bug
+        </a>
+    </li>
+    
+    </ul>
+</li>
+
+
+    
+
+
+
+<li class="nav-item dropdown">
+    
+        <a href="https://datatracker.ietf.org/doc/rfc9725/#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            
+                User
+            
+        </a>
+        <ul class="dropdown-menu  mt-n1 ">
+        
+    
+    
+        
+            <li>
+                <a class="dropdown-item " rel="nofollow" href="https://datatracker.ietf.org/accounts/login/?next=/doc/rfc9725/">
+                    Sign in
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item " rel="nofollow" href="https://datatracker.ietf.org/accounts/reset/">
+                    Password reset
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item " href="https://datatracker.ietf.org/accounts/settings/" rel="nofollow">
+                    Preferences
+                </a>
+            </li>
+        
+    
+    
+        <li>
+            <a class="dropdown-item " href="https://datatracker.ietf.org/accounts/create/">
+                New account
+            </a>
+        </li>
+    
+    
+    
+    
+    
+    
+    </ul></li>
+
+
+                    </ul>
+                </div>
+                <div class="d-flex align-items-center">
+                    <a class="nav-link text-danger d-none d-xl-inline me-xl-4" target="_blank" href="https://github.com/ietf-tools/datatracker/issues/new/choose">
+                        Report a bug
+                        <i class="bi bi-bug"></i>
+                    </a>
+
+                    
+                        <a class="btn me-1  btn-warning  d-none d-sm-block" rel="nofollow" href="https://datatracker.ietf.org/accounts/login/?next=/doc/rfc9725/">
+                            Sign in
+                        </a>
+                    
+
+                    <label class="d-none d-md-block" aria-label="Document search">
+                    <input class="form-control select2-field search-select select2-hidden-accessible" id="navbar-doc-search" data-select2-ajax-url="/doc/select2search/document/all/" type="text" data-placeholder="Document search" data-select2-id="select2-data-navbar-doc-search" multiple="" tabindex="-1" aria-hidden="true"><span class="select2 select2-container select2-container--bootstrap-5" dir="ltr" data-select2-id="select2-data-1-nr5r"><span class="selection"><span class="select2-selection select2-selection--multiple form-control search-select" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="-1" aria-disabled="false"><ul class="select2-selection__rendered" id="select2-navbar-doc-search-container"></ul><span class="select2-search select2-search--inline"><textarea class="select2-search__field" type="search" tabindex="0" autocorrect="off" autocapitalize="none" spellcheck="false" role="searchbox" aria-autocomplete="list" autocomplete="off" aria-label="Search" aria-describedby="select2-navbar-doc-search-container" placeholder="Document search" style="width: 100%;"></textarea></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+                   </label>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="navbar-toggler-icon"></i>
+                </button>
+            </div>
+        </nav>
+        
+        <main class="pt-3 container-fluid" id="main">
+            <div class="row">
+                
+                <div class="col mx-lg-3 ietf-auto-nav" id="content">
+                    <noscript>
+                        <div class="alert alert-danger alert-ignore my-3">
+                            <b>Javascript disabled?</b> Like other modern websites, the IETF Datatracker relies on Javascript.
+                            Please enable Javascript for full functionality.
+                        </div>
+                    </noscript>
+                    
+                    
+    
+    
+
+
+
+<h1>
+    WebRTC-HTTP Ingestion Protocol (WHIP)
+    <br>
+    <small class="text-body-secondary">RFC 9725</small>
+</h1>
+<ul class="nav nav-tabs my-3">
+    
+        <li class="nav-item">
+            <a class="nav-link active" href="https://datatracker.ietf.org/doc/rfc9725/">
+                Status
+            </a>
+        </li>
+    
+        <li class="nav-item">
+            <a class="nav-link " href="https://datatracker.ietf.org/doc/rfc9725/email/">
+                Email expansions
+            </a>
+        </li>
+    
+        <li class="nav-item">
+            <a class="nav-link " href="https://datatracker.ietf.org/doc/rfc9725/history/">
+                History
+            </a>
+        </li>
+    
+</ul>
+
+    
+
+
+
+
+    
+
+
+    <div id="doc-timeline" class="my-3"><svg width="1749" height="136.72777557373047"><defs><lineargradient id="maskGradient"><stop offset="0.9" stop-color="white" stop-opacity="1"></stop><stop offset="1" stop-color="white" stop-opacity="0"></stop></lineargradient><mask id="fade" maskContentUnits="objectBoundingBox"><rect height="1" width="1" fill="url(#maskGradient)"></rect></mask></defs><g class="bar" transform="translate(133.4375, 0)"><a href="/doc/draft-murillo-whip/00/"><rect height="24" width="162.04941612560407" class="btn" type="button" mask="url(#fade)"></rect></a><text x="3" y="12">00</text></g><g class="bar" transform="translate(354.36389738147375, 0)"><a href="/doc/draft-murillo-whip/01/"><rect height="24" width="18.191831288004323" class="btn" type="button"></rect></a><text x="3" y="12">01</text></g><g class="bar" transform="translate(372.55572866947807, 0)"><a href="/doc/draft-murillo-whip/02/"><rect height="24" width="162.04941612560413" class="btn" type="button" mask="url(#fade)"></rect></a><text x="3" y="12">02</text></g><g class="bar" transform="translate(440.9130062977649, 24)"><a href="/doc/draft-ietf-wish-whip/00/"><rect height="24" width="48.449612294814415" class="btn" type="button"></rect></a><text x="3" y="12">00</text></g><g class="bar" transform="translate(489.36261859257934, 24)"><a href="/doc/draft-ietf-wish-whip/01/"><rect height="24" width="120.62104289405306" class="btn" type="button"></rect></a><text x="3" y="12">01</text></g><g class="bar" transform="translate(609.9836614866324, 24)"><a href="/doc/draft-ietf-wish-whip/02/"><rect height="24" width="82.29639653325466" class="btn" type="button"></rect></a><text x="3" y="12">02</text></g><g class="bar" transform="translate(692.2800580198871, 24)"><a href="/doc/draft-ietf-wish-whip/03/"><rect height="24" width="40.27516007871873" class="btn" type="button"></rect></a><text x="3" y="12">03</text></g><g class="bar" transform="translate(732.5552180986058, 24)"><a href="/doc/draft-ietf-wish-whip/04/"><rect height="24" width="75.29625511982601" class="btn" type="button"></rect></a><text x="3" y="12">04</text></g><g class="bar" transform="translate(807.8514732184318, 24)"><a href="/doc/draft-ietf-wish-whip/05/"><rect height="24" width="62.06996507479346" class="btn" type="button"></rect></a><text x="3" y="12">05</text></g><g class="bar" transform="translate(869.9214382932253, 24)"><a href="/doc/draft-ietf-wish-whip/06/"><rect height="24" width="64.8283231136055" class="btn" type="button"></rect></a><text x="3" y="12">06</text></g><g class="bar" transform="translate(934.7497614068308, 24)"><a href="/doc/draft-ietf-wish-whip/07/"><rect height="24" width="14.85980168941569" class="btn" type="button"></rect></a><text x="3" y="12">07</text></g><g class="bar" transform="translate(949.6095630962465, 24)"><a href="/doc/draft-ietf-wish-whip/08/"><rect height="24" width="101.80751046071111" class="btn" type="button"></rect></a><text x="3" y="12">08</text></g><g class="bar" transform="translate(1051.4170735569576, 24)"><a href="/doc/draft-ietf-wish-whip/09/"><rect height="24" width="125.16890036788595" class="btn" type="button"></rect></a><text x="3" y="12">09</text></g><g class="bar" transform="translate(1176.5859739248435, 24)"><a href="/doc/draft-ietf-wish-whip/10/"><rect height="24" width="22.041324454683718" class="btn" type="button"></rect></a><text x="3" y="12">10</text></g><g class="bar" transform="translate(1198.6272983795272, 24)"><a href="/doc/draft-ietf-wish-whip/11/"><rect height="24" width="15.707401971518948" class="btn" type="button"></rect></a><text x="3" y="12">11</text></g><g class="bar" transform="translate(1214.3347003510462, 24)"><a href="/doc/draft-ietf-wish-whip/12/"><rect height="24" width="10.521115298512541" class="btn" type="button"></rect></a><text x="3" y="12">12</text></g><g class="bar" transform="translate(1224.8558156495587, 24)"><a href="/doc/draft-ietf-wish-whip/13/"><rect height="24" width="75.39049046451191" class="btn" type="button"></rect></a><text x="3" y="12">13</text></g><g class="bar" transform="translate(1300.2463061140706, 24)"><a href="/doc/draft-ietf-wish-whip/14/"><rect height="24" width="69.93149698909406" class="btn" type="button"></rect></a><text x="3" y="12">14</text></g><g class="bar" transform="translate(1370.1778031031647, 24)"><a href="/doc/draft-ietf-wish-whip/15/"><rect height="24" width="26.12522012483464" class="btn" type="button"></rect></a><text x="3" y="12">15</text></g><g class="bar" transform="translate(1396.3030232279993, 24)"><a href="/doc/draft-ietf-wish-whip/16/"><rect height="24" width="162.04941612560424" class="btn" type="button" mask="url(#fade)"></rect></a><text x="3" y="12">16</text></g><g class="bar" transform="translate(1586.9505838743958, 48)"><a href="/doc/rfc9725/"><rect height="24" width="26.46406198667978" class="btn" type="button"></rect></a><text x="3" y="12">rfc9725</text></g><g class="x axis" transform="translate(0, 72)" fill="none" font-size="10" font-family="sans-serif" text-anchor="middle"><path class="domain" stroke="currentColor" d="M133.9375,6V0.5H1749.5V6"></path><g class="tick" opacity="1" transform="translate(133.9375,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Sep 2020</text></g><g class="tick" opacity="1" transform="translate(354.86389738147375,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">May 2021</text></g><g class="tick" opacity="1" transform="translate(373.05572866947807,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Jun 2021</text></g><g class="tick" opacity="1" transform="translate(441.4130062977649,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Aug 2021</text></g><g class="tick" opacity="1" transform="translate(489.86261859257934,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Oct 2021</text></g><g class="tick" opacity="1" transform="translate(610.4836614866324,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Mar 2022</text></g><g class="tick" opacity="1" transform="translate(692.7800580198871,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Jun 2022</text></g><g class="tick" opacity="1" transform="translate(733.0552180986058,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Jul 2022</text></g><g class="tick" opacity="1" transform="translate(808.3514732184318,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Oct 2022</text></g><g class="tick" opacity="1" transform="translate(870.4214382932253,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Dec 2022</text></g><g class="tick" opacity="1" transform="translate(935.2497614068308,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Mar 2023</text></g><g class="tick" opacity="1" transform="translate(1051.9170735569576,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Jul 2023</text></g><g class="tick" opacity="1" transform="translate(1177.0859739248435,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Dec 2023</text></g><g class="tick" opacity="1" transform="translate(1199.1272983795272,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Jan 2024</text></g><g class="tick" opacity="1" transform="translate(1300.7463061140706,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">May 2024</text></g><g class="tick" opacity="1" transform="translate(1370.6778031031647,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Jul 2024</text></g><g class="tick" opacity="1" transform="translate(1396.8030232279993,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Aug 2024</text></g><g class="tick" opacity="1" transform="translate(1587.4505838743958,0)"><line stroke="currentColor" y2="6"></line><text fill="currentColor" y="9" dy="0.71em" transform="translate(-14, 2) rotate(-60)" style="text-anchor: end;">Mar 2025</text></g></g><g class="y axis" transform="translate(10, 12)" fill="none" font-size="10" font-family="sans-serif" text-anchor="end"><path class="domain" stroke="currentColor" d="M-6,0.5H0.5V72.5H-6"></path><g class="tick" opacity="1" transform="translate(0,0.5)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em" style="text-anchor: start;">draft-murillo-whip</text></g><g class="tick" opacity="1" transform="translate(0,24.5)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em" style="text-anchor: start;">draft-ietf-wish-whip</text></g><g class="tick" opacity="1" transform="translate(0,48.5)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em" style="text-anchor: start;">rfc9725</text></g><g class="tick" opacity="1" transform="translate(0,72.5)"><line stroke="currentColor" x2="-6"></line><text fill="currentColor" x="-9" dy="0.32em" style="text-anchor: start;"></text></g></g></svg></div>
+    <table class="table table-sm table-borderless">
+        
+
+
+
+
+
+
+
+<tbody class="meta align-top  border-top">
+    <tr>
+        <th scope="row">Document</th>
+        <th scope="row">Type</th>
+        <td class="edit"></td>
+        <td>
+            
+
+
+
+
+
+<span class="text-success">RFC
+    
+    - Proposed Standard
+    
+</span>
+
+            
+                
+                    (March 2025)
+                
+                
+                
+                
+                
+                
+                
+                
+                <div>Updates <a href="https://datatracker.ietf.org/doc/rfc8840/" data-bs-original-title="A Session Initiation Protocol (SIP) Usage for Incremental Provisioning of Candidates for the Interactive Connectivity Establishment (Trickle ICE)">RFC 8840</a>, <a href="https://datatracker.ietf.org/doc/rfc8842/" data-bs-original-title="Session Description Protocol (SDP) Offer/Answer Considerations for Datagram Transport Layer Security (DTLS) and Transport Layer Security (TLS)">RFC 8842</a></div>
+                
+                
+                
+                    <div>
+                        Was
+                        <a href="https://datatracker.ietf.org/doc/draft-ietf-wish-whip/16/">draft-ietf-wish-whip</a>
+                        (<a href="https://datatracker.ietf.org/wg/wish/about/">wish WG</a>)
+                    </div>
+                
+            
+            
+            
+        </td>
+    </tr>
+    
+    <tr>
+        <td></td>
+        <th scope="row">Authors</th>
+        <td class="edit">
+            
+        </td>
+        <td>
+            
+            
+                <span><a href="https://datatracker.ietf.org/person/sergio.garcia.murillo@cosmosoftware.io" data-bs-original-title="Datatracker profile of Sergio Garcia Murillo">Sergio Garcia Murillo</a> <a href="mailto:sergio.garcia.murillo%40cosmosoftware.io" aria-label="Compose email to sergio.garcia.murillo@cosmosoftware.io" data-bs-original-title="Compose email to sergio.garcia.murillo@cosmosoftware.io">
+                <i class="bi bi-envelope"></i></a></span>,
+            
+                <span><a href="https://datatracker.ietf.org/person/agouaillard@gmail.com" data-bs-original-title="Datatracker profile of Dr. Alex Gouaillard">Dr. Alex Gouaillard</a> <a href="mailto:agouaillard%40gmail.com" aria-label="Compose email to agouaillard@gmail.com" data-bs-original-title="Compose email to agouaillard@gmail.com">
+                <i class="bi bi-envelope"></i></a></span>
+            
+            
+        </td>
+    </tr>
+    
+    
+    <tr>
+        <td></td>
+        <th scope="row">Last updated</th>
+        <td class="edit"></td>
+        <td>
+            2025-03-26
+            
+        </td>
+    </tr>
+    
+    
+    <tr>
+        <td></td>
+        <th scope="row">
+            RFC stream
+        </th>
+        <td class="edit">
+            
+        </td>
+        <td>
+            
+                
+                
+                    Internet Engineering Task Force (IETF)
+                
+                
+            
+        </td>
+    </tr>
+    
+    <tr>
+        <td></td>
+        <th scope="row">
+            Formats
+        </th>
+        <td class="edit">
+        </td>
+        <td>
+            
+                
+    <div class="buttonlist">
+    
+        
+        <a class="btn btn-primary btn-sm" target="_blank" href="https://www.rfc-editor.org/rfc/rfc9725.txt">
+            
+                <i class="bi bi-file-text"></i> txt
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm" target="_blank" href="https://www.rfc-editor.org/rfc/rfc9725.html">
+            
+                <i class="bi bi-file-code"></i> html
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm" target="_blank" href="https://www.rfc-editor.org/rfc/rfc9725.xml">
+            
+                <i class="bi bi-file-code"></i> xml
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm" download="rfc9725.pdf" target="_blank" href="https://www.rfc-editor.org/rfc/rfc9725.pdf">
+            
+                <i class="bi bi-file-pdf"></i> pdf
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm" href="https://datatracker.ietf.org/doc/html/rfc9725">
+            
+                <i class="bi bi-file-code"></i> htmlized
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm" target="_blank" href="https://datatracker.ietf.org/doc/rfc9725/bibtex/">
+            
+                <i class="bi bi-file-ruled"></i> bibtex
+            
+        </a>
+        
+    
+</div>
+
+            
+        </td>
+    </tr>
+    
+    
+        
+    
+    
+        
+            <tr>
+                <td>
+                </td>
+                <th scope="row">
+                    Additional resources
+                </th>
+                <td class="edit">
+                    
+                </td>
+                <td>
+                    
+                        
+                        
+                            
+                                <a href="https://mailarchive.ietf.org/arch/browse/wish/?q=rfc9725%20OR%20%22draft-ietf-wish-whip%22">
+                                    Mailing list discussion
+                                </a>
+                            
+                        
+                    
+                </td>
+            </tr>
+        
+    
+</tbody>
+        <tbody class="meta border-top">
+        </tbody>
+        
+            <tbody class="meta border-top">
+                <tr>
+                    <th scope="row">
+                        IESG
+                    </th>
+                        <th scope="row">
+                            Responsible AD
+                        </th>
+                        <td class="edit">
+                            
+                        </td>
+                        <td>
+                            
+                                <span><a href="https://datatracker.ietf.org/person/superuser@gmail.com" data-bs-original-title="Datatracker profile of Murray Kucherawy">Murray Kucherawy</a> <a href="mailto:superuser%40gmail.com" aria-label="Compose email to superuser@gmail.com" data-bs-original-title="Compose email to superuser@gmail.com">
+                <i class="bi bi-envelope"></i></a></span>
+                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <th scope="row">
+                            Send notices to
+                        </th>
+                        <td class="edit">
+                            
+                        </td>
+                        <td>
+                            
+                                <span class="text-body-secondary">
+                                    (None)
+                                </span>
+                            
+                        </td>
+                    </tr>
+                </tbody>
+            
+        </table>
+        <div class="buttonlist">
+            
+                <a class="btn btn-primary btn-sm" href="mailto:draft-ietf-wish-whip@ietf.org?subject=Mail%20regarding%20rfc9725">
+                    <i class="bi bi-envelope">
+                    </i>
+                    Email authors
+                </a>
+            
+            
+                <a class="btn btn-primary btn-sm" href="mailto:wish@ietf.org?subject=Mail%20regarding%20rfc9725">
+                    <i class="bi bi-envelope">
+                    </i>
+                    Email WG
+                </a>
+            
+            <a class="btn btn-primary btn-sm" href="https://datatracker.ietf.org/ipr/search/?submit=draft&amp;id=rfc9725" rel="nofollow">
+                <i class="bi bi-lightning">
+                </i>
+                IPR
+                
+            </a>
+            <a class="btn btn-primary btn-sm" href="https://datatracker.ietf.org/doc/rfc9725/references/" rel="nofollow">
+                <i class="bi bi-arrow-left">
+                </i>
+                References
+            </a>
+            <a class="btn btn-primary btn-sm" href="https://datatracker.ietf.org/doc/rfc9725/referencedby/" rel="nofollow">
+                <i class="bi bi-arrow-right">
+                </i>
+                Referenced by
+            </a>
+            <a class="btn btn-primary btn-sm" href="https://mailarchive.ietf.org/arch/search?q=%22rfc9725%22" rel="nofollow" target="_blank">
+                Search Lists
+            </a>
+            
+            
+        </div>
+        <div class="card mt-5">
+            <div class="card-header">
+                    RFC 9725
+            </div>
+            <div class="card-body">
+                <pre>﻿
+
+Internet Engineering Task Force (IETF)                 S. Garcia Murillo
+Request for Comments: 9725                                     Millicast
+Updates: 8840, 8842                                        A. Gouaillard
+Category: Standards Track                                 CoSMo Software
+ISSN: 2070-1721                                               March 2025
+
+                 WebRTC-HTTP Ingestion Protocol (WHIP)
+
+<span>Abstract</span>
+
+   This document describes a simple HTTP-based protocol that will allow
+   WebRTC-based ingestion of content into streaming services and/or
+   Content Delivery Networks (CDNs).
+
+   This document updates RFCs 8840 and 8842.
+
+<span>Status of This Memo</span>
+
+   This is an Internet Standards Track document.
+
+   This document is a product of the Internet Engineering Task Force
+   (IETF).  It represents the consensus of the IETF community.  It has
+   received public review and has been approved for publication by the
+   Internet Engineering Steering Group (IESG).  Further information on
+   Internet Standards is available in Section 2 of RFC 7841.
+
+   Information about the current status of this document, any errata,
+   and how to provide feedback on it may be obtained at
+   https://www.rfc-editor.org/info/rfc9725.
+
+<span>Copyright Notice</span>
+
+   Copyright (c) 2025 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (https://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Revised BSD License text as described in Section 4.e of the
+   Trust Legal Provisions and are provided without warranty as described
+   in the Revised BSD License.
+
+<span>Table of Contents</span>
+
+   1.  Introduction
+   2.  Terminology
+   3.  Overview
+   4.  Protocol Operation
+     4.1.  HTTP Usage
+     4.2.  Ingest Session Setup
+     4.3.  ICE Support
+       4.3.1.  HTTP PATCH Request Usage
+       4.3.2.  Trickle ICE
+       4.3.3.  ICE Restarts
+     4.4.  WebRTC Constraints
+       4.4.1.  SDP Bundle
+       4.4.2.  Single MediaStream
+       4.4.3.  No Partially Successful Answers
+       4.4.4.  DTLS Setup Role and SDP "setup" Attribute
+       4.4.5.  Trickle ICE and ICE Restarts
+     4.5.  Load Balancing and Redirections
+     4.6.  STUN/TURN Server Configuration
+       4.6.1.  Congestion Control
+     4.7.  Authentication and Authorization
+       4.7.1.  Bearer Token Authentication
+     4.8.  Simulcast and Scalable Video Coding
+     4.9.  Protocol Extensions
+   5.  Security Considerations
+   6.  IANA Considerations
+     6.1.  Link Relation Type: ice-server
+     6.2.  URN Sub-namespace for WHIP (urn:ietf:params:whip)
+     6.3.  WebRTC-HTTP Ingestion Protocol (WHIP) URNs Registry
+     6.4.  WebRTC-HTTP Ingestion Protocol (WHIP) Extension URNs
+           Registry
+     6.5.  Registering WHIP URNs and WHIP Extension URNs
+       6.5.1.  Registration Procedure
+       6.5.2.  Guidance for the Designated Expert
+       6.5.3.  Registration Template
+   7.  References
+     7.1.  Normative References
+     7.2.  Informative References
+   Acknowledgements
+   Authors' Addresses
+
+1.  Introduction
+
+   The IETF RTCWEB Working Group standardized the JavaScript Session
+   Establishment Protocol (JSEP) [RFC9429], a mechanism used to control
+   the setup, management, and teardown of a multimedia session.  It also
+   describes how to negotiate media flows using the offer/answer model
+   with the Session Description Protocol (SDP) [RFC3264], including the
+   formats for data sent over the wire (e.g., media types, codec
+   parameters, and encryption).  WebRTC intentionally does not specify a
+   signaling transport protocol at the application level.
+
+   Unfortunately, the lack of a standardized signaling mechanism in
+   WebRTC has been an obstacle to its adoption as an ingestion protocol
+   within the broadcast and streaming industry, where a streamlined
+   production pipeline is taken for granted.  For example, cables
+   carrying raw media to hardware encoders are plugged in and then the
+   encoded media is pushed to any streaming service or Content Delivery
+   Network (CDN) using an ingestion protocol.
+
+   While WebRTC can be integrated with standard signaling protocols like
+   SIP [RFC3261] or Extensible Messaging and Presence Protocol (XMPP)
+   [RFC6120], they are not designed to be used in broadcasting and
+   streaming services, and there is also no sign of adoption in that
+   industry.  The Real-Time Streaming Protocol (RTSP) [RFC7826], which
+   is based on RTP, does not support the SDP offer/answer model
+   [RFC3264] for negotiating the characteristics of the media session.
+
+   This document proposes a simple protocol based on HTTP for supporting
+   WebRTC as a media ingestion method that:
+
+   *  is easy to implement,
+
+   *  is as easy to use as popular IP-based broadcast protocols,
+
+   *  is fully compliant with WebRTC and RTCWEB specs,
+
+   *  enables ingestion on both classical media platforms and WebRTC
+      end-to-end platforms (achieving the lowest possible latency),
+
+   *  lowers the requirements on both hardware encoders and broadcasting
+      services to support WebRTC, and
+
+   *  is usable in both web browsers and standalone encoders.
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  Overview
+
+   The WebRTC-HTTP Ingestion Protocol (WHIP) is designed to facilitate a
+   one-time exchange of Session Description Protocol (SDP) offers and
+   answers using HTTP POST requests.  This exchange is a fundamental
+   step in establishing an Interactive Connectivity Establishment (ICE)
+   and Datagram Transport Layer Security (DTLS) session between the WHIP
+   client, which represents the encoder or media producer, and the media
+   server, which is the broadcasting ingestion endpoint.
+
+   Upon successful establishment of the ICE/DTLS session, unidirectional
+   media data transmission commences from the WHIP client to the media
+   server.  It is important to note that SDP renegotiations are not
+   supported in WHIP.  This means that no modifications to the "m="
+   sections can be made after the initial SDP offer/answer exchange via
+   HTTP POST is completed and that only ICE-related information can be
+   updated via HTTP PATCH requests as defined in Section 4.3.
+
+   The following diagram illustrates the core operation of WHIP for
+   initiating and terminating an ingest session:
+
+ +-------------+    +---------------+ +--------------+ +---------------+
+ | WHIP client |    | WHIP endpoint | | Media server | | WHIP session  |
+ +--+----------+    +---------+-----+ +------+-------+ +--------|------+
+    |                         |              |                  |
+    |                         |              |                  |
+    |HTTP POST (SDP offer)    |              |                  |
+    +------------------------&gt;+              |                  |
+    |201 Created (SDP answer) |              |                  |
+    +&lt;------------------------+              |                  |
+    |          ICE/STUN REQUEST              |                  |
+    +---------------------------------------&gt;+                  |
+    |          ICE/STUN RESPONSE             |                  |
+    |&lt;---------------------------------------+                  |
+    |          DTLS SETUP                    |                  |
+    |&lt;======================================&gt;|                  |
+    |          RTP/RTCP FLOW                 |                  |
+    +&lt;--------------------------------------&gt;+                  |
+    | HTTP DELETE                                               |
+    +----------------------------------------------------------&gt;+
+    | 200 OK                                                    |
+    &lt;-----------------------------------------------------------x
+
+               Figure 1: WHIP Session Setup and Teardown
+
+   The elements in Figure 1 are described as follows:
+
+   WHIP client:  This represents the WebRTC media encoder or producer,
+      which functions as a client of WHIP by encoding and delivering
+      media to a remote media server.
+
+   WHIP endpoint:  This denotes the ingest server that receives the
+      initial WHIP request.
+
+   WHIP endpoint URL:  This refers to the URL of the WHIP endpoint
+      responsible for creating the WHIP session.
+
+   Media server:  This is the WebRTC media server or consumer
+      responsible for establishing the media session with the WHIP
+      client and receiving the media content it produces.
+
+   WHIP session:  This indicates the server handling the allocated HTTP
+      resource by the WHIP endpoint for an ongoing ingest session.
+
+   WHIP session URL:  This refers to the URL of the WHIP resource
+      allocated by the WHIP endpoint for a specific media session.  To
+      modify the session (e.g., ICE operations or session termination),
+      the WHIP client can send requests to the WHIP session using this
+      URL.
+
+   Figure 1 illustrates the communication flow between a WHIP client,
+   WHIP endpoint, media server, and WHIP session.  This flow outlines
+   the process of setting up and tearing down an ingest session using
+   WHIP, which involves negotiation, ICE for Network Address Translation
+   (NAT) traversal, DTLS and the Secure Real-time Transport Protocol
+   (SRTP) for security, and RTP/RTCP for media transport:
+
+   *  The WHIP client initiates the communication by sending an HTTP
+      POST with an SDP offer to the WHIP endpoint.
+
+   *  The WHIP endpoint responds with a "201 Created" message containing
+      an SDP answer.
+
+   *  The WHIP client and media server establish ICE and DTLS sessions
+      for NAT traversal and secure communication.
+
+   *  RTP and RTCP flows are established for media transmission from the
+      WHIP client to the media server, secured by the SRTP profile.
+
+   *  The WHIP client sends an HTTP DELETE to terminate the WHIP
+      session.
+
+   *  The WHIP session responds with a "200 OK" to confirm the session
+      termination.
+
+4.  Protocol Operation
+
+4.1.  HTTP Usage
+
+   Following the guidelines in [BCP56], WHIP clients MUST NOT match
+   error codes returned by the WHIP endpoints and resources to a
+   specific error cause indicated in this specification.  WHIP clients
+   MUST be able to handle all applicable status codes by gracefully
+   falling back to the generic n00 semantics of a given status code on
+   unknown error codes.  WHIP endpoints and resources could convey
+   finer-grained error information by a problem details json object in
+   the response message body of the failed request as per [RFC9457].
+
+   The WHIP endpoints and sessions are origin servers as defined in
+   Section 3.6 of [RFC9110]; they handle the requests and provide
+   responses for the underlying HTTP resources.  Those HTTP resources do
+   not have any representation defined in this specification, so the
+   WHIP endpoints and sessions MUST return a 2xx successful response
+   with no content when a GET request is received.
+
+4.2.  Ingest Session Setup
+
+   In order to set up an ingest session, the WHIP client MUST generate
+   an SDP offer according to the JSEP rules for an initial offer as per
+   Section 5.2.1 of [RFC9429] and send an HTTP POST request as per
+   Section 9.3.3 of [RFC9110] to the configured WHIP endpoint URL.
+
+   The HTTP POST request MUST have a content type of "application/sdp"
+   and contain the SDP offer as the body.  The WHIP endpoint MUST
+   generate an SDP answer according to the JSEP rules for an initial
+   answer as per Section 5.3.1 of [RFC9429] and return the following: a
+   "201 Created" response with a content type of "application/sdp", the
+   SDP answer as the body, and a Location header field pointing to the
+   newly created WHIP session.  If the HTTP POST to the WHIP endpoint
+   has a content type different than "application/sdp" or the SDP is
+   malformed, the WHIP endpoint MUST reject the HTTP POST request with
+   an appropriate 4xx error response.
+
+   As WHIP only supports the ingestion use case with unidirectional
+   media, the WHIP client SHOULD use the "sendonly" attribute in the SDP
+   offer but MAY use the "sendrecv" attribute instead; the "inactive"
+   and "recvonly" attributes MUST NOT be used.  The WHIP endpoint MUST
+   use the "recvonly" attribute in the SDP answer.
+
+   Figure 2 is an example of an HTTP POST sent from a WHIP client to a
+   WHIP endpoint and the "201 Created" response from the WHIP endpoint
+   containing the Location header pointing to the newly created WHIP
+   session.
+
+   POST /whip/endpoint HTTP/1.1
+   Host: whip.example.com
+   Content-Type: application/sdp
+   Content-Length: 1101
+
+   v=0
+   o=- 5228595038118931041 2 IN IP4 127.0.0.1
+   s=-
+   t=0 0
+   a=group:BUNDLE 0 1
+   a=extmap-allow-mixed
+   a=ice-options:trickle ice2
+   m=audio 9 UDP/TLS/RTP/SAVPF 111
+   c=IN IP4 0.0.0.0
+   a=rtcp:9 IN IP4 0.0.0.0
+   a=ice-ufrag:EsAw
+   a=ice-pwd:bP+XJMM09aR8AiX1jdukzR6Y
+   a=fingerprint:sha-256 DA:7B:57:DC:28:CE:04:4F:31:79:85:C4:31:67:EB:
+      27:58:29:ED:77:2A:0D:24:AE:ED:AD:30:BC:BD:F1:9C:02
+   a=setup:actpass
+   a=mid:0
+   a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+   a=sendonly
+   a=msid:d46fb922-d52a-4e9c-aa87-444eadc1521b ce326ecf-a081-453a-8f9f-
+      0605d5ef4128
+   a=rtcp-mux
+   a=rtcp-mux-only
+   a=rtpmap:111 opus/48000/2
+   a=fmtp:111 minptime=10;useinbandfec=1
+   m=video 0 UDP/TLS/RTP/SAVPF 96 97
+   a=mid:1
+   a=bundle-only
+   a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+   a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+   a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+   a=sendonly
+   a=msid:d46fb922-d52a-4e9c-aa87-444eadc1521b 3956b460-40f4-4d05-acef-
+      03abcdd8c6fd
+   a=rtpmap:96 VP8/90000
+   a=rtcp-fb:96 ccm fir
+   a=rtcp-fb:96 nack
+   a=rtcp-fb:96 nack pli
+   a=rtpmap:97 rtx/90000
+   a=fmtp:97 apt=96
+
+   HTTP/1.1 201 Created
+   ETag: "xyzzy"
+   Content-Type: application/sdp
+   Content-Length: 1053
+   Location: https://whip.example.com/session/id
+
+   v=0
+   o=- 1657793490019 1 IN IP4 127.0.0.1
+   s=-
+   t=0 0
+   a=group:BUNDLE 0 1
+   a=extmap-allow-mixed
+   a=ice-lite
+   a=ice-options:trickle ice2
+   m=audio 9 UDP/TLS/RTP/SAVPF 111
+   c=IN IP4 0.0.0.0
+   a=rtcp:9 IN IP4 0.0.0.0
+   a=ice-ufrag:38sdf4fdsf54
+   a=ice-pwd:2e13dde17c1cb009202f627fab90cbec358d766d049c9697
+   a=fingerprint:sha-256 F7:EB:F3:3E:AC:D2:EA:A7:C1:EC:79:D9:B3:8A:35:
+      DA:70:86:4F:46:D9:2D:CC:D0:BC:81:9F:67:EF:34:2E:BD
+   a=candidate:1 1 UDP 2130706431 198.51.100.1 39132 typ host
+   a=setup:passive
+   a=mid:0
+   a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+   a=recvonly
+   a=rtcp-mux
+   a=rtcp-mux-only
+   a=rtpmap:111 opus/48000/2
+   a=fmtp:111 minptime=10;useinbandfec=1
+   m=video 0 UDP/TLS/RTP/SAVPF 96 97
+   c=IN IP4 0.0.0.0
+   a=mid:1
+   a=bundle-only
+   a=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid
+   a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+   a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+   a=recvonly
+   a=rtpmap:96 VP8/90000
+   a=rtcp-fb:96 ccm fir
+   a=rtcp-fb:96 nack
+   a=rtcp-fb:96 nack pli
+   a=rtpmap:97 rtx/90000
+   a=fmtp:97 apt=96
+
+       Figure 2: Example of the SDP Offer/Answer Exchange Done via an
+                                 HTTP POST
+
+   Once a session is set up, consent freshness as per [RFC7675] SHALL be
+   used to detect non-graceful disconnection by full ICE implementations
+   and DTLS teardown for session termination by either side.
+
+   To explicitly terminate a WHIP session, the WHIP client MUST send an
+   HTTP DELETE request to the WHIP session URL returned in the Location
+   header field of the initial HTTP POST.  Upon receiving the HTTP
+   DELETE request, the WHIP session will be removed and the resources
+   freed on the media server, terminating the ICE and DTLS sessions.
+
+   A media server terminating a session MUST follow the procedures in
+   Section 5.2 of [RFC7675] for immediate revocation of consent.
+
+   The WHIP endpoints MUST support OPTIONS requests for Cross-Origin
+   Resource Sharing (CORS) as defined in [FETCH].  The "200 OK" response
+   to any OPTIONS request SHOULD include an Accept-Post header with a
+   media type value of "application/sdp" as per [W3C.REC-ldp-20150226].
+
+4.3.  ICE Support
+
+   ICE [RFC8445] is a protocol that addresses the complexities of NAT
+   traversal commonly encountered in Internet communication.  NATs
+   hinder direct communication between devices on different local
+   networks, posing challenges for real-time applications.  ICE
+   facilitates seamless connectivity by employing techniques to discover
+   and negotiate efficient communication paths.
+
+   Trickle ICE [RFC8838] optimizes the connectivity process by
+   incrementally sharing potential communication paths, reducing
+   latency, and facilitating quicker establishment.
+
+   ICE restarts are crucial for maintaining connectivity in dynamic
+   network conditions or disruptions, allowing devices to re-establish
+   communication paths without complete renegotiation.  This ensures
+   minimal latency and reliable real-time communication.
+
+   Trickle ICE and ICE restart support are RECOMMENDED for both WHIP
+   sessions and clients.
+
+4.3.1.  HTTP PATCH Request Usage
+
+   The WHIP client MAY perform Trickle ICE or ICE restarts by sending an
+   HTTP PATCH request as per [RFC5789] to the WHIP session URL.  This
+   HTTP PATCH request MUST contain a body with an SDP fragment with
+   media type "application/trickle-ice-sdpfrag" as specified in
+   [RFC8840], which carries the relevant ICE information.  If the HTTP
+   PATCH request sent to the WHIP session URL has a content type
+   different than "application/trickle-ice-sdpfrag" or the SDP fragment
+   is malformed, the WHIP session MUST reject the HTTP PATCH with an
+   appropriate 4xx error response.
+
+   If the WHIP session supports either Trickle ICE or ICE restarts, but
+   not both, it MUST return a "422 Unprocessable Content" error response
+   for the HTTP PATCH requests that are not supported as per
+   Section 15.5.21 of [RFC9110].
+
+   The WHIP client MAY send overlapping HTTP PATCH requests to one WHIP
+   session.  Consequently, those HTTP PATCH requests may be received out
+   of order by the WHIP session.  Thus, if the WHIP session supports ICE
+   restarts, it MUST generate a unique strong entity-tag identifying the
+   ICE session as per Section 8.8.3 of [RFC9110].  The initial value of
+   the entity-tag identifying the initial ICE session MUST be returned
+   in an ETag header field in the "201 Created" response to the initial
+   POST request to the WHIP endpoint.
+
+   WHIP clients SHOULD NOT use entity-tag validation when matching a
+   specific ICE session is not required, for example, when initiating a
+   DELETE request to terminate a session.  WHIP sessions MUST ignore any
+   entity-tag value sent by the WHIP client when ICE session matching is
+   not required, as in the HTTP DELETE request.
+
+   Missing or outdated ETags in the PATCH requests from WHIP clients
+   will be answered by WHIP sessions as per Section 13.1.1 of [RFC9110]
+   and Section 3 of [RFC6585], with a "428 Precondition Required"
+   response for a missing entity-tag and a "412 Precondition Failed"
+   response for a non-matching entity-tag.
+
+4.3.2.  Trickle ICE
+
+   Depending on the Trickle ICE support on the WHIP client, the initial
+   offer by the WHIP client MAY be sent after the full ICE gathering is
+   complete with the full list of ICE candidates, or it MAY only contain
+   local candidates (or even an empty list of candidates) as per
+   [RFC8445].  For the purpose of reducing setup times, when using
+   Trickle ICE, the WHIP client SHOULD send the SDP offer (containing
+   either locally gathered ICE candidates or an empty list of
+   candidates) as soon as possible.
+
+   In order to simplify the protocol, the WHIP session cannot signal
+   additional ICE candidates to the WHIP client after the SDP answer has
+   been sent.  The WHIP endpoint SHALL gather all the ICE candidates for
+   the media server before responding to the client request, and the SDP
+   answer SHALL contain the full list of ICE candidates of the media
+   server.
+
+   As the WHIP client needs to know the WHIP session URL associated with
+   the ICE session in order to send a PATCH request containing new ICE
+   candidates, it MUST wait and buffer any gathered candidates until the
+   "201 Created" HTTP response to the initial POST request is received.
+   In order to reduce the HTTP traffic and processing time required, the
+   WHIP client SHOULD send a single aggregated HTTP PATCH request with
+   all the buffered ICE candidates once the response is received.
+   Additionally, if ICE restarts are supported by the WHIP session, the
+   WHIP client needs to know the entity-tag associated with the ICE
+   session in order to send a PATCH request containing new ICE
+   candidates; thus, it MUST also wait and buffer any gathered
+   candidates until it receives the HTTP response with the new entity-
+   tag value to the last PATCH request performing an ICE restart.
+
+   WHIP clients generating the HTTP PATCH body with the SDP fragment and
+   its subsequent processing by WHIP sessions MUST follow the guidelines
+   defined in Section 4.4 of [RFC8840] with the following
+   considerations:
+
+   *  As per [RFC9429], only "m=" sections not marked as bundle-only can
+      gather ICE candidates, so given that the "max-bundle" policy is
+      being used, the SDP fragment will contain only the offerer-tagged
+      "m=" line of the bundle group.
+
+   *  The WHIP client MAY exclude ICE candidates from the HTTP PATCH
+      body if they have already been confirmed by the WHIP session with
+      a successful HTTP response to a previous HTTP PATCH request.
+
+   WHIP sessions and clients that support Trickle ICE MUST make use of
+   entity-tags and conditional requests as explained in Section 4.3.1.
+
+   When a WHIP session receives a PATCH request that adds new ICE
+   candidates without performing an ICE restart, it MUST return a "204
+   No Content" response without a body and MUST NOT include an ETag
+   header in the response.  If the WHIP session does not support a
+   candidate transport or is not able to resolve the connection address,
+   it MUST silently discard the candidate and continue processing the
+   rest of the request normally.
+
+   Figure 3 shows an example of the Trickle ICE procedure where the WHIP
+   client sends a PATCH request with updated ICE candidate information
+   and receives a successful response from the WHIP session.
+
+   PATCH /session/id HTTP/1.1
+   Host: whip.example.com
+   If-Match: "xyzzy"
+   Content-Type: application/trickle-ice-sdpfrag
+   Content-Length: 576
+
+   a=group:BUNDLE 0 1
+   m=audio 9 UDP/TLS/RTP/SAVPF 111
+   a=mid:0
+   a=ice-ufrag:EsAw
+   a=ice-pwd:P2uYro0UCOQ4zxjKXaWCBui1
+   a=candidate:1387637174 1 udp 2122260223 192.0.2.1 61764 typ host
+      generation 0 ufrag EsAw network-id 1
+   a=candidate:3471623853 1 udp 2122194687 198.51.100.2 61765 typ host
+      generation 0 ufrag EsAw network-id 2
+   a=candidate:473322822 1 tcp 1518280447 192.0.2.1 9 typ host tcptype
+      active generation 0 ufrag EsAw network-id 1
+   a=candidate:2154773085 1 tcp 1518214911 198.51.100.2 9 typ host
+      tcptype active generation 0 ufrag EsAw network-id 2
+   a=end-of-candidates
+
+   HTTP/1.1 204 No Content
+
+          Figure 3: Example of a Trickle ICE Request and Response
+
+4.3.3.  ICE Restarts
+
+   As defined in [RFC8839], when an ICE restart occurs, a new SDP offer/
+   answer exchange is triggered.  However, as WHIP does not support
+   renegotiation of non-ICE-related SDP information, a WHIP client will
+   not send a new offer when an ICE restart occurs.  Instead, the WHIP
+   client and WHIP session will only exchange the relevant ICE
+   information via an HTTP PATCH request as defined in Section 4.3.1 and
+   MUST assume that the previously negotiated non-ICE-related SDP
+   information still applies after the ICE restart.
+
+   When performing an ICE restart, the WHIP client MUST include the
+   updated "ice-pwd" and "ice-ufrag" in the SDP fragment of the HTTP
+   PATCH request body as well as the new set of gathered ICE candidates
+   as defined in [RFC8840].  Similar to what is defined in
+   Section 4.3.2, as per [RFC9429], only "m=" sections not marked as
+   bundle-only can gather ICE candidates, so given that the "max-bundle"
+   policy is being used, the SDP fragment will contain only the offerer-
+   tagged "m=" line of the bundle group.  A WHIP client sending a PATCH
+   request for performing ICE restart MUST contain an If-Match header
+   field with a field-value of "*" as per Section 13.1.1 of [RFC9110].
+
+   [RFC8840] states that an agent MUST discard any received requests
+   containing "ice-pwd" and "ice-ufrag" attributes that do not match
+   those of the current ICE Negotiation Session.  However, any WHIP
+   session receiving updated "ice-pwd" and "ice-ufrag" attributes MUST
+   consider the request as performing an ICE restart instead and, if
+   supported, SHALL return a "200 OK" with an "application/trickle-ice-
+   sdpfrag" body containing the new ICE username fragment and password
+   and a new set of ICE candidates for the WHIP session.  Also, the "200
+   OK" response for a successful ICE restart MUST contain the new
+   entity-tag corresponding to the new ICE session in an ETag response
+   header field and MAY contain a new set of ICE candidates for the
+   media server.
+
+   As defined in Section 4.4.1.1.1 of [RFC8839], the set of candidates
+   after an ICE restart may include some, none, or all of the previous
+   candidates for that data stream and may include a totally new set of
+   candidates.  Therefore, after performing a successful ICE restart,
+   both the WHIP client and the WHIP session MUST replace the previous
+   set of remote candidates with the new set exchanged in the HTTP PATCH
+   request and response, discarding any remote ICE candidate not present
+   on the new set.  Both the WHIP client and the WHIP session MUST
+   ensure that the HTTP PATCH request and response bodies include the
+   same "ice-options," "ice-pacing," and "ice-lite" attributes as those
+   used in the SDP offer or answer.
+
+   If the ICE restart request cannot be satisfied by the WHIP session,
+   the resource MUST return an appropriate HTTP error code and MUST NOT
+   terminate the session immediately and keep the existing ICE session.
+   The WHIP client MAY retry performing a new ICE restart or terminate
+   the session by issuing an HTTP DELETE request instead.  In any case,
+   the session MUST be terminated if the ICE consent expires as a
+   consequence of the failed ICE restart as per Section 5.1 of
+   [RFC7675].
+
+   In case of unstable network conditions, the ICE restart HTTP PATCH
+   requests and responses might be received out of order.  In order to
+   mitigate this scenario, when the client performs an ICE restart, it
+   MUST discard any previous ICE username fragment and password and
+   ignore any further HTTP PATCH response received from a pending HTTP
+   PATCH request.  WHIP clients MUST apply only the ICE information
+   received in the response to the last sent request.  If there is a
+   mismatch between the ICE information at the WHIP client and at the
+   WHIP session (because of an out-of-order request), the Session
+   Traversal Utilities for NAT (STUN) requests will contain invalid ICE
+   information and will be dropped by the receiving side.  If this
+   situation is detected by the WHIP client, it MUST send a new ICE
+   restart request to the server.
+
+   Figure 4 demonstrates a Trickle ICE restart procedure example.  The
+   WHIP client sends a PATCH request containing updated ICE information,
+   including a new username fragment and password, along with newly
+   gathered ICE candidates.  In response, the WHIP session provides ICE
+   information for the session after the ICE restart, including the
+   updated username fragment and password, as well as the previous ICE
+   candidate.
+
+   PATCH /session/id HTTP/1.1
+   Host: whip.example.com
+   If-Match: "*"
+   Content-Type: application/trickle-ice-sdpfrag
+   Content-Length: 82
+
+   a=ice-options:trickle ice2
+   a=group:BUNDLE 0 1
+   m=audio 9 UDP/TLS/RTP/SAVPF 111
+   a=mid:0
+   a=ice-ufrag:ysXw
+   a=ice-pwd:vw5LmwG4y/e6dPP/zAP9Gp5k
+   a=candidate:1387637174 1 udp 2122260223 192.0.2.1 61764 typ host
+      generation 0 ufrag EsAw network-id 1
+   a=candidate:3471623853 1 udp 2122194687 198.51.100.2 61765 typ host
+      generation 0 ufrag EsAw network-id 2
+   a=candidate:473322822 1 tcp 1518280447 192.0.2.1 9 typ host tcptype
+      active generation 0 ufrag EsAw network-id 1
+   a=candidate:2154773085 1 tcp 1518214911 198.51.100.2 9 typ host
+      tcptype active generation 0 ufrag EsAw network-id 2
+
+   HTTP/1.1 200 OK
+   ETag: "abccd"
+   Content-Type: application/trickle-ice-sdpfrag
+   Content-Length: 252
+
+   a=ice-lite
+   a=ice-options:trickle ice2
+   a=group:BUNDLE 0 1
+   m=audio 9 UDP/TLS/RTP/SAVPF 111
+   a=mid:0
+   a=ice-ufrag:289b31b754eaa438
+   a=ice-pwd:0b66f472495ef0ccac7bda653ab6be49ea13114472a5d10a
+   a=candidate:1 1 udp 2130706431 198.51.100.1 39132 typ host
+   a=end-of-candidates
+
+          Figure 4: Example of an ICE Restart Request and Response
+
+4.4.  WebRTC Constraints
+
+   To simplify the implementation of WHIP in both clients and media
+   servers, WHIP introduces specific restrictions on WebRTC usage.  The
+   following subsections will explain these restrictions in detail.
+
+4.4.1.  SDP Bundle
+
+   Both the WHIP client and the WHIP endpoint SHALL support [RFC9143]
+   and use the "max-bundle" policy as defined in [RFC9429].  The WHIP
+   client and the media server MUST support multiplexed media associated
+   with the BUNDLE group as per Section 9 of [RFC9143].  In addition,
+   per [RFC9143], the WHIP client and media server SHALL use RTP/RTCP
+   multiplexing for all bundled media.  In order to reduce the network
+   resources required at the media server, both the WHIP client and WHIP
+   endpoints MUST include the "rtcp-mux-only" attribute in each bundled
+   "m=" section as per Section 3 of [RFC8858].
+
+4.4.2.  Single MediaStream
+
+   WHIP only supports a single MediaStream as defined in [RFC8830];
+   therefore, all "m=" sections MUST contain a "msid" attribute with the
+   same value.  The MediaStream MUST contain at least one
+   MediaStreamTrack of any media kind, and it MUST NOT have two or more
+   MediaStreamTracks for the same media (audio or video).  However, it
+   would be possible for future revisions of this specification to allow
+   more than a single MediaStream or MediaStreamTrack of each media
+   kind.  Therefore, in order to ensure forward compatibility, if the
+   number of audio and/or video MediaStreamTracks or the number of
+   MediaStreams are not supported by the WHIP endpoint, it MUST reject
+   the HTTP POST request with a "422 Unprocessable Content" or "400 Bad
+   Request" error response.  The WHIP endpoint MAY also return a problem
+   statement that provides further error details about the failed
+   request, as recommended in Section 4.1.
+
+4.4.3.  No Partially Successful Answers
+
+   The WHIP endpoint SHOULD NOT reject individual "m=" sections, as
+   specified in Section 5.3.1 of [RFC9429], if an error occurs when
+   processing the "m=" section; instead, it SHOULD reject the HTTP POST
+   request with a "422 Unprocessable Content" or "400 Bad Request" error
+   response to prevent having partially successful ingest sessions,
+   which can be misleading to end users.  The WHIP endpoint MAY also
+   return a problem statement as recommended in Section 4.1 proving
+   further error details about the failed request.
+
+4.4.4.  DTLS Setup Role and SDP "setup" Attribute
+
+   When a WHIP client sends an SDP offer, it SHOULD insert an SDP
+   "setup" attribute with an "actpass" attribute value, as defined in
+   [RFC8842].  However, if the WHIP client only implements the DTLS
+   client role, it MAY use an SDP "setup" attribute with an "active"
+   attribute value.  If the WHIP endpoint does not support an SDP offer
+   with an SDP "setup" attribute with an "active" attribute value, it
+   SHOULD reject the request with a "422 Unprocessable Content" or "400
+   Bad Request" error response.
+
+   NOTE: [RFC8842] defines that the offerer must insert an SDP "setup"
+   attribute with an "actpass" attribute value.  However, the WHIP
+   client will always communicate with a media server that is expected
+   to support the DTLS server role, in which case the client might
+   choose to only implement support for the DTLS client role.
+
+4.4.5.  Trickle ICE and ICE Restarts
+
+   The media server SHOULD support full ICE, unless it is connected to
+   the Internet with an IP address that is accessible by each WHIP
+   client that is authorized to use it, in which case it MAY support
+   only ICE lite.  The WHIP client MUST implement and use full ICE.
+
+   Trickle ICE and ICE restart support is OPTIONAL for both the WHIP
+   clients and media servers as explained in Section 4.3.
+
+4.5.  Load Balancing and Redirections
+
+   WHIP endpoints and media servers might not be colocated on the same
+   server, so it is possible to load balance incoming requests to
+   different media servers.
+
+   WHIP clients SHALL support HTTP redirections as per Section 15.4 of
+   [RFC9110].  In order to avoid POST requests being redirected as GET
+   requests, status codes "301 Moved Permanently" and "302 Found" MUST
+   NOT be used; the preferred method for performing load balancing is
+   via the "307 Temporary Redirect" response status code as described in
+   Section 15.4.8 of [RFC9110].  Redirections are not required to be
+   supported for the PATCH and DELETE requests.
+
+   In case of high load, the WHIP endpoints MAY return a "503 Service
+   Unavailable" response indicating that the server is currently unable
+   to handle the request due to a temporary overload or scheduled
+   maintenance as described in Section 15.6.4 of [RFC9110], which will
+   likely be alleviated after some delay.  The WHIP endpoint might send
+   a Retry-After header field indicating the minimum time that the user
+   agent ought to wait before making a follow-up request as described in
+   Section 10.2.3 of [RFC9110].
+
+4.6.  STUN/TURN Server Configuration
+
+   The WHIP endpoint MAY return STUN/TURN server configuration URLs and
+   credentials usable by the client in the "201 Created" response to the
+   HTTP POST request to the WHIP endpoint URL.
+
+   A reference to each STUN/TURN server will be returned using the Link
+   header field [RFC8288] with a "rel" attribute value of "ice-server".
+   The Link target URI is the server URI as defined in [RFC7064] and
+   [RFC7065].  The credentials are encoded in the Link target attributes
+   as follows:
+
+   *  username: If the Link header field represents a Traversal Using
+      Relays around NAT (TURN) server, then this attribute specifies the
+      username to use with that TURN server.
+
+   *  credential: This attribute represents a long-term authentication
+      password, as described in Section 9.2 of [RFC8489].
+
+   Figure 5 illustrates the Link headers included in a "201 Created"
+   response, providing the ICE server URLs and associated credentials.
+
+   Link: &lt;stun:stun.example.net&gt;; rel="ice-server"
+   Link: &lt;turn:turn.example.net?transport=udp&gt;; rel="ice-server";
+         username="user"; credential="myPassword"
+   Link: &lt;turn:turn.example.net?transport=tcp&gt;; rel="ice-server";
+         username="user"; credential="myPassword"
+   Link: &lt;turns:turn.example.net?transport=tcp&gt;; rel="ice-server";
+         username="user"; credential="myPassword"
+
+          Figure 5: Example of a STUN/TURN Server's Configuration
+
+   NOTE: The naming of both the "rel" attribute value of "ice-server"
+   and the target attributes follows that used in the RTCConfiguration
+   dictionary in Section 4.2.1 of the W3C WebRTC recommendation (see
+   [W3C.REC-webrtc-20250313]).  The "rel" attribute value of "ice-
+   server" is not prepended with the "urn:ietf:params:whip:" so it can
+   be reused by other specifications, which may use this mechanism to
+   configure the usage of STUN/TURN servers.
+
+   NOTE: Depending on the ICE agent implementation, the WHIP client may
+   need to call the setConfiguration method before calling the
+   setLocalDescription method with the local SDP offer in order to avoid
+   having to perform an ICE restart for applying the updated STUN/TURN
+   server configuration on the next ICE gathering phase.
+
+   There are some WebRTC implementations that do not support updating
+   the STUN/TURN server configuration after the local offer has been
+   created as specified in Section 4.1.18 of [RFC9429].  In order to
+   support these clients, the WHIP endpoint MAY also include the STUN/
+   TURN server configuration in the responses to OPTIONS requests sent
+   to the WHIP endpoint URL before the POST request is sent.  However,
+   this method is NOT RECOMMENDED to be used by the WHIP clients, and if
+   it is supported by the underlying WHIP client's WebRTC
+   implementation, the WHIP client SHOULD wait for the information to be
+   returned by the WHIP endpoint in the response of the HTTP POST
+   request instead.
+
+   The generation of the TURN server credentials may require sending a
+   request to an external provider, which can both add latency to the
+   OPTIONS request processing and increase the processing required to
+   handle that request.  In order to prevent this, the WHIP endpoint
+   SHOULD NOT return the STUN/TURN server configuration if the OPTIONS
+   request is a preflight request for CORS as defined in [FETCH], that
+   is, if the OPTIONS request does not contain an Access-Control-
+   Request-Method with a POST value and the Access-Control-Request-
+   Headers HTTP header does not contain the Link value.
+
+   The WHIP clients MAY also support configuring the STUN/TURN server
+   URIs with long-term credentials provided by either the broadcasting
+   service or an external TURN provider, overriding the values provided
+   by the WHIP endpoint.
+
+4.6.1.  Congestion Control
+
+   [RFC8836] defines the congestion control requirements for interactive
+   real-time media to be used in WebRTC.  These requirements are based
+   on the assumption that the data needs to be provided continuously
+   within a very limited time window (a delay of no more than hundreds
+   of milliseconds end-to-end).  If the latency target is higher, some
+   of the requirements present in [RFC8836] could be relaxed to allow
+   more flexible implementations.
+
+4.7.  Authentication and Authorization
+
+   All WHIP endpoints, sessions, and clients MUST support HTTP
+   authentication as per Section 11 of [RFC9110].  Additionally, in
+   order to ensure interoperability, bearer token authentication as
+   defined in the next section MUST be supported by all WHIP entities.
+   However, this does not preclude the support of additional HTTP
+   authentication schemes as defined in Section 11.6 of [RFC9110].
+
+4.7.1.  Bearer Token Authentication
+
+   WHIP endpoints and sessions MAY require the HTTP request to be
+   authenticated using an HTTP Authorization header field with a bearer
+   token as specified in Section 2.1 of [RFC6750].  WHIP clients MUST
+   implement this authentication and authorization mechanism and send
+   the HTTP Authorization header field in all HTTP requests sent to
+   either the WHIP endpoint or session (except the preflight OPTIONS
+   requests for CORS).
+
+   The nature, syntax, and semantics of the bearer token, as well as how
+   to distribute it to the client, are outside the scope of this
+   document.  Examples of tokens that could be used include, but are not
+   limited to, JSON Web Tokens (JWTs) as per [RFC8725] and a shared
+   secret stored on a database.  The tokens are typically made available
+   to the end user alongside the WHIP endpoint URL and configured on the
+   WHIP clients (similar to the way Real Time Messaging Protocol (RTMP)
+   URLs and Stream Keys are distributed).
+
+   WHIP endpoints and sessions could perform the authentication and
+   authorization by encoding an authentication token within the URLs for
+   the WHIP endpoints or sessions instead.  In case the WHIP client is
+   not configured to use a bearer token, the HTTP Authorization header
+   field MUST NOT be sent in any request.
+
+4.8.  Simulcast and Scalable Video Coding
+
+   Simulcast as per [RFC8853] MAY be supported by both the media servers
+   and WHIP clients through negotiation in the SDP offer/answer.
+
+   If the client supports simulcast and wants to enable it for
+   ingesting, it MUST negotiate the support in the SDP offer according
+   to the procedures in Section 5.3 of [RFC8853].  A server accepting a
+   simulcast offer MUST create an answer according to the procedures in
+   Section 5.3.2 of [RFC8853].
+
+   It is possible for both media servers and WHIP clients to support
+   Scalable Video Coding (SVC).  However, as there is no universal
+   negotiation mechanism in SDP for SVC, the encoder must consider the
+   negotiated codec(s), intended usage, and SVC support in available
+   decoders when configuring SVC.
+
+4.9.  Protocol Extensions
+
+   In order to support future extensions to be defined for WHIP, a
+   common procedure for registering and announcing the new extensions is
+   defined.
+
+   Protocol extensions supported by the WHIP sessions MUST be advertised
+   to the WHIP client in the "201 Created" response to the initial HTTP
+   POST request sent to the WHIP endpoint.  The WHIP endpoint MUST
+   return one Link header field for each extension that it supports,
+   with the extension "rel" attribute value containing the extension URN
+   and the URL for the HTTP resource that will be available for
+   receiving requests related to that extension.
+
+   Protocol extensions are optional for both WHIP clients and servers.
+   WHIP clients MUST ignore any Link target attribute with an unknown
+   "rel" attribute value, and WHIP sessions MUST NOT require the usage
+   of any extension.
+
+   Each protocol extension MUST register a unique "rel" attribute value
+   that starts with the prefix "urn:ietf:params:whip:ext" in the
+   "WebRTC-HTTP Ingestion Protocol (WHIP) Extension URNs" registry
+   (Section 6.4).
+
+   For example, consider a potential extension of server-to-client
+   communication using server-sent events as specified in Section 9.2 of
+   [HTML].  The URL for connecting to the server-sent event resource for
+   the ingested stream could be returned in the initial HTTP "201
+   Created" response with a Link header field and a "rel" attribute of
+   "urn:ietf:params:whip:ext:example:server-sent-events" (this document
+   does not specify such an extension and uses it only as an example).
+
+   In this theoretical case, the "201 Created" response to the HTTP POST
+   request would look like:
+
+   Figure 6 shows the "201 Created" response to the HTTP POST request in
+   this theoretical case (i.e., the WHIP extension supported by the WHIP
+   session, as indicated in the Link header of the "201 Created"
+   response).
+
+   HTTP/1.1 201 Created
+   Content-Type: application/sdp
+   Location: https://whip.example.com/session/id
+   Link: &lt;https://whip.example.com/session/id/sse&gt;;
+         rel="urn:ietf:params:whip:ext:example:server-sent-events"
+
+                   Figure 6: Example of a WHIP Extension
+
+5.  Security Considerations
+
+   This document specifies a new protocol on top of HTTP and WebRTC;
+   thus, security protocols and considerations from related
+   specifications apply to the WHIP specification.  These include:
+
+   *  WebRTC security considerations: See [RFC8826].  HTTPS SHALL be
+      used in order to preserve the WebRTC security model.
+
+   *  Transport Layer Security (TLS): See [RFC8446] and [RFC9147].
+
+   *  HTTP security: See Section 11 of [RFC9112] and Section 17 of
+      [RFC9110].
+
+   *  URI security: See Section 7 of [RFC3986].
+
+   On top of that, WHIP exposes a thin new attack surface specific to
+   the REST API methods used within it:
+
+   *  HTTP POST flooding and resource exhaustion: It would be possible
+      for an attacker in possession of authentication credentials valid
+      for ingesting a WHIP stream to make multiple HTTP POST requests to
+      the WHIP endpoint.  This will force the WHIP endpoint to process
+      the incoming SDP and allocate resources for being able to set up
+      the DTLS/ICE connection.  While the malicious client does not need
+      to initiate the DTLS/ICE connection at all, the WHIP session will
+      have to wait for the DTLS/ICE connection timeout in order to
+      release the associated resources.  If the connection rate is high
+      enough, this could lead to resource exhaustion on the servers
+      handling the requests, and they will not be able to process
+      legitimate incoming ingests.  In order to prevent this scenario,
+      WHIP endpoints SHOULD implement a rate limit and avalanche control
+      mechanism for incoming initial HTTP POST requests.
+
+   *  Insecure Direct Object References (IDORs) for WHIP session URLs:
+      If the URLs returned by the WHIP endpoint for the location of WHIP
+      sessions are easy to guess, it would be possible for an attacker
+      to send multiple HTTP DELETE requests and terminate all the WHIP
+      sessions currently running.  In order to prevent this scenario,
+      WHIP endpoints SHOULD generate URLs with enough randomness, using
+      a cryptographically secure pseudorandom number generator following
+      the best practices in "Randomness Requirements for Security"
+      [RFC4086], and implement a rate limit and avalanche control
+      mechanism for HTTP DELETE requests.  The security considerations
+      for Universally Unique IDentifiers (UUIDs) in Section 8 of
+      [RFC9562] are applicable for generating the WHIP session URLs.
+
+   *  HTTP PATCH flooding: Similar to the HTTP POST flooding, a
+      malicious client could also create resource exhaustion by sending
+      multiple HTTP PATCH requests to the WHIP session, although the
+      WHIP sessions can limit the impact by not allocating new ICE
+      candidates and reusing the existing ICE candidates when doing ICE
+      restarts.  In order to prevent this scenario, WHIP endpoints
+      SHOULD implement a rate limit and avalanche control mechanism for
+      incoming HTTP PATCH requests.
+
+6.  IANA Considerations
+
+   Per this specification, IANA has added a new link relation type and a
+   new URN sub-namespace for WHIP.  IANA has also created registries to
+   manage entries within the "urn:ietf:params:whip" and
+   "urn:ietf:params:whip:ext" namespaces.
+
+6.1.  Link Relation Type: ice-server
+
+   The link relation type below has been registered by IANA in the "Link
+   Relation Types" registry per Section 4.2 of [RFC8288]:
+
+   Relation Name:  ice-server
+
+   Description:  Conveys the STUN and TURN servers that can be used by
+      an ICE agent to establish a connection with a peer.
+
+   Reference:  RFC 9725
+
+6.2.  URN Sub-namespace for WHIP (urn:ietf:params:whip)
+
+   IANA has added a new entry in the "IETF URN Sub-namespace for
+   Registered Protocol Parameter Identifiers" registry, following the
+   template in [RFC3553]:
+
+   Registry name:  whip
+
+   Specification:  RFC 9725
+
+   Repository:  &lt;https://www.iana.org/assignments/whip&gt;
+
+   Index value:  An IANA-assigned positive integer that identifies the
+      registration.  The first entry added to this registry uses the
+      value 1, and this value is incremented for each subsequent entry
+      added to the registry.
+
+   To manage this sub-namespace, IANA has created two registries within
+   a new registry group called "WebRTC-HTTP Ingestion Protocol (WHIP)":
+
+   *  "WebRTC-HTTP Ingestion Protocol (WHIP) URNs" registry
+      (Section 6.3)
+
+   *  "WebRTC-HTTP Ingestion Protocol (WHIP) Extension URNs" registry
+      (Section 6.4)
+
+6.3.  WebRTC-HTTP Ingestion Protocol (WHIP) URNs Registry
+
+   The "WebRTC-HTTP Ingestion Protocol (WHIP) URNs" registry is used to
+   manage entries within the "urn:ietf:params:whip" namespace.  The
+   registration procedure is "Specification Required" [RFC8126].  The
+   registry contains the following fields: URN, Name, Reference, IANA
+   Registry Reference, and Change Controller.  This document is listed
+   as the reference.
+
+   The registry contains a single initial entry:
+
+   URN:  urn:ietf:params:whip:ext
+
+   Name:  WebRTC-HTTP Ingestion Protocol (WHIP) extension URNs
+
+   Reference:  Section 6.4 of RFC 9725
+
+   IANA Registry Reference:  See "WebRTC-HTTP Ingestion Protocol (WHIP)
+      Extension URNs" on &lt;https://www.iana.org/assignments/whip&gt;
+
+   Change Controller:  IETF
+
+6.4.  WebRTC-HTTP Ingestion Protocol (WHIP) Extension URNs Registry
+
+   The "WebRTC-HTTP Ingestion Protocol (WHIP) Extension URNs" registry
+   is used to manage entries within the "urn:ietf:params:whip:ext"
+   namespace.  The registration procedure is "Specification Required"
+   [RFC8126].  The registry contains the following fields: URN, Name,
+   Reference, IANA Registry Reference, and Change Controller.  This
+   document is listed as the reference.
+
+   A WHIP extension URN is used as a value in the "rel" attribute of the
+   Link header as defined in Section 4.9 for the purpose of signaling
+   the WHIP extensions supported by the WHIP endpoint.  WHIP extension
+   URNs have an "ext" type.
+
+6.5.  Registering WHIP URNs and WHIP Extension URNs
+
+   This section defines the process for registering new URNs in the
+   "WebRTC-HTTP Ingestion Protocol (WHIP) URNs" registry (Section 6.3)
+   and the "WebRTC-HTTP Ingestion Protocol (WHIP) Extension URNs"
+   registry (Section 6.4).
+
+6.5.1.  Registration Procedure
+
+   The IETF has created a mailing list, &lt;wish@ietf.org&gt;, which can be
+   used for public discussion of proposals prior to registration.  Use
+   of the mailing list is strongly encouraged.  A designated expert (DE)
+   [RFC8126], appointed by the IESG, will monitor the &lt;wish@ietf.org&gt;
+   mailing list and review registrations.
+
+   Registration of new entries in the WHIP registries defined in this
+   document MUST be documented in a permanent and readily available
+   public specification, in sufficient detail so that interoperability
+   between independent implementations is possible, and reviewed by the
+   DE as per Section 4.6 of [RFC8126].  A Standards Track RFC is
+   REQUIRED for the registration of new value data types that modify
+   existing properties.  A Standards Track RFC is also REQUIRED for
+   registration of WHIP extension URNs that modify WHIP extensions
+   previously documented in an existing RFC.
+
+   The registration procedure begins when a completed registration
+   template, defined in Section 6.5.3, is sent to &lt;iana@iana.org&gt;.
+   Decisions made by the DE can be appealed to an Applications and Real-
+   Time (ART) Area Director, then to the IESG.  The normal appeals
+   procedure described in RFC 2026 [BCP9] is to be followed.
+
+   Once the registration procedure concludes successfully, IANA will
+   create or modify the corresponding record in the "WebRTC-HTTP
+   Ingestion Protocol (WHIP) URNs Registry" or "WebRTC-HTTP Ingestion
+   Protocol (WHIP) Extension URNs" registry.
+
+   An RFC specifying one or more new WHIP extension URNs MUST include
+   the completed registration template(s), which MAY be expanded with
+   additional information.  These completed template(s) are intended to
+   go in the body of the document, not in the IANA Considerations
+   section.  The RFC MUST include the syntax and semantics of any
+   extension-specific attributes that may be provided in a Link header
+   field advertising the extension.
+
+6.5.2.  Guidance for the Designated Expert
+
+   The DE is expected to do the following:
+
+   *  Ascertain the existence of suitable documentation (a
+      specification) as described in [RFC8126] and verify that the
+      document is permanently and publicly available.  Specifications
+      should be documented in an Internet-Draft.
+
+   *  Check the clarity of purpose and use of the requested
+      registration.
+
+   *  Verify that any request for one of these registrations has been
+      made available for review and comments by posting the request to
+      the &lt;wish@ietf.org&gt; mailing list.
+
+   *  Ensure that any other request for a code point does not conflict
+      with work that is active or already published by the IETF.
+
+6.5.3.  Registration Template
+
+   A WHIP extension URN is defined by completing the following template:
+
+   URN:  A unique URN (e.g., "urn:ietf:params:whip:ext:example:server-
+      sent-events")
+
+   Name:  A descriptive name (e.g., "Sender Side events")
+
+   Reference:  A formal reference to the publicly available
+      specification
+
+   IANA Registry Reference:  The registry related to the new URN
+
+   Change Controller:  For Standards Track documents, this is "IETF".
+      Otherwise, this is the name of the person or body that has change
+      control over the specification.
+
+7.  References
+
+7.1.  Normative References
+
+   [FETCH]    WHATWG, "Fetch", WHATWG Living Standard,
+              &lt;https://fetch.spec.whatwg.org&gt;.  Commit snapshot:
+              &lt;https://fetch.spec.whatwg.org/commit-snapshots/
+              edfa8d100cf1ecfde385f65c172e0e8d018fcd98/&gt;.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              &lt;https://www.rfc-editor.org/info/rfc2119&gt;.
+
+   [RFC3264]  Rosenberg, J. and H. Schulzrinne, "An Offer/Answer Model
+              with Session Description Protocol (SDP)", RFC 3264,
+              DOI 10.17487/RFC3264, June 2002,
+              &lt;https://www.rfc-editor.org/info/rfc3264&gt;.
+
+   [RFC3553]  Mealling, M., Masinter, L., Hardie, T., and G. Klyne, "An
+              IETF URN Sub-namespace for Registered Protocol
+              Parameters", BCP 73, RFC 3553, DOI 10.17487/RFC3553, June
+              2003, &lt;https://www.rfc-editor.org/info/rfc3553&gt;.
+
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              &lt;https://www.rfc-editor.org/info/rfc3986&gt;.
+
+   [RFC4086]  Eastlake 3rd, D., Schiller, J., and S. Crocker,
+              "Randomness Requirements for Security", BCP 106, RFC 4086,
+              DOI 10.17487/RFC4086, June 2005,
+              &lt;https://www.rfc-editor.org/info/rfc4086&gt;.
+
+   [RFC5789]  Dusseault, L. and J. Snell, "PATCH Method for HTTP",
+              RFC 5789, DOI 10.17487/RFC5789, March 2010,
+              &lt;https://www.rfc-editor.org/info/rfc5789&gt;.
+
+   [RFC6585]  Nottingham, M. and R. Fielding, "Additional HTTP Status
+              Codes", RFC 6585, DOI 10.17487/RFC6585, April 2012,
+              &lt;https://www.rfc-editor.org/info/rfc6585&gt;.
+
+   [RFC6750]  Jones, M. and D. Hardt, "The OAuth 2.0 Authorization
+              Framework: Bearer Token Usage", RFC 6750,
+              DOI 10.17487/RFC6750, October 2012,
+              &lt;https://www.rfc-editor.org/info/rfc6750&gt;.
+
+   [RFC7064]  Nandakumar, S., Salgueiro, G., Jones, P., and M. Petit-
+              Huguenin, "URI Scheme for the Session Traversal Utilities
+              for NAT (STUN) Protocol", RFC 7064, DOI 10.17487/RFC7064,
+              November 2013, &lt;https://www.rfc-editor.org/info/rfc7064&gt;.
+
+   [RFC7065]  Petit-Huguenin, M., Nandakumar, S., Salgueiro, G., and P.
+              Jones, "Traversal Using Relays around NAT (TURN) Uniform
+              Resource Identifiers", RFC 7065, DOI 10.17487/RFC7065,
+              November 2013, &lt;https://www.rfc-editor.org/info/rfc7065&gt;.
+
+   [RFC7675]  Perumal, M., Wing, D., Ravindranath, R., Reddy, T., and M.
+              Thomson, "Session Traversal Utilities for NAT (STUN) Usage
+              for Consent Freshness", RFC 7675, DOI 10.17487/RFC7675,
+              October 2015, &lt;https://www.rfc-editor.org/info/rfc7675&gt;.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, &lt;https://www.rfc-editor.org/info/rfc8174&gt;.
+
+   [RFC8288]  Nottingham, M., "Web Linking", RFC 8288,
+              DOI 10.17487/RFC8288, October 2017,
+              &lt;https://www.rfc-editor.org/info/rfc8288&gt;.
+
+   [RFC8445]  Keranen, A., Holmberg, C., and J. Rosenberg, "Interactive
+              Connectivity Establishment (ICE): A Protocol for Network
+              Address Translator (NAT) Traversal", RFC 8445,
+              DOI 10.17487/RFC8445, July 2018,
+              &lt;https://www.rfc-editor.org/info/rfc8445&gt;.
+
+   [RFC8446]  Rescorla, E., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              &lt;https://www.rfc-editor.org/info/rfc8446&gt;.
+
+   [RFC8489]  Petit-Huguenin, M., Salgueiro, G., Rosenberg, J., Wing,
+              D., Mahy, R., and P. Matthews, "Session Traversal
+              Utilities for NAT (STUN)", RFC 8489, DOI 10.17487/RFC8489,
+              February 2020, &lt;https://www.rfc-editor.org/info/rfc8489&gt;.
+
+   [RFC8725]  Sheffer, Y., Hardt, D., and M. Jones, "JSON Web Token Best
+              Current Practices", BCP 225, RFC 8725,
+              DOI 10.17487/RFC8725, February 2020,
+              &lt;https://www.rfc-editor.org/info/rfc8725&gt;.
+
+   [RFC8826]  Rescorla, E., "Security Considerations for WebRTC",
+              RFC 8826, DOI 10.17487/RFC8826, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8826&gt;.
+
+   [RFC8830]  Alvestrand, H., "WebRTC MediaStream Identification in the
+              Session Description Protocol", RFC 8830,
+              DOI 10.17487/RFC8830, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8830&gt;.
+
+   [RFC8838]  Ivov, E., Uberti, J., and P. Saint-Andre, "Trickle ICE:
+              Incremental Provisioning of Candidates for the Interactive
+              Connectivity Establishment (ICE) Protocol", RFC 8838,
+              DOI 10.17487/RFC8838, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8838&gt;.
+
+   [RFC8839]  Petit-Huguenin, M., Nandakumar, S., Holmberg, C., Keränen,
+              A., and R. Shpount, "Session Description Protocol (SDP)
+              Offer/Answer Procedures for Interactive Connectivity
+              Establishment (ICE)", RFC 8839, DOI 10.17487/RFC8839,
+              January 2021, &lt;https://www.rfc-editor.org/info/rfc8839&gt;.
+
+   [RFC8840]  Ivov, E., Stach, T., Marocco, E., and C. Holmberg, "A
+              Session Initiation Protocol (SIP) Usage for Incremental
+              Provisioning of Candidates for the Interactive
+              Connectivity Establishment (Trickle ICE)", RFC 8840,
+              DOI 10.17487/RFC8840, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8840&gt;.
+
+   [RFC8842]  Holmberg, C. and R. Shpount, "Session Description Protocol
+              (SDP) Offer/Answer Considerations for Datagram Transport
+              Layer Security (DTLS) and Transport Layer Security (TLS)",
+              RFC 8842, DOI 10.17487/RFC8842, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8842&gt;.
+
+   [RFC8853]  Burman, B., Westerlund, M., Nandakumar, S., and M. Zanaty,
+              "Using Simulcast in Session Description Protocol (SDP) and
+              RTP Sessions", RFC 8853, DOI 10.17487/RFC8853, January
+              2021, &lt;https://www.rfc-editor.org/info/rfc8853&gt;.
+
+   [RFC8858]  Holmberg, C., "Indicating Exclusive Support of RTP and RTP
+              Control Protocol (RTCP) Multiplexing Using the Session
+              Description Protocol (SDP)", RFC 8858,
+              DOI 10.17487/RFC8858, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8858&gt;.
+
+   [RFC9110]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "HTTP Semantics", STD 97, RFC 9110,
+              DOI 10.17487/RFC9110, June 2022,
+              &lt;https://www.rfc-editor.org/info/rfc9110&gt;.
+
+   [RFC9112]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "HTTP/1.1", STD 99, RFC 9112, DOI 10.17487/RFC9112,
+              June 2022, &lt;https://www.rfc-editor.org/info/rfc9112&gt;.
+
+   [RFC9143]  Holmberg, C., Alvestrand, H., and C. Jennings,
+              "Negotiating Media Multiplexing Using the Session
+              Description Protocol (SDP)", RFC 9143,
+              DOI 10.17487/RFC9143, February 2022,
+              &lt;https://www.rfc-editor.org/info/rfc9143&gt;.
+
+   [RFC9147]  Rescorla, E., Tschofenig, H., and N. Modadugu, "The
+              Datagram Transport Layer Security (DTLS) Protocol Version
+              1.3", RFC 9147, DOI 10.17487/RFC9147, April 2022,
+              &lt;https://www.rfc-editor.org/info/rfc9147&gt;.
+
+   [RFC9429]  Uberti, J., Jennings, C., and E. Rescorla, Ed.,
+              "JavaScript Session Establishment Protocol (JSEP)",
+              RFC 9429, DOI 10.17487/RFC9429, April 2024,
+              &lt;https://www.rfc-editor.org/info/rfc9429&gt;.
+
+   [RFC9562]  Davis, K., Peabody, B., and P. Leach, "Universally Unique
+              IDentifiers (UUIDs)", RFC 9562, DOI 10.17487/RFC9562, May
+              2024, &lt;https://www.rfc-editor.org/info/rfc9562&gt;.
+
+   [W3C.REC-ldp-20150226]
+              Arwe, J., Ed., Speicher, S., Ed., and A. Malhotra, Ed.,
+              "Linked Data Platform 1.0", W3C Recommendation, 26
+              February 2015,
+              &lt;https://www.w3.org/TR/2015/REC-ldp-20150226/&gt;.  Latest
+              version available at: &lt;https://www.w3.org/TR/ldp/&gt;.
+
+7.2.  Informative References
+
+   [BCP56]    Best Current Practice 56,
+              &lt;https://www.rfc-editor.org/info/bcp56&gt;.
+              At the time of writing, this BCP comprises the following:
+
+              Nottingham, M., "Building Protocols with HTTP", BCP 56,
+              RFC 9205, DOI 10.17487/RFC9205, June 2022,
+              &lt;https://www.rfc-editor.org/info/rfc9205&gt;.
+
+   [BCP9]     Best Current Practice 9,
+              &lt;https://www.rfc-editor.org/info/bcp9&gt;.
+              At the time of writing, this BCP comprises the following:
+
+              Bradner, S., "The Internet Standards Process -- Revision
+              3", BCP 9, RFC 2026, DOI 10.17487/RFC2026, October 1996,
+              &lt;https://www.rfc-editor.org/info/rfc2026&gt;.
+
+              Dusseault, L. and R. Sparks, "Guidance on Interoperation
+              and Implementation Reports for Advancement to Draft
+              Standard", BCP 9, RFC 5657, DOI 10.17487/RFC5657,
+              September 2009, &lt;https://www.rfc-editor.org/info/rfc5657&gt;.
+
+              Housley, R., Crocker, D., and E. Burger, "Reducing the
+              Standards Track to Two Maturity Levels", BCP 9, RFC 6410,
+              DOI 10.17487/RFC6410, October 2011,
+              &lt;https://www.rfc-editor.org/info/rfc6410&gt;.
+
+              Resnick, P., "Retirement of the "Internet Official
+              Protocol Standards" Summary Document", BCP 9, RFC 7100,
+              DOI 10.17487/RFC7100, December 2013,
+              &lt;https://www.rfc-editor.org/info/rfc7100&gt;.
+
+              Kolkman, O., Bradner, S., and S. Turner, "Characterization
+              of Proposed Standards", BCP 9, RFC 7127,
+              DOI 10.17487/RFC7127, January 2014,
+              &lt;https://www.rfc-editor.org/info/rfc7127&gt;.
+
+              Dawkins, S., "Increasing the Number of Area Directors in
+              an IETF Area", BCP 9, RFC 7475, DOI 10.17487/RFC7475,
+              March 2015, &lt;https://www.rfc-editor.org/info/rfc7475&gt;.
+
+              Halpern, J., Ed. and E. Rescorla, Ed., "IETF Stream
+              Documents Require IETF Rough Consensus", BCP 9, RFC 8789,
+              DOI 10.17487/RFC8789, June 2020,
+              &lt;https://www.rfc-editor.org/info/rfc8789&gt;.
+
+              Rosen, B., "Responsibility Change for the RFC Series",
+              BCP 9, RFC 9282, DOI 10.17487/RFC9282, June 2022,
+              &lt;https://www.rfc-editor.org/info/rfc9282&gt;.
+
+   [HTML]     WHATWG, "HTML", WHATWG Living Standard,
+              &lt;https://html.spec.whatwg.org/&gt;.  Commit snapshot:
+              &lt;https://html.spec.whatwg.org/commit-
+              snapshots/09db56ba9343c597340b2c7715f43ff9b10826f6/&gt;.
+
+   [RFC3261]  Rosenberg, J., Schulzrinne, H., Camarillo, G., Johnston,
+              A., Peterson, J., Sparks, R., Handley, M., and E.
+              Schooler, "SIP: Session Initiation Protocol", RFC 3261,
+              DOI 10.17487/RFC3261, June 2002,
+              &lt;https://www.rfc-editor.org/info/rfc3261&gt;.
+
+   [RFC6120]  Saint-Andre, P., "Extensible Messaging and Presence
+              Protocol (XMPP): Core", RFC 6120, DOI 10.17487/RFC6120,
+              March 2011, &lt;https://www.rfc-editor.org/info/rfc6120&gt;.
+
+   [RFC7826]  Schulzrinne, H., Rao, A., Lanphier, R., Westerlund, M.,
+              and M. Stiemerling, Ed., "Real-Time Streaming Protocol
+              Version 2.0", RFC 7826, DOI 10.17487/RFC7826, December
+              2016, &lt;https://www.rfc-editor.org/info/rfc7826&gt;.
+
+   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+              Writing an IANA Considerations Section in RFCs", BCP 26,
+              RFC 8126, DOI 10.17487/RFC8126, June 2017,
+              &lt;https://www.rfc-editor.org/info/rfc8126&gt;.
+
+   [RFC8836]  Jesup, R. and Z. Sarker, Ed., "Congestion Control
+              Requirements for Interactive Real-Time Media", RFC 8836,
+              DOI 10.17487/RFC8836, January 2021,
+              &lt;https://www.rfc-editor.org/info/rfc8836&gt;.
+
+   [RFC9457]  Nottingham, M., Wilde, E., and S. Dalal, "Problem Details
+              for HTTP APIs", RFC 9457, DOI 10.17487/RFC9457, July 2023,
+              &lt;https://www.rfc-editor.org/info/rfc9457&gt;.
+
+   [W3C.REC-webrtc-20250313]
+              Jennings, C., Ed., Castelli, F., Ed., Boström, H., Ed.,
+              and J. Bruaroey, Ed., "WebRTC: Real-Time Communication in
+              Browsers", W3C Recommendation, 13 March 2025,
+              &lt;https://www.w3.org/TR/2025/REC-webrtc-20250313/&gt;.  Latest
+              version available at: &lt;https://www.w3.org/TR/webrtc/&gt;.
+
+<span>Acknowledgements</span>
+
+   The authors wish to thank Lorenzo Miniero, Juliusz Chroboczek, Adam
+   Roach, Nils Ohlmeier, Christer Holmberg, Cameron Elliott, Gustavo
+   Garcia, Jonas Birme, Sandro Gauci, Christer Holmberg, and everyone
+   else in the WebRTC community that have provided comments, feedback,
+   text, and improvement proposals on the document and contributed early
+   implementations of the spec.
+
+<span>Authors' Addresses</span>
+
+   Sergio Garcia Murillo
+   Millicast
+   Email: sergio.garcia.murillo@cosmosoftware.io
+
+   Alexandre Gouaillard
+   CoSMo Software
+   Email: alex.gouaillard@cosmosoftware.io
+</pre>
+            </div>
+        </div>
+        
+
+    
+                    
+                </div>
+            </div>
+        </main>
+        
+            <footer class="col-md-12 col-sm-12 border-top mt-5 py-5 bg-light-subtle text-center position-sticky">
+                <a href="https://www.ietf.org/" class="p-3">IETF</a>
+                <a href="https://www.ietf.org/iesg/" class="p-3">IESG</a>
+                <a href="https://www.iab.org/" class="p-3">IAB</a>
+                <a href="https://www.irtf.org/" class="p-3">IRTF</a>
+                <a href="https://www.ietf.org/llc/" class="p-3 text-nowrap">IETF LLC</a>
+                <a href="https://trustee.ietf.org/" class="p-3 text-nowrap">IETF Trust</a>
+                <a href="https://www.rfc-editor.org/" class="p-3 text-nowrap">RFC Editor</a>
+                <a href="https://www.iana.org/" class="p-3">IANA</a>
+                <a href="https://www.ietf.org/privacy-statement/" class="p-3 text-nowrap">Privacy Statement</a>
+                <div class="small text-body-secondary py-3">
+                    
+                        <a class="mx-2" href="https://datatracker.ietf.org/release/about">About IETF Datatracker</a>
+                        <span class="mx-2">
+                            
+                                <a href="https://github.com/ietf-tools/datatracker/releases/tag/12.39.0">
+                            
+                            Version 12.39.0
+                            (release - d528ff2)
+                            
+                                </a>
+                            
+                        </span>
+                    
+                    <a class="mx-2" href="https://status.ietf.org/" target="_blank">System Status</a>
+                    <span class="mx-2 text-danger">
+                        <i class="bi bi-bug"></i>
+                        Report a bug:
+                        <a class="text-reset" target="_blank" href="https://github.com/ietf-tools/datatracker/issues/new/choose">GitHub</a>
+                        
+                            <a class="text-reset" href="mailto:tools-help@ietf.org">Email</a>
+                        
+                    </span>
+                    
+                </div>
+            </footer>
+        
+        
+        <script src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/d3.js.下载">
+        </script>
+        <script src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/document_timeline.js.下载">
+        </script>
+    
+        <script src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/select2.js.下载"></script>
+        <script>
+            $('#navbar-doc-search').on('select2:select', function (e) {
+                window.location.href = e.params.data.url;
+            });
+        </script>
+      
+<script type="text/javascript">
+  var _paq = window._paq || [];
+  
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//analytics.ietf.org/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', 7]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//analytics.ietf.org/piwik.php?idsite=7" style="border:0;" alt="" /></p></noscript>
+
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93634d8fb9a215e3',t:'MTc0NTY0MTM4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;" src="./RFC 9725 - WebRTC-HTTP Ingestion Protocol (WHIP)_files/saved_resource.html"></iframe>
+</body><div class="xl-chrome-ext-bar_4DB361DE-01F7-4376-B494-639E489D19ED" id="xl_chrome_ext_4DB361DE-01F7-4376-B494-639E489D19ED" data-v-app="" style="display: block;"><div class=""><div id="xl_chrome_ext_video_tag_wrapper_4DB361DE-01F7-4376-B494-639E489D19ED" config="[object Object]" uiversion="v2" exception="false" latestvideosrc="" isshowvideotag="false" isshowdownloadbar="true" isshowcloudaddbar="false"><div class="_video_op_wrapper_96mx8_1" config="[object Object]" uiversion="v2" style="display: none;"><ul class="_video_op_list_96mx8_17"><li class="_op_item_96mx8_39 _download_96mx8_45"><span class="_op_icon_96mx8_25"></span><span class="_op_text_96mx8_31">下载</span></li><li class="_op_item_96mx8_39 _screen_96mx8_51"><span class="_op_icon_96mx8_25"></span><span class="_op_text_96mx8_31">投屏</span></li></ul></div></div><div class="badge_wrapper_4DB361DE-01F7-4376-B494-639E489D19ED _badge_wrapper_eor63_1" id="badge_wrapper_4DB361DE-01F7-4376-B494-639E489D19ED"><div class="_logo_eor63_20"></div><span class="_line_eor63_27"></span><div class="_text_wrapper_eor63_33"><span class="_download_icon_eor63_39"></span><span class="_text_eor63_33">高速下载</span></div></div><!----><!----><!----><div class="_container_wq4mj_4"><!----></div><div id="xl-chrome-ext-footer" class="xl-chrome-ext-footer" taburl=""><div class="_animate__bounceOutUp_ti0wz_29 _xl-chrome-ext-footer__ball_ti0wz_33"><div class="xl-chrome-ext-footer__logo"></div><div class="xl-chrome-ext-footer__quantity">1</div></div><div class="xl-chrome-ext-footer__bar"><!----><div class="xl-chrome-ext-footer__content"><p class="xl-chrome-ext-footer__text"> 检测到页面存在 1 个资源 </p><div class="xl-chrome-ext-footer__action"><div class="xl-chrome-ext-footer__url download"><div class="xl-chrome-ext-footer__popover xl-chrome-ext-footer__popover--hidden" style="top: -192px;"><h3>用迅雷享高速下载</h3><div class="xl-chrome-ext-footer__explain">当前页面含资源如下：</div><ul class="xl-chrome-ext-footer__list"><li class="xl-chrome-ext-footer__item"><div class="xl-chrome-ext-footer__type xl-link"></div><div class="_xl-chrome-ext-footer__name_ti0wz_50">rfc9725.pdf</div><button type="download" data="{&quot;fileName&quot;:&quot;rfc9725.pdf&quot;,&quot;protocol&quot;:&quot;https:&quot;,&quot;isVideoURL&quot;:false,&quot;url&quot;:&quot;https://www.rfc-editor.org/rfc/rfc9725.pdf&quot;,&quot;suffix&quot;:&quot;.pdf&quot;,&quot;subCategory&quot;:&quot;text&quot;,&quot;isInIframe&quot;:false}"> 下载 </button></li></ul></div><div class="xl-chrome-ext-footer__action-name">下载</div></div><!----></div><div class="xl-chrome-ext-footer__agreement"><span>启用插件访问在线视频时，插件将在播放窗口展示对播放链接的快捷功能</span><span class="xl-chrome-ext-footer__know">我知道了</span></div><div class="xl-chrome-ext-footer__close-wrapper"><div class="xl-chrome-ext-tips"><div class="xl-chrome-ext-footer__close"></div><div class="xl-chrome-ext-title xl-chrome-ext-title--footer">本次关闭</div></div></div></div></div></div></div></div></html>

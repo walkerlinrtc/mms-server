@@ -1,0 +1,7 @@
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rtmp")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/http")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/sdp")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rtp")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/rtsp")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ts")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/mp4")

@@ -1,0 +1,70 @@
+#pragma once
+#include <string>
+#include <string_view>
+#include <memory>
+
+#include "base/utils/utils.h"
+namespace mms {
+class TsSegment {
+public:
+    TsSegment();
+    virtual ~TsSegment();
+
+    const std::string & get_filename();
+
+    void set_filename(const std::string & filename);
+
+    void set_seqno(int64_t v);
+
+    int64_t get_seqno();
+
+    int64_t get_audio_start_pts();
+    int64_t get_audio_end_pts();
+
+    void update_audio_pts(int64_t pts);
+    void update_video_dts(int64_t dts);
+    int64_t get_start_pts();
+
+    bool has_video() {
+        return start_dts_video_ != -1;
+    }
+
+    bool has_audio() {
+        return start_pts_audio_ != -1;
+    }
+
+    int64_t get_create_at() {
+        return create_at_;
+    }
+    
+    int64_t get_duration();
+
+    int32_t get_curr_ts_offset();
+    std::string_view alloc_ts_packet();
+    std::string_view get_ts_data();
+    int64_t get_ts_bytes();
+    void set_reaped() {
+        is_reaped_ = true;
+    }
+
+    inline bool is_reaped() {
+        return is_reaped_;
+    }
+private:
+    int64_t create_at_ = Utils::get_current_ms();
+    int64_t start_dts_video_ = -1;
+    int64_t end_dts_video_ = 0;
+    int64_t start_pts_audio_ = -1;
+    int64_t end_pts_audio_ = 0;
+
+    int64_t duration_video_ms_ = 0;
+    int64_t duration_audio_ms_ = 0;
+
+    std::string filename_;
+    int64_t seq_ = 0;
+    std::unique_ptr<uint8_t[]> ts_buf_;
+    size_t ts_buf_len_ = 0;
+    size_t ts_buf_max_len_;
+    bool is_reaped_  = false;
+};
+};

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<!-- saved from url=(0035)https://article.itxueyuan.com/rXXpo -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <meta name="baidu_union_verify" content="948ff78f4e4a44b8d664c4154bbf6262">
+  <title>基于OpenSSL的HTTPS通信C++实现</title>
+  <meta name="keywords" content="C++,CPP,C++语言开发,基于OpenSSL的HTTPS通信C++实现">
+  <meta name="description" content="  HTTPS是以安全为目标的HTTP通道，简单讲是HTTP的安全版。即HTTP下加入SSL层，HTTPS的安全基础是SSL，因此加密的详细内容就需要SSL。Nebula是一个为开发者提供一个快速开发">
+  <meta name="csrf-token" content="XNehwKOrPnZvdM4dIGmiGRyQD3LW2aG5CMVJTjJR">
+  <meta http-equiv="access-control-allow-origin" content="*">
+  <meta http-equiv="Set-Cookie" content="Secure">
+  <link rel="shortcut icon" href="https://article.itxueyuan.com/favicon.ico" type="image/x-icon" media="screen">
+   
+       <meta name="baidu-site-verification" content="code-xv2O29Y26l">     
+    
+    		
+
+<link href="./基于OpenSSL的HTTPS通信C++实现_files/bootstrap.css" rel="stylesheet">
+<link rel="stylesheet" media="screen" href="./基于OpenSSL的HTTPS通信C++实现_files/common.css">
+<link rel="stylesheet" media="screen" href="./基于OpenSSL的HTTPS通信C++实现_files/font-awesome.min.css">
+<link rel="stylesheet" media="screen" href="./基于OpenSSL的HTTPS通信C++实现_files/main.css">
+<link rel="stylesheet" media="screen" href="./基于OpenSSL的HTTPS通信C++实现_files/es-icon.css">
+<link rel="stylesheet" media="screen" href="./基于OpenSSL的HTTPS通信C++实现_files/theme-blue.css"> 
+  
+  <!--[if lt IE 9]>
+    <script src="https://article.itxueyuan.com/assets/libs/html5shiv.js"></script>
+    <script src="https://article.itxueyuan.com/assets/libs/respond.min.js"></script>
+  <![endif]-->
+  
+  
+ <style>
+     
+#wrap {display:block;bottom:0px;right:1px!important;right:18px;width:300px;line-height:30px;position:fixed;border:1px solid #fff;text-align:center;color:#fff; background:#000;}
+
+</style>
+<script type="text/javascript" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/auto_dup"></script><script src="./基于OpenSSL的HTTPS通信C++实现_files/push.js.下载"></script><script src="./基于OpenSSL的HTTPS通信C++实现_files/hm.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/app.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/jquery.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/bootstrap.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/bootstrap-modal-hack2.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/placeholder.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/card.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/float-consult.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/index.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/cookie.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/jquery.lavalamp.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/jquery.easing.min.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/detail.js.下载"></script><link charset="utf-8" rel="stylesheet" href="./基于OpenSSL的HTTPS通信C++实现_files/zenburn.css"><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/highlight.pack.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/share-dropdown.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/thread-show.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/validator.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/validator-rules.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/xbc-ckeditor.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/widget.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/bootstrap-notify.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/validator.js(1).下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/ckeditor.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/base.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/class.js.下载"></script><script charset="utf-8" async="" src="./基于OpenSSL的HTTPS通信C++实现_files/events.js.下载"></script><style>.cke{visibility:hidden;}</style></head>
+<body class="artcile-detail-page">
+
+  <div class="es-wrap">
+
+      
+      <header class="es-header hidden-xs">
+    <div class="container">
+        <a class="navbar-brand" href="https://www.itxueyuan.com/"><img src="./基于OpenSSL的HTTPS通信C++实现_files/logo.png"></a> 
+        <ul class="nav navbar-nav">      
+            <li>
+                <a href="https://course.itxueyuan.com/">课程 </a>
+            </li> 
+        
+            <li>
+                <a href="https://download.itxueyuan.com/">下载 </a>
+            </li> 
+
+             <li class="active">
+                <a href="https://article.itxueyuan.com/">文章 </a>
+            </li> 
+             <li>
+                <a href="https://book.itxueyuan.com/explore">书籍手册 </a>
+            </li>   
+            <li>
+                <a href="https://opencourse.itxueyuan.com/">公开课 </a>
+            </li>   
+            <li>
+                <a href="https://www.itxueyuan.com/vip">会员 </a>
+            </li>    
+             <li>
+                <a href="http://intel.itxueyuan.com/" target="_blank">Intel专区</a>
+            </li>   
+        </ul>   
+                
+    	<div class="navbar-user ">
+            <ul class="nav user-nav">     
+                                    <li class="hidden-xs"><a href="https://www.itxueyuan.com/login">登录</a></li>
+                     <li class="hidden-xs"><a href="https://www.itxueyuan.com/register">注册</a></li>
+
+                            </ul>
+            <form class="navbar-form navbar-right hidden-xs hidden-sm" action="https://www.itxueyuan.com/search" method="get">
+                <div class="form-group">
+                    <input class="form-control js-search" name="q" placeholder="搜索" value="" id="search-main">
+                    <button class="button es-icon es-icon-search" id="search"></button>
+                </div>
+            </form>
+        </div> 
+    </div>
+</header>
+<header class="es-header navbar visible-xs">
+    <div class="navbar-header">
+        <div class="visible-xs  navbar-mobile">
+            <a href="javascript:;" class="navbar-more js-navbar-more">
+                <i class="es-icon es-icon-menu"></i>
+            </a>
+            <div class="html-mask"></div>
+            <div class="nav-mobile" style="height: 359px;">
+                <form class="navbar-form" action="https://www.itxueyuan.com/search" method="get">
+                    <div class="form-group">
+                        <input class="form-control" placeholder="搜索" name="q">
+                        <button class="button es-icon es-icon-search"></button>
+                    </div>
+                </form>
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="https://www.itxueyuan.com/">首页 </a>
+                    </li>      
+                    <li>
+                        <a href="https://course.itxueyuan.com/">课程 </a>
+                    </li>    
+                   
+                    <li>
+                        <a href="https://download.itxueyuan.com/">下载 </a>
+                    </li>
+                     <li class="active">
+                        <a href="https://article.itxueyuan.com/">文章 </a>
+                    </li> 
+                     <li>
+                        <a href="https://book.itxueyuan.com/explore">书籍手册 </a>
+                    </li>   
+                    <li>
+                        <a href="https://opencourse.itxueyuan.com/">公开课 </a>
+                    </li> 
+                    <li>
+                        <a href="https://www.itxueyuan.com/vip">会员 </a>
+                    </li>   
+                     <li>
+                        <a href="http://intel.itxueyuan.com/" target="_blank">Intel专区</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <a href="https://www.itxueyuan.com/" class="navbar-brand">
+            <img src="./基于OpenSSL的HTTPS通信C++实现_files/logo.png">
+        </a>
+    </div>
+    <nav class="collapse navbar-collapse">
+        <div class="navbar-user ">
+            <ul class="nav user-nav">
+                                    <li class="user-avatar-li nav-hover visible-xs">
+                        <a href="javascript:;" class="dropdown-toggle">
+                            <img class="avatar-xs" src="./基于OpenSSL的HTTPS通信C++实现_files/avatar.png">
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li class="user-nav-li-login"><a href="https://www.itxueyuan.com/login">
+                                <i class="es-icon es-icon-denglu"></i>
+                                    登录</a></li>
+                       </ul>
+                    </li>
+                            </ul>
+        </div>
+    </nav>
+</header>
+    
+          
+      <div id="content-container" class="container">
+        
+  <div class="article-detail row" id="detail-content" data-url="https://article.itxueyuan.com/article/cache/26" data-widget-cid="widget-0">
+    <!-- 主内容 -->
+    <div class="col-md-8 article-detail-main">
+      <section class="es-section article-content">
+        <ol class="breadcrumb">
+  <li><a href="https://article.itxueyuan.com/">技术文章</a></li>
+              <li><a href="https://article.itxueyuan.com/category/dev">后端开发</a></li>
+                   <li><a href="https://article.itxueyuan.com/category/candcpp">C/C++</a></li>
+         <li class="active">正文</li>
+</ol>        
+        <div class="article-metas">
+  <div class="pull-left">
+    <div class="date">
+      <div class="day">23</div>
+      <div class="month">12</div>
+    </div>
+  </div>
+  <div class="metas-body">
+      <h1 style="display:none">基于OpenSSL的HTTPS通信C++实现</h1>
+    <h2 class="title">
+      基于OpenSSL的HTTPS通信C++实现
+    </h2>
+    <div class="sns">
+      <span class="views-num">
+        <i class="es-icon es-icon-visibility"></i>704
+      </span>
+      <span class="comment-num">
+        <i class="es-icon es-icon-textsms"></i>0
+      </span>
+      <span class="love-num">
+        <i class="es-icon es-icon-favorite"></i><span class="js-like-num">0</span>
+      </span>
+       <div class="text-muted pull-right">作者:铁芒箕</div>
+    </div>
+    
+  </div>
+</div>        
+        <div class="article-text">
+ <section class="rt-section clear-fix" style="clear:both">
+  
+    <div class="row">
+    	            <div class="col-md-4 col-xs-4 ad-item">
+                <a href="https://mp.weixin.qq.com/s/HuDp4sYSG1pc3CEj1LNhXQ" target="_blank">
+                    <img class="img-responsive" src="./基于OpenSSL的HTTPS通信C++实现_files/adv-1662379151-3503-pic.jpeg" alt="python-图灵-1" title="python-图灵-1">
+                </a>
+            </div>  
+                    <div class="col-md-4 col-xs-4 ad-item">
+                <a href="https://mp.weixin.qq.com/s/yFSo_aG-sJEE_5-QeS0sWA" target="_blank">
+                    <img class="img-responsive" src="./基于OpenSSL的HTTPS通信C++实现_files/adv-1662379270-5052-pic.jpeg" alt="java-图灵-1" title="java-图灵-1">
+                </a>
+            </div>  
+                    <div class="col-md-4 col-xs-4 ad-item">
+                <a href="https://article.itxueyuan.com/rXXpo" target="_blank">
+                    <img class="img-responsive" src="./基于OpenSSL的HTTPS通信C++实现_files/adv-1660633707-3577-pic.jpeg" alt="测试2" title="测试2">
+                </a>
+            </div>  
+            </div>
+
+</section>
+  
+  
+    <p>  HTTPS是以安全为目标的HTTP通道，简单讲是HTTP的安全版。即HTTP下加入SSL层，HTTPS的安全基础是SSL，因此加密的详细内容就需要SSL。<a href="https://github.com/Bwar/Nebula">Nebula</a>是一个为开发者提供一个快速开发高并发网络服务程序或搭建高并发分布式服务集群的高性能事件驱动网络框架。Nebula作为通用网络框架提供HTTPS支持十分重要，Nebula既可用作https服务器，又可用作https客户端。本文将结合Nebula框架的https实现详细讲述基于openssl的SSL编程。如果觉得本文对你有用，帮忙到Nebula的<a href="https://github.com/Bwar/Nebula">Github</a>或<a href="https://gitee.com/Bwar/Nebula">码云</a>给个star，谢谢。Nebula不仅是一个框架，还提供了一系列基于这个框架的应用，目标是打造一个高性能分布式服务集群解决方案。Nebula的主要应用领域：即时通讯（成功应用于一款<a href="https://github.com/Bwar/Nebula/wiki/%E9%A6%96%E9%A1%B5">IM</a>）、消息推送平台、数据实时分析计算(<a href="https://github.com/Bwar/Nebio">成功案例</a>)等，Bwar还计划基于Nebula开发爬虫应用。</p>
+<h3 id="h3_1">1. SSL加密通信</h3>
+<p>  HTTPS通信是在TCP通信层与HTTP应用层之间增加了SSL层，如果应用层不是HTTP协议也是可以使用SSL加密通信的，比如WebSocket协议WS的加上SSL层之后的WSS。Nebula框架可以通过更换Codec达到不修改代码变更通讯协议目的，Nebula增加SSL支持后，所有Nebula支持的通讯协议都有了SSL加密通讯支持，基于Nebula的业务代码无须做任何修改。</p>
+<p><img title="https_communication" src="./基于OpenSSL的HTTPS通信C++实现_files/73a2c1617c996e553b18b3f3558e638c76c.jpg" alt="https_communication"></p>
+<p>  Socket连接建立后的SSL连接建立过程：</p>
+<p><img title="ssl_communication" src="./基于OpenSSL的HTTPS通信C++实现_files/7cb795766fac25cc3cff3e4a075311d6d3b.jpg" alt="ssl_communication"></p>
+<h3 id="h3_2">2. OpenSSL API</h3>
+<p>  OpenSSL的API很多，但并不是都会被使用到，如果需要查看某个API的详细使用方法可以阅读<a href="https://www.openssl.org/docs/man1.1.0/ssl/">API文档</a>。</p>
+<h4 id="h4_3">2.1 初始化OpenSSL</h4>
+<p>  OpenSSL在使用之前，必须进行相应的初始化工作。在建立SSL连接之前，要为Client和Server分别指定本次连接采用的协议及其版本，目前能够使用的协议版本包括SSLv2、SSLv3、SSLv2/v3和TLSv1.0。SSL连接若要正常建立，则要求Client和Server必须使用相互兼容的协议。   下面是Nebula框架SocketChannelSslImpl::SslInit()函数初始化OpenSSL的代码，根据OpenSSL的不同版本调用了不同的API进行初始化。</p>
+<pre><code class="hljs C hljs php"><span class="hljs-meta"><span class="hljs-comment">#</span><span class="hljs-meta-keyword"><span class="hljs-comment">if OPENSSL_VERSION_NUMBER &gt;= 0x10100003L</span>
+
+    <span class="hljs-keyword"><span class="hljs-keyword">if</span> (OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CONFIG, <span class="hljs-literal"><span class="hljs-keyword">NULL</span>) == <span class="hljs-number"><span class="hljs-number">0</span>)
+    {
+        pLogger-&gt;WriteLog(neb::Logger::ERROR, <span class="hljs-keyword">__FILE__</span>, <span class="hljs-keyword">__LINE__</span>, <span class="hljs-keyword">__FUNCTION__</span>, <span class="hljs-string"><span class="hljs-string">"OPENSSL_init_ssl() failed!"</span>);
+        <span class="hljs-keyword"><span class="hljs-keyword">return</span>(ERR_SSL_INIT);
+    }
+
+    <span class="hljs-comment"><span class="hljs-comment">/*
+     * OPENSSL_init_ssl() may leave errors in the error queue
+     * while returning success
+     */</span>
+
+    ERR_clear_error();
+
+<span class="hljs-meta"><span class="hljs-comment">#</span><span class="hljs-meta-keyword"><span class="hljs-comment">else</span>
+
+    OPENSSL_config(<span class="hljs-literal"><span class="hljs-keyword">NULL</span>);
+
+    SSL_library_init();         <span class="hljs-comment"><span class="hljs-comment">// 初始化SSL算法库函数( 加载要用到的算法 )，调用SSL函数之前必须调用此函数</span>
+    SSL_load_error_strings();   <span class="hljs-comment"><span class="hljs-comment">// 错误信息的初始化</span>
+
+    OpenSSL_add_all_algorithms();
+
+<span class="hljs-meta"><span class="hljs-comment">#</span><span class="hljs-meta-keyword"><span class="hljs-comment">endif</span>
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h4 id="h4_4">2.2 创建CTX</h4>
+<p>  CTX是SSL会话环境，建立连接时使用不同的协议，其CTX也不一样。创建CTX的相关OpenSSL函数：</p>
+<pre><code class="hljs C hljs cs"><span class="hljs-comment"><span class="hljs-comment">//客户端、服务端都需要调用</span>
+SSL_CTX_new();                       <span class="hljs-comment"><span class="hljs-comment">//申请SSL会话环境</span>
+
+<span class="hljs-comment"><span class="hljs-comment">//若有验证对方证书的需求，则需调用</span>
+SSL_CTX_set_verify();                <span class="hljs-comment"><span class="hljs-comment">//指定证书验证方式</span>
+SSL_CTX_load_verify_location();      <span class="hljs-comment"><span class="hljs-comment">//为SSL会话环境加载本应用所信任的CA证书列表</span>
+
+<span class="hljs-comment"><span class="hljs-comment">//若有加载证书的需求，则需调用</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_CTX_use_certificate_file<span class="hljs-params">();      <span class="hljs-comment"><span class="hljs-comment">//为SSL会话加载本应用的证书</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_CTX_use_certificate_chain_file<span class="hljs-params">();<span class="hljs-comment"><span class="hljs-comment">//为SSL会话加载本应用的证书所属的证书链</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_CTX_use_PrivateKey_file<span class="hljs-params">();       <span class="hljs-comment"><span class="hljs-comment">//为SSL会话加载本应用的私钥</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_CTX_check_private_key<span class="hljs-params">();         <span class="hljs-comment"><span class="hljs-comment">//验证所加载的私钥和证书是否相匹配 </span>
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h4 id="h4_5">2.3 创建SSL套接字</h4>
+<p>  在创建SSL套接字之前要先创建Socket套接字，建立TCP连接。创建SSL套接字相关函数：</p>
+<pre><code class="hljs C hljs perl"><span class="hljs-function">SSL <span class="hljs-variable">*</span><span class="hljs-title"><span class="hljs-variable">SSl_new</span><span class="hljs-params">(SSL_CTX <span class="hljs-variable">*ctx</span>);          <span class="hljs-comment"><span class="hljs-regexp">//</span>创建一个SSL套接字
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_set_fd<span class="hljs-params">(SSL <span class="hljs-variable">*ssl</span>, <span class="hljs-keyword"><span class="hljs-keyword">int</span> fd);     <span class="hljs-comment"><span class="hljs-regexp">//</span>以读写模式绑定流套接字
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_set_rfd<span class="hljs-params">(SSL <span class="hljs-variable">*ssl</span>, <span class="hljs-keyword"><span class="hljs-keyword">int</span> fd);    <span class="hljs-comment"><span class="hljs-regexp">//</span>以只读模式绑定流套接字
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_set_wfd<span class="hljs-params">(SSL <span class="hljs-variable">*ssl</span>, <span class="hljs-keyword"><span class="hljs-keyword">int</span> fd);    <span class="hljs-comment"><span class="hljs-regexp">//</span>以只写模式绑定流套接字
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h4 id="h4_6">2.4 完成SSL握手</h4>
+<p>  在这一步，我们需要在普通TCP连接的基础上，建立SSL连接。与普通流套接字建立连接的过程类似：Client使用函数SSL_connect()【类似于流套接字中用的connect()】发起握手，而Server使用函数SSL_ accept()【类似于流套接字中用的accept()】对握手进行响应，从而完成握手过程。两函数原型如下：</p>
+<pre><code class="hljs C hljs perl"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_connect<span class="hljs-params">(SSL <span class="hljs-variable">*ssl</span>);
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_accept<span class="hljs-params">(SSL <span class="hljs-variable">*ssl</span>);
+</span></span></span></span></span></span></span></span></code></pre>
+<p><img alt="" src="./基于OpenSSL的HTTPS通信C++实现_files/1-4899-20220905195743"></p><p>  握手过程完成之后，Client通常会要求Server发送证书信息，以便对Server进行鉴别。其实现会用到以下两个函数:</p>
+<pre><code class="hljs C hljs perl"><span class="hljs-function">X509 <span class="hljs-variable">*</span><span class="hljs-title"><span class="hljs-variable">SSL_get_peer_certificate</span><span class="hljs-params">(SSL <span class="hljs-variable">*ssl</span>);  <span class="hljs-comment"><span class="hljs-regexp">//</span>从SSL套接字中获取对方的证书信息
+<span class="hljs-function">X509_NAME <span class="hljs-variable">*</span><span class="hljs-title"><span class="hljs-variable">X509_get_subject_name</span><span class="hljs-params">(X509 <span class="hljs-variable">*a</span>); <span class="hljs-comment"><span class="hljs-regexp">//</span>得到证书所用者的名字
+</span></span></span></span></span></span></span></span></code></pre>
+<h4 id="h4_7">2.5 数据传输</h4>
+<p>  经过前面的一系列过程后，就可以进行安全的数据传输了。在数据传输阶段，需要使用SSL_read( )和SSL_write( )来代替普通流套接字所使用的read( )和write( )函数，以此完成对SSL套接字的读写操作,两个新函数的原型分别如下：</p>
+<pre><code class="hljs C hljs cs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_read<span class="hljs-params">(SSL *ssl,<span class="hljs-keyword"><span class="hljs-keyword">void</span> *buf,<span class="hljs-keyword"><span class="hljs-keyword">int</span> num);            <span class="hljs-comment"><span class="hljs-comment">//从SSL套接字读取数据</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_write<span class="hljs-params">(SSL *ssl,<span class="hljs-keyword"><span class="hljs-keyword">const</span> <span class="hljs-keyword"><span class="hljs-keyword">void</span> *buf,<span class="hljs-keyword"><span class="hljs-keyword">int</span> num);     <span class="hljs-comment"><span class="hljs-comment">//向SSL套接字写入数据</span>
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h4 id="h4_8">2.6 会话结束</h4>
+<p>  当Client和Server之间的通信过程完成后，就使用以下函数来释放前面过程中申请的SSL资源：</p>
+<pre><code class="hljs C hljs cs"><span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SSL_shutdown<span class="hljs-params">(SSL *ssl);       <span class="hljs-comment"><span class="hljs-comment">//关闭SSL套接字</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">void</span> <span class="hljs-title">SSl_free<span class="hljs-params">(SSL *ssl);          <span class="hljs-comment"><span class="hljs-comment">//释放SSL套接字</span>
+<span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">void</span> <span class="hljs-title">SSL_CTX_free<span class="hljs-params">(SSL_CTX *ctx);  <span class="hljs-comment"><span class="hljs-comment">//释放SSL会话环境</span>
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<h3 id="h3_9">3. SSL 和 TLS</h3>
+<p>  HTTPS 使用 SSL（Secure Socket Layer） 和 TLS（Transport LayerSecurity）这两个协议。 SSL 技术最初是由浏览器开发商网景通信公司率先倡导的，开发过 SSL3.0之前的版本。目前主导权已转移到 IETF（Internet Engineering Task Force，Internet 工程任务组）的手中。</p>
+<p>  IETF 以 SSL3.0 为基准，后又制定了 TLS1.0、TLS1.1 和 TLS1.2。TSL 是以SSL 为原型开发的协议，有时会统一称该协议为 SSL。当前主流的版本是SSL3.0 和 TLS1.0。</p>
+<p>  由于 SSL1.0 协议在设计之初被发现出了问题，就没有实际投入使用。SSL2.0 也被发现存在问题，所以很多浏览器直接废除了该协议版本。</p>
+<h3 id="h3_10">4. Nebula中的SSL通讯实现</h3>
+<p>  Nebula框架同时支持SSL服务端应用和SSL客户端应用，对openssl的初始化只需要初始化一次即可（SslInit()只需调用一次）。Nebula框架的SSL相关代码（包括客户端和服务端的实现）都封装在<a href="https://github.com/Bwar/Nebula/blob/master/src/channel/SocketChannelSslImpl.hpp">SocketChannelSslImpl</a>这个类中。Nebula的SSL通信是基于异步非阻塞的socket通信，并且不使用openssl的BIO（因为没有必要，代码还更复杂了）。</p>
+<p>  SocketChannelSslImpl是<a href="https://github.com/Bwar/Nebula/blob/master/src/channel/SocketChannelImpl.hpp">SocketChannelImpl</a>的派生类，在SocketChannelImpl常规TCP通信之上增加了SSL通信层，两个类的调用几乎没有差异。SocketChannelSslImpl类声明如下：</p>
+<pre><code class="hljs C++ hljs cs"><span class="hljs-class"><span class="hljs-keyword">class <span class="hljs-title">SocketChannelSslImpl : <span class="hljs-keyword"><span class="hljs-keyword">public</span> SocketChannelImpl
+{
+<span class="hljs-keyword"><span class="hljs-keyword">public</span>:
+    <span class="hljs-title">SocketChannelSslImpl</span>(SocketChannel* pSocketChannel, <span class="hljs-built_in">std::<span class="hljs-built_in">shared_ptr&lt;NetLogger&gt; pLogger, <span class="hljs-keyword"><span class="hljs-keyword">int</span> iFd, uint32 ulSeq, ev_tstamp dKeepAlive = <span class="hljs-number"><span class="hljs-number">0.0</span>);
+    <span class="hljs-keyword"><span class="hljs-keyword">virtual</span> ~SocketChannelSslImpl();
+
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">static</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslInit<span class="hljs-params">(<span class="hljs-built_in">std::<span class="hljs-built_in">shared_ptr&lt;NetLogger&gt; pLogger);
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">static</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslServerCtxCreate<span class="hljs-params">(<span class="hljs-built_in">std::<span class="hljs-built_in">shared_ptr&lt;NetLogger&gt; pLogger);
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">static</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslServerCertificate<span class="hljs-params">(<span class="hljs-built_in">std::<span class="hljs-built_in">shared_ptr&lt;NetLogger&gt; pLogger,
+                <span class="hljs-keyword"><span class="hljs-keyword">const</span> <span class="hljs-built_in">std::<span class="hljs-built_in"><span class="hljs-keyword">string</span>&amp; strCertFile, <span class="hljs-keyword"><span class="hljs-keyword">const</span> <span class="hljs-built_in">std::<span class="hljs-built_in"><span class="hljs-keyword">string</span>&amp; strKeyFile);
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">static</span> <span class="hljs-keyword"><span class="hljs-keyword">void</span> <span class="hljs-title">SslFree<span class="hljs-params">();
+
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslClientCtxCreate<span class="hljs-params">();
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslCreateConnection<span class="hljs-params">();
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslHandshake<span class="hljs-params">();
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">SslShutdown<span class="hljs-params">();
+
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword"><span class="hljs-keyword">bool</span> <span class="hljs-title">Init<span class="hljs-params">(E_CODEC_TYPE eCodecType, <span class="hljs-keyword"><span class="hljs-keyword">bool</span> bIsClient = <span class="hljs-literal"><span class="hljs-keyword">false</span>) <span class="hljs-keyword">override</span>;
+
+    <span class="hljs-comment"><span class="hljs-comment">// 覆盖基类的Send()方法，实现非阻塞socket连接建立后继续建立SSL连接，并收发数据</span>
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> E_CODEC_STATUS <span class="hljs-title">Send<span class="hljs-params">() <span class="hljs-keyword">override</span>;      
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> E_CODEC_STATUS <span class="hljs-title">Send<span class="hljs-params">(int32 iCmd, uint32 uiSeq, <span class="hljs-keyword"><span class="hljs-keyword">const</span> MsgBody&amp; oMsgBody) <span class="hljs-keyword">override</span>;
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> E_CODEC_STATUS <span class="hljs-title">Send<span class="hljs-params">(<span class="hljs-keyword"><span class="hljs-keyword">const</span> HttpMsg&amp; oHttpMsg, uint32 ulStepSeq) <span class="hljs-keyword">override</span>;
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> E_CODEC_STATUS <span class="hljs-title">Recv<span class="hljs-params">(MsgHead&amp; oMsgHead, MsgBody&amp; oMsgBody) <span class="hljs-keyword">override</span>;
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> E_CODEC_STATUS <span class="hljs-title">Recv<span class="hljs-params">(HttpMsg&amp; oHttpMsg) <span class="hljs-keyword">override</span>;
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> E_CODEC_STATUS <span class="hljs-title">Recv<span class="hljs-params">(MsgHead&amp; oMsgHead, MsgBody&amp; oMsgBody, HttpMsg&amp; oHttpMsg) <span class="hljs-keyword">override</span>;
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword"><span class="hljs-keyword">bool</span> <span class="hljs-title">Close<span class="hljs-params">() <span class="hljs-keyword">override</span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">protected</span>:
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title"><span class="hljs-title">Write</span><span class="hljs-params">(CBuffer* pBuff, <span class="hljs-keyword"><span class="hljs-keyword">int</span>&amp; iErrno) <span class="hljs-keyword">override</span>;
+    <span class="hljs-function"><span class="hljs-keyword"><span class="hljs-keyword">virtual</span> <span class="hljs-keyword"><span class="hljs-keyword">int</span> <span class="hljs-title">Read<span class="hljs-params">(CBuffer* pBuff, <span class="hljs-keyword"><span class="hljs-keyword">int</span>&amp; iErrno) <span class="hljs-keyword">override</span>;
+
+<span class="hljs-keyword"><span class="hljs-keyword">private</span>:
+    E_SSL_CHANNEL_STATUS m_eSslChannelStatus;   <span class="hljs-comment"><span class="hljs-comment">//在基类m_ucChannelStatus通道状态基础上增加SSL通道状态</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">bool</span> m_bIsClientConnection;
+    SSL* m_pSslConnection;
+
+    <span class="hljs-keyword"><span class="hljs-keyword">static</span> SSL_CTX* m_pServerSslCtx;    <span class="hljs-comment"><span class="hljs-comment">//当打开ssl选项编译，启动Nebula服务则自动创建</span>
+    <span class="hljs-keyword"><span class="hljs-keyword">static</span> SSL_CTX* m_pClientSslCtx;    <span class="hljs-comment"><span class="hljs-comment">//默认为空，当打开ssl选项编译并且第一次发起了对其他SSL服务的连接时（比如访问一个https地址）创建</span>
+};
+</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></code></pre>
+<p>  SocketChannelSslImpl类中带override关键字的方法都是覆盖基类SocketChannelImpl的同名方法，也是实现SSL通信与非SSL通信调用透明的关键。不带override关键字的方法都是SSL通信相关方法，这些方法里有openssl的函数调用。不带override的方法中有静态和非静态之分，静态方法在进程中只会被调用一次，与具体Channel对象无关。SocketChannel外部不需要调用非静态的ssl相关方法。</p>
+<p>  因为是非阻塞的socket，SSL_do_handshake()和SSL_write()、SSL_read()返回值并不完全能判断是否出错，还需要SSL_get_error()获取错误码。SSL_ERROR_WANT_READ和SSL_ERROR_WANT_WRITE都是正常的。</p>
+<p>  网上的大部分openssl例子程序是按顺序调用openssl函数简单实现同步ssl通信，在非阻塞IO应用中，ssl通信要复杂许多。SocketChannelSslImpl实现的是非阻塞的ssl通信，从该类的实现上看整个通信过程并非完全线性的。下面的SSL通信图更清晰地说明了Nebula框架中SSL通信是如何实现的：</p>
+<p><img title="Nebula_ssl" src="./基于OpenSSL的HTTPS通信C++实现_files/e6f58a56d4fbcf9dbc3c4a1d9c3fdbb970e.jpg" alt="Nebula_ssl"></p>
+<p>  SocketChannelSslImpl中的静态方法在进程生命期内只需调用一次，也可以理解成SSL_CTX_new()、SSL_CTX_free()等方法只需调用一次。更进一步理解SSL_CTX结构体在进程内只需要创建一次（在Nebula中分别为Server和Client各创建一个）就可以为所有SSL连接所用；当然，为每个SSL连接创建独立的SSL_CTX也没问题（Nebula 0.4中实测过为每个Client创建独立的SSL_CTX），但一般不这么做，因为这样会消耗更多的内存资源，并且效率也会更低。</p>
+<p>  建立SSL连接时，客户端调用SSL_connect()，服务端调用SSL_accept()，许多openssl的demo都是这么用的。Nebula中用的是SSL_do_handshake()，这个方法同时适用于客户端和服务端，在兼具client和server功能的服务更适合用SSL_do_handshake()。注意调用SSL_do_handshake()前，如果是client端需要先调用SSL_set_connect_state()，如果是server端则需要先调用SSL_set_accept_state()。非阻塞IO中，SSL_do_handshake()可能需要调用多次才能完成握手，具体调用时机需根据SSL_get_error()获取错误码SSL_ERROR_WANT_READ和SSL_ERROR_WANT_WRITE判断需监听读事件还是写事件，在对应事件触发时再次调用SSL_do_handshake()。详细实现请参考SocketChannelSslImpl的Send和Recv方法。</p>
+<p>  关闭SSL连接时先调用SSL_shutdown()正常关闭SSL层连接（非阻塞IO中SSL_shutdown()亦可能需要调用多次）再调用SSL_free()释放SSL连接资源，最后关闭socket连接。SSL_CTX无须释放。整个SSL通信顺利完成，Nebula 0.4在开多个终端用shell脚本死循环调用curl简单压测中SSL client和SSL server功能一切正常:</p>
+<pre><code class="hljs bash hljs "><span class="hljs-keyword"><span class="hljs-keyword">while</span> :
+<span class="hljs-keyword"><span class="hljs-keyword">do</span> 
+     curl -v -k -H <span class="hljs-string"><span class="hljs-string">"Content-Type:application/json"</span> -X POST <span class="hljs-operator">-d</span> <span class="hljs-string"><span class="hljs-string">'{"hello":"nebula ssl test"}'</span> https://<span class="hljs-number">192.168</span>.<span class="hljs-number">157.168</span>:<span class="hljs-number">16003</span>/test_ssl 
+<span class="hljs-keyword"><span class="hljs-keyword">done</span>
+</span></span></span></span></span></code></pre>
+<p>  测试方法如下图：</p>
+<p><img title="ssl_test" src="./基于OpenSSL的HTTPS通信C++实现_files/2a0a60a927c7ca348df285e6299987aab10.jpg" alt="ssl_test"></p>
+<p>  查看资源使用情况，SSL Server端的内存使用一直在增长，疑似有内存泄漏，不过pmap -d查看某一项anon内存达到近18MB时不再增长，说明可能不是内存泄漏，只是部分内存被openssl当作cache使用了。这个问题网上没找到解决办法。从struct ssl_ctx_st结构体定义发现端倪，再从nginx源码中发现了SSL_CTX_remove_session()，于是在SSL_free()之前加上SSL_CTX_remove_session()。session复用可以提高SSL通信效率，不过Nebula暂时不需要。</p>
+<p>  这种测试方法把NebulaInterface作为SSL服务端，NebulaLogic作为SSL客户端，同时完成了Nebula框架SSL服务端和客户端功能测试，简单的压力测试。Nebula框架的SSL通信测试通过，也可以投入生产应用，在后续应用中肯定还会继续完善。openssl真的难用，难怪被吐槽那么多，或许不久之后的Nebula版本将用其他ssl库替换掉openssl。</p>
+<h3 id="h3_11">5. 结束</h3>
+<p>  加上SSL支持的Nebula框架测试通过，虽然不算太复杂，但过程还是蛮曲折，耗时也挺长。这里把Nebula使用openssl开发SSL通信分享出来，希望对准备使用openssl的开发者有用。如果觉得本文对你有用，别忘了到Nebula的<a href="https://github.com/Bwar/Nebula">Github</a>或<a href="https://gitee.com/Bwar/Nebula">码云</a>给个star，谢谢。</p>
+<p>&lt;br/&gt;</p>
+<p>参考资料：</p>
+<ul><li><a href="http://www.cppblog.com/qinqing1984/archive/2014/04/11/206536.aspx">基于OpenSSL实现的安全连接</a></li>
+<li><a href="https://www.openssl.org/docs/man1.1.0/ssl/">SSL API文档</a></li>
+<li><a href="https://blog.csdn.net/hellopaul8597/article/details/52327730">Https协议详解</a></li>
+<li><a href="https://blog.csdn.net/wetest_tencent/article/details/53425198">HTTPS是大势所趋？看腾讯专家通过Epoll+OpenSSL在高并发压测机器人中支持https</a></li>
+<li><a href="https://wenku.baidu.com/view/74575278ed630b1c58eeb517.html">openssl 编程入门(含完整示例)</a></li>
+<li><a href="https://blog.csdn.net/jinhill/article/details/3615626">SSL连接建立过程分析</a></li>
+<li><a href="https://blog.csdn.net/pony_maggie/article/details/51315946">SSL socket 通讯详解</a></li>
+<li><a href="https://www.jianshu.com/p/c93612b3abac">HTTPS从原理到应用(三)：SSL/TLS协议</a></li>
+<li><a href="http://blog.jobbole.com/94332/">SSL/TLS 握手优化详解</a></li>
+<li><a href="http://www.cnblogs.com/dongfuye/p/4121066.html">非阻塞/异步(epoll) openssl</a></li>
+<li><a href="https://my.oschina.net/vincentwy/blog/620282?p=1">两个基于openssl的https client例子</a></li>
+<li><a href="https://blog.csdn.net/howeverpf/article/details/18993945">OpenSSL编程初探1 --- 使用OpenSSL API建立SSL通信的一般流程简介</a></li>
+<li><a href="https://blog.csdn.net/howeverpf/article/details/14108063">OpenSSL编程初探2 --- 关于证书文件的加载</a></li>
+</ul>
+    <div class="text-center text-muted">内容来源于网络如有侵权请私信删除</div>
+               
+        <div class="article-tags">
+ 
+  标签：
+                        <a class="btn-tag" href="https://article.itxueyuan.com/tag/C++">C++</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/CPP">CPP</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/C++%E8%AF%AD%E8%A8%80%E5%BC%80%E5%8F%91">C++语言开发</a>
+              </div>
+        <div class="article-sns">
+         	<a class="love" href="https://www.itxueyuan.com/login"><i class="es-icon es-icon-favorite"></i><span class="js-like-num"></span></a>
+      <span class="es-share right">
+    <a class="dropdown-toggle" href="javascript:;" data-toggle="dropdown">
+      <i class="es-icon es-icon-share"></i>
+    </a>
+                
+<div class="dropdown-menu  js-social-share-params" data-title="基于OpenSSL的HTTPS通信C++实现" data-summary="  HTTPS是以安全为目标的HTTP通道，简单讲是HTTP的安全版。即HTTP下加入SSL层，HT" data-message="我正在看「基于OpenSSL的HTTPS通信C++实现」，关注「IT学院」，分享知识，成就未来。" data-url="https://article.itxueyuan.com/54555" data-picture="https://article.itxueyuan.com/assets/img/default/wiki.png">
+
+    <input type="hidden" class="point-share-url" value="https://article.itxueyuan.com/share/54555/%E5%9F%BA%E4%BA%8EOpenSSL%E7%9A%84HTTPS%E9%80%9A%E4%BF%A1C++%E5%AE%9E%E7%8E%B0/article/point">
+  <a href="javascript:;" class="js-social-share" data-cmd="weixin" title="分享到微信" data-share="weixin" data-qrcode-url="https://article.itxueyuan.com/share/common/qrcode?text=https%3A%2F%2Farticle.itxueyuan.com%2F54555"><i class="es-icon es-icon-weixin"></i></a>
+  <a href="javascript:;" class="js-social-share" data-cmd="tsina" title="分享到新浪微博" data-share="weibo"><i class="es-icon es-icon-weibo"></i></a>
+  <a href="javascript:;" class="js-social-share" data-cmd="qq" title="分享到QQ好友" data-share="qq"><i class="es-icon es-icon-qq"></i></a>
+  <a href="javascript:;" class="js-social-share" data-cmd="qzone" title="分享到QQ空间" data-share="qzone"><i class="es-icon es-icon-qzone"></i></a>
+
+</div>
+  </span>
+</div>
+                
+        	<div class="empty">
+    你还没有登录，请先<a href="https://www.itxueyuan.com/login">登录</a>或<a href="https://www.itxueyuan.com/register">注册</a>！
+  </div>
+
+        <ul class="comment-list thread-pripost-list">
+      <li class="empty">还没有人评论，欢迎说说您的想法！</li>
+  </ul>
+
+<nav class="text-center">
+  
+</nav>        
+        
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title"><i class="es-icon es-icon-explore"></i>相关课程</h3>
+  </div>
+  <div class="panel-body">
+    <div class="course-list no-shadow no-margin">
+      <div class="row">
+                                              <div class="col-lg-4 col-md-6 col-xs-6 ">
+            <div class="course-item">
+  <div class="course-img">
+    <a href="https://course.itxueyuan.com/160" target="_blank">
+    
+                        <!-- 折扣 -->
+          <span class="tag-discount"></span>
+            
+                     <span class="tags">
+          <span class="tag-vip"></span>
+        </span>
+           
+       
+      <img src="./基于OpenSSL的HTTPS通信C++实现_files/large-20190110153804-course-160-picure.jpg" class="img-responsive thumb">
+       
+    </a>
+  </div>
+  <div class="course-info">
+    <div class="title">
+      <a class="link-dark" href="https://course.itxueyuan.com/160" target="_blank">
+        SpringCloud视频教程
+      </a>
+    </div>
+    <div class="metas clearfix">
+    	 
+      <span class="num"><i class="es-icon es-icon-people"></i>3865</span>
+                 
+      
+
+<span class="course-price-widget">
+
+  	<span class="text-success">9.8元</span> 
+  	             <span class="origin-price"><del>98元</del></span>
+             	  	<span class="discount">     
+                  1折
+              </span>
+ 	 	</span>    </div>
+  </div>
+</div>          </div>
+                                                <div class="col-lg-4 col-md-6 col-xs-6 ">
+            <div class="course-item">
+  <div class="course-img">
+    <a href="https://course.itxueyuan.com/205" target="_blank">
+    
+               	<span class="tag-discount free"></span>
+                 
+       
+      <img src="./基于OpenSSL的HTTPS通信C++实现_files/large-20210206160415-course-205-picure.jpg" class="img-responsive thumb">
+       
+    </a>
+  </div>
+  <div class="course-info">
+    <div class="title">
+      <a class="link-dark" href="https://course.itxueyuan.com/205" target="_blank">
+        QT从入门到实战完整版
+      </a>
+    </div>
+    <div class="metas clearfix">
+    	 
+      <span class="num"><i class="es-icon es-icon-people"></i>3718</span>
+                 
+      
+
+<span class="course-price-widget">
+
+  	<span class="text-success">0元</span> 
+  	      	  	<span class="discount">     
+                  限免
+              </span>
+ 	 	</span>    </div>
+  </div>
+</div>          </div>
+                                                <div class="col-lg-4 col-md-6 col-xs-6 hidden-sm hidden-xs">
+            <div class="course-item">
+  <div class="course-img">
+    <a href="https://course.itxueyuan.com/56" target="_blank">
+    
+                        <!-- 限免 -->
+          <span class="tag-discount free"></span>
+            
+                     <span class="tags">
+          <span class="tag-vip"></span>
+        </span>
+           
+       
+      <img src="./基于OpenSSL的HTTPS通信C++实现_files/large-20170829003332-course-56-picure.jpg" class="img-responsive thumb">
+       
+    </a>
+  </div>
+  <div class="course-info">
+    <div class="title">
+      <a class="link-dark" href="https://course.itxueyuan.com/56" target="_blank">
+        Bootstrap前端框架
+      </a>
+    </div>
+    <div class="metas clearfix">
+    	 
+      <span class="num"><i class="es-icon es-icon-people"></i>2721</span>
+                 
+      
+
+<span class="course-price-widget">
+
+  	<span class="text-success">0元</span> 
+  	             <span class="origin-price"><del>45元</del></span>
+             	  	<span class="discount">     
+                  限免
+              </span>
+ 	 	</span>    </div>
+  </div>
+</div>          </div>
+                                          </div>
+    </div>
+  </div>
+</div>
+        
+      </div></section>
+    </div>
+    
+    <aside class="col-md-4 article-sidebar">
+      
+  <!-- 热门资讯 -->
+<br>
+ <div class="panel panel-default hot-article">
+  <div class="panel-heading">
+    <h3 class="panel-title"><i class="es-icon es-icon-whatshot"></i>热门文章
+  </h3></div>
+  <div class="panel-body">
+    
+          
+             
+          <div class="media media-number">
+            <div class="media-left">
+              <span class="num">1</span>
+            </div>
+            <div class="media-body">
+              <a class="link-dark" href="https://article.itxueyuan.com/voPEA" title="Visual C++6.0的下载与安装">Visual C++6.0的下载与安装</a>
+            </div>
+          </div>
+             
+          <div class="media media-number">
+            <div class="media-left">
+              <span class="num">2</span>
+            </div>
+            <div class="media-body">
+              <a class="link-dark" href="https://article.itxueyuan.com/wPdDo" title="博弈论入门之巴什博奕">博弈论入门之巴什博奕</a>
+            </div>
+          </div>
+             
+          <div class="media media-number">
+            <div class="media-left">
+              <span class="num">3</span>
+            </div>
+            <div class="media-body">
+              <a class="link-dark" href="https://article.itxueyuan.com/7Ja8D" title="链栈的基本操作(C语言)">链栈的基本操作(C语言)</a>
+            </div>
+          </div>
+             
+          <div class="media media-number">
+            <div class="media-left">
+              <span class="num">4</span>
+            </div>
+            <div class="media-body">
+              <a class="link-dark" href="https://article.itxueyuan.com/obenXp" title="C++实现json字符串与map的转换">C++实现json字符串与map的转换</a>
+            </div>
+          </div>
+             
+          <div class="media media-number">
+            <div class="media-left">
+              <span class="num">5</span>
+            </div>
+            <div class="media-body">
+              <a class="link-dark" href="https://article.itxueyuan.com/Ow5gwa" title="番茄助手 最新 Visual Assist X 适应于VS2019 VS2017 VS2015 VS2013 亲测可用">番茄助手 最新 Visual Assis</a>
+            </div>
+          </div>
+             
+          <div class="media media-number">
+            <div class="media-left">
+              <span class="num">6</span>
+            </div>
+            <div class="media-body">
+              <a class="link-dark" href="https://article.itxueyuan.com/nWLWe7" title="如何申请腾讯地图用户Key">如何申请腾讯地图用户Key</a>
+            </div>
+          </div>
+            </div>
+</div>  <!-- 热门标签 -->
+        
+<div class="article-tags">
+<!-- cpu feeds block -->
+    <div class="cpu-feeds-block" data-site-id="275056527" data-block-id="66920" data-feeds-loaded="1" data-feeds-tracked="1" style="height: 451px; width: 360px;"><iframe src="./基于OpenSSL的HTTPS通信C++实现_files/66920.html" frameborder="0" height="451" width="360" scrolling="no"></iframe></div>
+    <script id="cpu-block-entry" src="./基于OpenSSL的HTTPS通信C++实现_files/cb_pc.js.下载"></script><script>
+        (function(){var url="//cpu.baidu.com";var getEntry=function(){var script=document.createElement("script");script.id="cpu-block-entry";script.src=url+"/js/cb_pc.js";var scriptTag=document.getElementsByTagName("script")[0];scriptTag.parentNode.insertBefore(script,scriptTag)};var sentMsg=function(e){var msg={msg:e.toString()||"no err msg",line:e.lineno||-1};var img=document.createElement("img");if(JSON){msg=encodeURIComponent(JSON.stringify(msg))}else{msg="&line="+msg.line+"&msg="+msg.msg}img.src=url+"/msg?m=block&e="+msg};try{window.feedsbycpu=window.feedsbycpu||[];window.feedsbycpu.push({siteId:"275056527",blockId:"66920",display:"auto"});document.getElementById("cpu-block-entry")||getEntry()}catch(e){sentMsg(e)}})();
+    </script>
+<!-- cpu feeds block end-->  
+</div> <br>
+    <div class="panel panel-default hot-tag">
+    <div class="panel-heading">
+      <h3 class="panel-title"><i class="es-icon es-icon-loyalty"></i>热门标签</h3>
+    </div>
+    <div class="panel-body">
+                        <a class="btn-tag" href="https://article.itxueyuan.com/tag/C/candcpp"> C</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/C%E8%AF%AD%E8%A8%80/candcpp"> C语言</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/C++/candcpp"> C++</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/CPP/candcpp"> CPP</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/C++%E8%AF%AD%E8%A8%80%E5%BC%80%E5%8F%91/candcpp"> C++语言开发</a>
+                                <a class="btn-tag" href="https://article.itxueyuan.com/tag/C%E8%AF%AD%E8%A8%80%E5%BC%80%E5%8F%91/candcpp"> C语言开发</a>
+                  </div>
+  </div>
+
+
+<!-- 推荐资讯 -->
+ <div class="panel panel-default recommend-article">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      <i class="es-icon es-icon-language"></i>推荐文章
+    </h3>
+  </div>
+  <div class="panel-body">
+                  <div class="media media-number">
+          <div class="media-left">
+            <span class="num">1</span>
+          </div>
+          <div class="media-body">
+            <a class="link-dark" href="https://article.itxueyuan.com/7Ja8D" title="链栈的基本操作(C语言)">链栈的基本操作(C语言)</a>
+          </div>
+        </div>
+              <div class="media media-number">
+          <div class="media-left">
+            <span class="num">2</span>
+          </div>
+          <div class="media-body">
+            <a class="link-dark" href="https://article.itxueyuan.com/J0Lnw" title="c/c++ 继承与多态 容器与继承1">c/c++ 继承与多态 容器与继承1</a>
+          </div>
+        </div>
+              <div class="media media-number">
+          <div class="media-left">
+            <span class="num">3</span>
+          </div>
+          <div class="media-body">
+            <a class="link-dark" href="https://article.itxueyuan.com/vRd32" title="[NOI2009] 管道取珠">[NOI2009] 管道取珠</a>
+          </div>
+        </div>
+              <div class="media media-number">
+          <div class="media-left">
+            <span class="num">4</span>
+          </div>
+          <div class="media-body">
+            <a class="link-dark" href="https://article.itxueyuan.com/J0LnP" title="c/c++ 继承与多态 静态调用与动态调用">c/c++ 继承与多态 静态调用与动态调</a>
+          </div>
+        </div>
+              <div class="media media-number">
+          <div class="media-left">
+            <span class="num">5</span>
+          </div>
+          <div class="media-body">
+            <a class="link-dark" href="https://article.itxueyuan.com/aZRva" title="c/c++ 继承与多态 子类隐藏父类的同名非虚函数">c/c++ 继承与多态 子类隐藏父类的同</a>
+          </div>
+        </div>
+              <div class="media media-number">
+          <div class="media-left">
+            <span class="num">6</span>
+          </div>
+          <div class="media-body">
+            <a class="link-dark" href="https://article.itxueyuan.com/2bvXl" title="一文彻底搞懂重载函数匹配">一文彻底搞懂重载函数匹配</a>
+          </div>
+        </div>
+            </div>
+</div>
+    </aside>
+    
+  </div>
+
+      </div>
+
+          
+            
+      <footer class="es-footer">
+  <div class="copyright">
+    <div class="container">
+     Copyright © 2020
+		<strong>
+			All Rights Reserved. <a href="https://beian.miit.gov.cn/">京ICP备17044912号-2</a> 
+        	Powered by <a href="https://www.itxueyuan.com/" target="_blank">IT学院</a>
+      	</strong>
+    </div>
+  </div>
+</footer>    
+    
+      </div>
+
+
+
+     
+        <div id="float-consult" class="float-consult hidden-xs" style="margin-top: -63px; visibility: visible;">
+  <div class="btn-group-vertical">
+      
+              <span class="btn btn-consult-danger float-consult-qq-btn" data-container=".float-consult-qq-btn" data-title="QQ客服" data-content-element="#consult-qq-content" data-original-title="" title=""><span class="icon icon-qq"></span></span>
+                        <span class="btn btn-consult-danger float-consult-qqgroup-btn" data-container=".float-consult-qqgroup-btn" data-title="QQ群" data-content-element="#consult-qqgroup-content" data-original-title="" title=""><span class="icon icon-qqgroup"></span></span>
+          
+        
+          <span class="btn btn-consult-danger float-consult-weixin-btn" data-container=".float-consult-weixin-btn" data-title="微信公众号" data-content-element="#consult-weixin-content" data-original-title="" title=""><span class="icon icon-weixin"></span></span>
+    
+    
+      </div>
+
+  <div class="consult-contents">
+    <div id="consult-qq-content">
+                      <p>
+
+          <a target="_blank" href="http://wpa.qq.com/msgrd?v=3&amp;uin=2146702207&amp;site=qq&amp;menu=yes">
+            <img class="mrs" src="./基于OpenSSL的HTTPS通信C++实现_files/bar_qq.png" alt="" title="点击这里给我发消息">
+
+            客服
+          </a>
+        </p>
+                  </div>
+
+    <div id="consult-qqgroup-content">
+              <p>
+          <span class="icon icon-qqgroup text-muted" style="font-size:14px;"></span>
+          官方群
+           <br> 
+                          </p><p class="text-overflow">
+                <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=4d81ac81e42777a6faeb543d4367602988b210651c7b4b8284c4f3768abd99f5"><img border="0" src="./基于OpenSSL的HTTPS通信C++实现_files/group.png" alt="IT学院" title="IT学院"></a>
+              </p>
+            
+        <p></p>
+          </div>
+    <div id="consult-phone-content">
+      <p>
+        <strong>服务时间：</strong> 
+      </p>
+
+          </div>
+
+
+    <div id="consult-weixin-content">
+      <img src="./基于OpenSSL的HTTPS通信C++实现_files/weiChat-20180205112808-5008.jpg" class="qrcode center-block">
+    </div>
+
+    <div id="consult-email-content">
+     <a href="mailto:"></a>
+    </div>
+
+  </div>
+</div>
+
+
+     
+    <div id="login-modal" class="modal" data-url="" data-backdrop="static" data-keyboard="false"></div>
+  <div id="modal" class="modal" data-backdrop="static" data-keyboard="false"></div>
+  <div id="attachment-modal" class="modal" data-backdrop="static" data-keyboard="false"></div>
+ <script>
+  var app = {};
+  app.debug = true;
+  app.version = '1.0';
+  app.httpHost = 'https://article.itxueyuan.com';
+  app.basePath = '';
+  app.theme = '';
+  app.themeGlobalScript='';
+  app.jsPaths = '';
+
+  var CKEDITOR_BASEPATH = app.basePath + '/assets/libs/ckeditor/4.6.7/';
+
+  app.config = {"api":{"weibo":{"key":""},"qq":{"key":""},"douban":{"key":""},"renren":{"key":""}},"loading_img_path":"https:\/\/article.itxueyuan.com\/assets\/img\/default\/loading.gif"};
+
+  app.arguments = {};
+      app.controller = 'article/detail';
+      
+  app.scripts = null;
+  
+  app.uploadUrl = 'upload';
+  app.imgCropUrl = 'img/crop';
+  app.mainScript = 'https://article.itxueyuan.com/bundles/topxiaweb/js/app.js';
+  app.lang = 'zh_CN';
+</script>
+<script src="./基于OpenSSL的HTTPS通信C++实现_files/translator.min.js.下载"></script>
+<script src="./基于OpenSSL的HTTPS通信C++实现_files/sea.js.下载"></script>
+<script src="./基于OpenSSL的HTTPS通信C++实现_files/seajs-style.js.下载"></script>
+<script src="./基于OpenSSL的HTTPS通信C++实现_files/seajs-text.min.js.下载"></script>
+<script src="./基于OpenSSL的HTTPS通信C++实现_files/seajs-global-config.js.下载"></script>
+<script src="./基于OpenSSL的HTTPS通信C++实现_files/jquery_1_7.js.下载"></script>
+
+<script>
+  seajs.use(app.mainScript);
+</script>
+      
+<div id="wrap"><img id="lgvip" src="./基于OpenSSL的HTTPS通信C++实现_files/adv-1660633752-1882-pic.jpeg" title="https://imgs.itxueyuan.com/advPicture/adv-1660633752-1882-pic.jpeg" class="img-responsive thumb">
+</div>
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?8d01f819a3475e2178b2d5656382193f";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<!-- 多条广告如下脚本只需引入一次 -->
+<script type="text/javascript" src="./基于OpenSSL的HTTPS通信C++实现_files/cm.js.下载" async="async" defer="defer">
+</script>
+</body></html>

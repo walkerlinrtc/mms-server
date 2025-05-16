@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://www.javashuo.com/article/p-hsrbadqx-vm.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f.txt"></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo</title>
+    <meta name="keywords" content="详解,webrtc,传输,安全,机制,一文,读懂,dtls,协议">
+    <meta name="description" content="做者｜进学html 审校｜泰一git DTLS (Datagram Transport Layer Security) 基于 UDP 场景下数据包可能丢失或从新排序的现实状况下，为 UDP 定制和改进的 TLS 协议。在 WebRTC 中使用 DTLS 的地方包括两部分：协商和管理 SRTP 密钥和为 DataChannel 提供加密通道。github 本文结合实际数据包分析 WebRTC 使用">
+    <meta name="google-site-verification" content="eVo932LL8QghamZXYXdbvMxZcdr2v6nNXj2f7mfA1cw">
+
+    <link rel="shortcut icon" href="http://static2.javashuo.com/static/favicon.ico" type="image/x-icon">
+    <link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/pub.min.css" rel="stylesheet">
+    <link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/application.min.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/font-awesome.css" rel="stylesheet">
+
+    <script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/hm.js.下载"></script><script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(1).txt" id="google_shimpl"></script><script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/pub.js.下载" type="text/javascript"></script>
+    <script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/application.js.下载" type="text/javascript"></script>
+    <script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/echo.js.下载" type="text/javascript"></script>
+
+<meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="AzoawhTRDevLR66Y6MROu167EDncFPBvcKOaQispTo9ouEt5LvcBjnRFqiAByRT+2cDHG1Yj4dXwpLeIhc98/gIAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A6+nc62kbJgC46ypOwRsNW6RkDn2x7tgRh0wp7jb3DtFF7oEhu1hhm4rdZHZ6zXvnKZLlYcBlQUImC4d3kKihAcAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/9La288e7MDEU2ifusFnMg1C2Ij6uoa/Z/ylwJIXSsWfK37oESIPbxbt4IU86OGqDEPnNVruUiMjfKo65H/CQwAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjYxMjk5MTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/share.js.下载"></script><link rel="preload" href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(2).txt" as="script"><script type="text/javascript" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(2).txt"></script><link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/share.css" rel="styleSheet" type="text/css"><script type="text/javascript" charset="utf-8" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/getnum"></script><link rel="preload" href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(2).txt" as="script"><script type="text/javascript" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(2).txt"></script></head>
+
+<body class="  pace-done"><div class="pace  pace-inactive"><div class="pace-progress" data-progress-text="100%" data-progress="99" style="transform: translate3d(100%, 0px, 0px);">
+  <div class="pace-progress-inner"></div>
+</div>
+<div class="pace-activity"></div></div>
+
+<div id="header" class="navbar-fixed-top">
+    <div class="container">
+        <div class="navbar">
+            <div class="navbar-inner">
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+                <a href="http://www.javashuo.com/" class="brand">JavaShuo</a>
+                <nav class="nav-collapse collapse">
+                    <ul class="nav navbar primary-nav">
+                        <li class="">
+                            <a href="http://www.javashuo.com/column">栏目</a>
+                        </li>
+                        <li class="">
+                            <a href="http://www.javashuo.com/tag">标签</a>
+                        </li>
+                    </ul>
+                    <form class="navbar-search pull-left" action="http://www.javashuo.com/gsearch">
+                        <input type="text" class="search-query span2" name="q" placeholder="搜索">
+                    </form>
+                    <ul class="nav pull-right">
+                        <li><a href="javascript:void()"></a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div><script>
+    echo.init({
+        offset: 100,
+        throttle: 250,
+        unload: false
+    });
+</script>
+<link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/share(1).css" rel="stylesheet">
+<link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/fontello.css" rel="stylesheet">
+
+<div class="container-fluid" style="height: auto !important; min-height: 0px !important;">
+	<div class="row-fluid article_row_fluid" style="height: auto !important;">
+
+
+<div class="span9 contant article_detail_bg" style="height: auto !important; min-height: 0px !important;">
+
+	<h1>详解 WebRTC 传输安全机制：一文读懂 DTLS 协议</h1>
+
+    <div class="article_meta">
+        <div style="margin-bottom: 2px;">
+    		<span class="timestamp">时间&nbsp;&nbsp;2021-05-08</span>
+        </div>
+
+			<div style="margin-bottom: 2px;">
+		            <span>标签</span>
+						<a target="_blank" href="http://www.javashuo.com/tag/html" title="html"> <span class="new-label">html</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/git" title="git"> <span class="new-label">git</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/github" title="github"> <span class="new-label">github</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/web" title="web"> <span class="new-label">web</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/%E7%AE%97%E6%B3%95" title="算法"> <span class="new-label">算法</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/%E5%AE%89%E5%85%A8" title="安全"> <span class="new-label">安全</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/%E6%9C%8D%E5%8A%A1%E5%99%A8" title="服务器"> <span class="new-label">服务器</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/%E7%BD%91%E7%BB%9C" title="网络"> <span class="new-label">网络</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/%E5%B9%B6%E5%8F%91" title="并发"> <span class="new-label">并发</span></a>
+						<a target="_blank" href="http://www.javashuo.com/tag/dom" title="dom"> <span class="new-label">dom</span></a>
+					<span>栏目</span>
+					<a target="_blank" href="http://www.javashuo.com/column/security" title="系统安全"> <span class="new-label">系统安全</span></a>
+				<a target="_blank" href="http://hk.javashuo.com/article/p-hsrbadqx-vm.html"> <span class="new-label">繁體版</span></a>
+	        </div>
+
+	        <div>
+	        	<span class="source">
+	            	<i style="float:left;">原文</i>&nbsp;&nbsp;
+	            	<a id="originfo" class="cut cut70" href="javascript:void()" target="_blank" tyle="display:inline-block;" rel="nofollow">https://my.oschina.net/u/4713941/blog/5042893</a>
+	    		</span>
+	        </div>
+    </div>
+    <div class="article_body" id="nei">
+	    	<div><script async="" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(3).txt"></script>
+<!-- JavaShuo 内容页顶部 -->
+<ins class="adsbygoogle" style="display: block; height: 280px;" data-ad-client="ca-pub-6208739752673518" data-ad-slot="8456442469" data-ad-format="auto" data-full-width-responsive="true" data-adsbygoogle-status="done" data-ad-status="unfilled"><ins id="aswift_0_expand" style="border: none; height: 280px; width: 854px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_0_anchor" style="border: none; height: 280px; width: 854px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block; overflow: visible;"><iframe id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0;width:854px;height:280px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="854" height="280" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/ads.html" data-google-container-id="a!1" data-load-complete="true" data-google-query-id="CISBnuevpPgCFSSF6QUdSiMClw"></iframe></ins></ins></ins>
+<script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+</script></div>
+        <div>
+           <div class="content"> 
+ <p>做者｜进学<span style="color:#fff">html</span></p> 
+ <p>审校｜泰一<span style="color:#fff">git</span></p> 
+ <p>DTLS (Datagram Transport Layer Security) 基于 UDP 场景下数据包可能丢失或从新排序的现实状况下，为 UDP 定制和改进的 TLS 协议。在 WebRTC 中使用 DTLS 的地方包括两部分：协商和管理 <a href="http://www.javashuo.com/article/p-hsrbadqx-vm.html">SRTP</a> 密钥和为 <a href="http://www.javashuo.com/article/p-hsrbadqx-vm.html">DataChannel</a> 提供加密通道。<span style="color:#fff">github</span></p> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/685_706_dbc.jpg" alt="" r="true"></p> 
+ <p>本文结合实际数据包分析 WebRTC 使用 DTLS 进行 SRTP 密钥协商的流程。并对在实际项目中使用 DTLS 遇到的问题进行总结。<span style="color:#fff">web</span></p> 
+ <h2>DTLS 协议简介</h2> 
+ <p>在分析 DTLS 在 WebRTC 中的应用以前，先介绍下 DTLS 协议的基本原理。DTLS 协议由两层组成: Record 协议 和 Handshake 协议<span style="color:#fff">算法</span></p> 
+ <ol> 
+  <li>Record 协议：使用对称密钥对传输数据进行加密，并使用 HMAC 对数据进行完整性校验，实现了数据的安全传输。</li> 
+  <li>Handshake 协议：使用非对称加密算法，完成 Record 协议使用的对称密钥的协商。</li> 
+ </ol> 
+ <h3>HandShake</h3> 
+ <p>TLS 握手协议流程以下，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5246%3Fspm%3Da2c6h.12873639.0.0.4c9a21a8kxR03N%23section-7.3" target="_blank" rel="nofollow">RFC5246</a><span style="color:#fff">安全</span></p> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/686_d2e_e4b.jpg" alt="" r="true"></p> 
+ <p>DTLS 握手协议流程以下，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc6347%3Fspm%3Da2c6h.12873639.0.0.4c9a21a8kxR03N%23section-4.2.4" target="_blank" rel="nofollow">RFC6347</a><span style="color:#fff">服务器</span></p> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/687_929_fbf.jpg" alt="" r="true"> <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/688_5de_c84.jpg" alt="" r="true"></p> 
+ <p>TLS 和 DTLS 的握手过程基本上是一致的，差异以及特别说明以下：<span style="color:#fff">网络</span></p> 
+ <ul> 
+  <li>DTLS 中 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc6347" target="_blank" rel="nofollow">HelloVerifyRequest</a> 是为防止 DoS 攻击增长的消息。</li> 
+  <li>TLS 没有发送 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5246%23section-7.4.4" target="_blank" rel="nofollow">CertificateRequest</a>，这个也不是必须的，是反向验证即服务器验证客户端。</li> 
+  <li>DTLS 的 RecordLayer 新增了 SequenceNumber 和 Epoch，以及 ClientHello 中新增了 Cookie，以及 Handshake 中新增了 Fragment 信息（防止超过 UDP 的 MTU），都是为了适应 UDP 的丢包以及容易被攻击作的改进。参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc6347%23section-4.2.2" target="_blank" rel="nofollow">RFC 6347</a></li> 
+  <li>DTLS 最后的 Alert 是将客户端的 Encrypted Alert 消息，解密以后直接响应给客户端的，实际上 Server 应该回应加密的消息，这里咱们的服务器回应明文是为了解析客户端加密的那个 Alert 包是什么。</li> 
+ </ul> 
+ <p>RecordLayer 协议是和 DTLS 传输相关的协议，UDP 之上是 RecordLayer，RecordLayer 之上是 Handshake 或 ChangeCipherSpec 或 ApplicationData。RecordLayer 协议定义参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc4347" target="_blank" rel="nofollow">RFC4347</a>，实际上有三种 RecordLayer 的包:<span style="color:#fff">并发</span></p> 
+ <ul> 
+  <li><code>DTLSPlaintext</code>，DTLS 明文的 RecordLayer。</li> 
+  <li><code>DTLSCompressed</code>，压缩的数据，通常不用。</li> 
+  <li><code>DTLSCiphertext</code>，加密的数据，在 ChangeCipherSpec 以后就是这种了。</li> 
+ </ul> 
+ <p>没有明确的字段说明是哪一种消息，不过能够根据上下文以及内容判断。好比 ChangeCipherSpec 是能够经过类型，它确定是一个 Plaintext。除了 Finished 的其余握手，通常都是 Plaintext。<span style="color:#fff">dom</span></p> 
+ <h2>SRTP 密钥协商</h2> 
+ <h3>角色协商</h3> 
+ <p>在 DTLS 协议，通讯的双方有 <code>Client</code> 和 <code>Server</code> 之分。在 WebRTC 中 DTLS 协商的身份是在 <code>SDP</code> 中描述的。描述以下，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwebrtchacks.com%2Fsdp-anatomy%2F" target="_blank" rel="nofollow">SDP-Anatomy</a> 中 DTLS 参数</p> 
+ <pre class="hljs ini"><span class="hljs-setting">a=<span class="hljs-value">setup:active</span></span></pre> 
+ <p><code>setup</code> 属性在 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc4145%23section-4.1" target="_blank" rel="nofollow">RFC4145</a>，</p> 
+ <p>setup:active，做为 client，主动发起协商</p> 
+ <p>setup:passive, 做为 sever，等待发起协商</p> 
+ <p>setup:actpass, 做为 client，主动发起协商。做为 server，等待发起协商。</p> 
+ <h3>算法协商 - Hello 消息</h3> 
+ <p>ClienHello 和 ServerHello 协商 DTLS 的 Version、CipherSuites、Random、以及 Extensions。 <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/689_128_361.jpg" alt="" r="true"> <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/690_c4f_4b7.jpg" alt="" r="true"></p> 
+ <ul> 
+  <li><code>Version</code>：Client 给出本身能支持的、或者要使用的最高版本，好比 DTLS1.2。Server 收到这个信息后，根据本身能支持的、或者要使用的版本回应，好比 DTLS1.0。最终以协商的版本也就是 DTLS1.0 为准。</li> 
+  <li><code>CipherSuites</code>：Client 给出本身能支持的加密套件 CipherSuites，Server 收到后选择本身能支持的回应一个，好比 TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (0xc014)，加密套件肯定了证书的类型、密钥生成算法、摘要算法等。</li> 
+  <li><code>Random</code>：双方的随机数，参与到生成 MasterSecret。MasterSecret 会用来生成主密钥，导出 SRTP 密钥。详见 [导出 SRTP 密钥]</li> 
+  <li><code>Extensions</code>：Client 给出本身要使用的扩展协议，Server 能够回应本身支持的。好比 Client 虽然设置了 SessionTicket TLS 这个扩展，可是 Server 没有回应，因此最终并不会使用这个扩展。</li> 
+ </ul> 
+ <h4>Cipher Suite</h4> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/691_904_ff7.jpg" alt="" r="true"></p> 
+ <p>在 Hello 消息中加密套接字使用 <code>IANA</code> 中的注册的名字。IANA 名字由 Protocol，Key Exchange Algorithm，Authentication Algorithm，Encryption Algorithm ，Hash Algorithm 的描述组成。例如，TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 的含义以下：</p> 
+ <ul> 
+  <li><code>Protocol</code>: Transport Layer Security (TLS)</li> 
+  <li><code>Key Exchange</code>: Elliptic Curve Diffie-Hellman Ephemeral (ECDHE)</li> 
+  <li><code>Authentication</code>: Rivest Shamir Adleman algorithm (RSA)</li> 
+  <li><code>Encryption</code>: Advanced Encryption Standard with 128bit key in Galois/Counter mode (AES 128 GCM)</li> 
+  <li><code>Hash</code>: Secure Hash Algorithm 256 (SHA256)</li> 
+ </ul> 
+ <blockquote> 
+  <p>加密套接字在 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fciphersuite.info%2Fcs%2F" target="_blank" rel="nofollow">ciphersuite.info</a> 能够查到。在查到 IANA 名字的同时，也能够查到在 OpenSSL 中的名字。TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 在 OpenSSL 中的名字为 ECDHE-RSA-AES128-GCM-SHA256 Note: 关于 Authentication (认证)、KeyExchange (密钥交换)、Encryption (加密)、MAC (Message Authentication Code) 消息摘要等，能够参考<a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.zhihu.com%2Fquestion%2F25116415" target="_blank" rel="nofollow"> RSA 密钥协商</a>。</p> 
+ </blockquote> 
+ <h4>Extension</h4> 
+ <p>DTLS 的扩展协议，是在 ClientHello 和 ServerHello 的 Extensions 信息中指定的，全部的 TLS 扩展参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.iana.org%2Fassignments%2Ftls-extensiontype-values%2Ftls-extensiontype-values.xhtml" target="_blank" rel="nofollow">TLS Extensions</a>。下面列出几个 WebRTC 用到的扩展：</p> 
+ <ul> 
+  <li><code>use_srtp</code>: DTLS 握手完成后 (Finished)，使用 SRTP 传输数据，DTLS 生成 SRTP 的密钥。 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5764" target="_blank" rel="nofollow">RFC5764</a>。ClientHello 中的扩展信息定义了 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5764%23page-8" target="_blank" rel="nofollow">RFC5764 4.1.2. SRTP Protection Profiles</a> 和 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5764%23section-4.1.3" target="_blank" rel="nofollow">srtp_mki</a>。 <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/692_f6c_2ca.jpg" alt="" r="true"></li> 
+  <li><code>supported_groups</code>，原来的名字为 elliptic_curves，描述支持的 ECC 加密算法，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc8422%23section-5.1.1" target="_blank" rel="nofollow">RFC8422 5.1.1.Supported Elliptic Curves Extension</a>，通常用的是 secp256r1。 <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/693_8af_fab.jpg" alt="" r="true"></li> 
+  <li><code>signature_algorithms</code>，DTLS1.2 的扩展，指定使用的 Hash 和 Signature 算法，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5246%23section-7.4.1.4.1" target="_blank" rel="nofollow">RFC5246 7.4.1.4.1. Signature Algorithms</a>。DTLS1.0，RSA 用的是 md5sha1 摘要算法，DSA 用的是 sha1 摘要算法。 <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/694_67b_247.jpg" alt="" r="true"></li> 
+  <li><code>extended_master_secret</code>，扩展 MasterSecret 的生成方式，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc7627" target="_blank" rel="nofollow">RFC7627</a>。在 KeyExchange 中，会加入一些常量来生成 MasterSecret。TLS 定义了扩展方式，若是用这个扩展，DTLS 的方式和 TLS 会有些不一样。</li> 
+  <li><code>renegotiation_info</code>, 参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5746%23section-3.2" target="_blank" rel="nofollow">RFC5746</a></li> 
+ </ul> 
+ <p>除了这些扩展协议，和 SRTP 密钥导出相关的还有：</p> 
+ <blockquote> 
+  <p>RFC5705: Keying Material Exporters for Transport Layer Security (TLS)，DTLS 如何从 MasterSecret 导出 Key，好比 SRTP 的 Key。 RFC5764: DTLS Extension to Establish Keys for the SRTP，DTLS 的 use_srtp 扩展的详细规范，包括 ClientHello 扩展定义、Profile 定义、Key 的计算。</p> 
+ </blockquote> 
+ <h3>身份验证 - Certificate</h3> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/695_7eb_d86.jpg" alt="" r="true"> 数字证书是由一些公承认信的证书颁发机构签发的，不易伪造。数字证书能够用于接收者验证对端的身份，接收者收到某个对端的证书时，会对签名颁发机构的数字签名进行检查，通常来讲，接收者事先就会预先安装不少经常使用的签名颁发机构的证书（含有公开密钥），利用预先的公开密钥能够对签名进行验证。</p> 
+ <p>Server 端经过 Hello 消息，协商交换密钥的方法后，将 Server 证书发送给 Client，用于 Client 对 Server 的身份进行校验。Server 发送的证书必须适用于协商的 KeyExchange 使用的加密套接字，以及 Hello 消息扩展中描述的 Hash/Signature 算法对。</p> 
+ <p>在 WebRTC 中，通讯的双方一般将没法得到由知名根证书颁发机构 (CA) 签名的身份验证证书，自签名证书一般是惟一的选择。<a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc4572" target="_blank" rel="nofollow">RFC4572</a> 定义一种机制，经过在 <code>SDP</code> 中增长自签名证书的安全哈希，称为 "证书指纹"，在保证 SDP 安全传输的前提下，若是提供的证书的指纹与 <code>SDP</code> 中的指纹匹配，则能够信任自签名证书。在实际的应用场景中，SDP 在安全的信令通道 (https) 完成交换的，SDP 的安全完整是能够作到的。这样在 DTLS 协商过程当中，可使用证书的指纹，完成通讯双方的身份校验。证书指纹在 SDP 中的描述以下，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwebrtchacks.com%2Fsdp-anatomy%2F" target="_blank" rel="nofollow">SDP-Anatomy</a> 中 DTLS 参数</p> 
+ <pre class="hljs ruby">a=<span class="hljs-symbol">fingerprint:</span>sha-<span class="hljs-number">256</span> <span class="hljs-number">49</span><span class="hljs-symbol">:</span><span class="hljs-number">66</span><span class="hljs-symbol">:</span><span class="hljs-number">12</span><span class="hljs-symbol">:</span><span class="hljs-number">17</span><span class="hljs-symbol">:</span>0<span class="hljs-constant">D:</span><span class="hljs-number">1</span><span class="hljs-constant">C:</span><span class="hljs-number">91</span><span class="hljs-symbol">:AE</span><span class="hljs-symbol">:</span><span class="hljs-number">57</span><span class="hljs-symbol">:</span><span class="hljs-number">4</span><span class="hljs-constant">C:</span><span class="hljs-constant">C6</span><span class="hljs-symbol">:</span><span class="hljs-number">36</span><span class="hljs-symbol">:DD</span><span class="hljs-symbol">:D5</span><span class="hljs-symbol">:</span><span class="hljs-number">97</span><span class="hljs-symbol">:D2</span><span class="hljs-symbol">:</span><span class="hljs-number">7</span><span class="hljs-constant">D:</span><span class="hljs-number">62</span><span class="hljs-symbol">:C9</span><span class="hljs-symbol">:</span><span class="hljs-number">9</span><span class="hljs-constant">A:</span><span class="hljs-number">7</span><span class="hljs-constant">F:</span><span class="hljs-constant">B9</span><span class="hljs-symbol">:A3</span><span class="hljs-symbol">:F4</span><span class="hljs-symbol">:</span><span class="hljs-number">70</span><span class="hljs-symbol">:</span><span class="hljs-number">03</span><span class="hljs-symbol">:E7</span><span class="hljs-symbol">:</span><span class="hljs-number">43</span><span class="hljs-symbol">:</span><span class="hljs-number">91</span><span class="hljs-symbol">:</span><span class="hljs-number">73</span><span class="hljs-symbol">:</span><span class="hljs-number">23</span><span class="hljs-symbol">:</span><span class="hljs-number">5</span>E</pre> 
+ <h3>密钥交换 - KeyExchange</h3> 
+ <p>ServerKeyExchange 用来将 Server 端使用的公钥，发送给 Client 端。分为两种状况：</p> 
+ <ol> 
+  <li><code>RSA</code> 算法：若是服务端使用的是 RSA 算法，能够不发送这个消息，由于 RSA 算法使用的公钥已经在 Certificate 中描述。</li> 
+  <li><code>DH</code> 算法，是根据对方的公钥和本身私钥计算共享密钥。由于 Client 和 Server 都只知道本身的私钥，和对方的公钥；而他们的私钥都不一样，根据特殊的数学特性，他们能计算出一样的共享密钥。关于 DH 算法如何计算出共享密钥，参考 <a href="https://www.oschina.net/action/GoToLink?url=http%3A%2F%2Fwww.voidcn.com%2Farticle%2Fp-rgubrwfd-bpg.html" target="_blank" rel="nofollow">DH 算法</a>。</li> 
+ </ol> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/696_73b_a27.jpg" alt="" r="true"></p> 
+ <p>ClientKeyExchange 用来将 Client 使用的公钥，发送给 Server 端。</p> 
+ <ol> 
+  <li><code>RSA</code> 算法：若是密钥协商使用的 RSA 算法，发送使用 server 端 RSA 公钥，对 premaster secret 加密发送给 server 端。</li> 
+  <li><code>DH</code> 算法：若是密钥协商使用的 DH 算法，而且在证书中没有描述，在将客户端使用的 DH 算法公钥发送给 Server 端，以便计算出共享密钥。 KeyExchange 的结果是，Client 和 Server 获取到了 RSA Key， 或经过 DH 算法计算出共享密钥。详见 [导出 SRTP 密钥] 的过程</li> 
+ </ol> 
+ <h3>证书验证 - CertificateVerify</h3> 
+ <p>使用 ClientRequest 中描述的 Hash/Signature 算法，对收到和发送的 HandShake 消息签名发送个 Server。Server 端对签名进行校验。</p> 
+ <p><img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/697_3c9_50f.jpg" alt="" r="true"></p> 
+ <h3>加密验证 - Finished</h3> 
+ <p>当 Server 和 Client 完成对称密钥的交换后，经过 <code>ChangeCipherSpec</code> 通知对端进入加密阶段，epoch 加 1。</p> 
+ <p>随后 Client 使用交换的密钥，对 "client finished" 加密，使用 Finished 消息，发送给服务端。Server 使用交换的密钥，对 "server finished" 进行加密发送给客户端。一旦验证了 finished 消息后，就能够正常通讯了。 <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/698_b7a_4e8.jpg" alt="" r="true"></p> 
+ <h2>导出 SRTP 密钥</h2> 
+ <p>上面介绍了 DTLS 的过程，如下经过结合上面例子给出的实际数据，详细说明 SRTP 密钥的导出步骤。</p> 
+ <h3>协商后的加密算法</h3> 
+ <p>加密套件：TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (0xc02f) 椭圆曲线算法为：secp256r1，椭圆曲线的点压缩算法为：uncompressed。 椭圆曲线算法的基础知识的介绍在 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fzhuanlan.zhihu.com%2Fp%2F66794410" target="_blank" rel="nofollow">ECC 椭圆曲线加密算法 - ECDH,ECDHE,ECDSA</a> ，由文档中咱们能够知道，肯定椭圆曲线加密算法有以下参数：</p> 
+ <ul> 
+  <li>素数 p，用于肯定有限域的范围</li> 
+  <li>椭圆曲线方程中的 a，b 参数</li> 
+  <li>用于生成子群的的基点 G</li> 
+  <li>子群的阶 n</li> 
+  <li>子群的辅助因子 h 定义为<code>六元组(p,a,b,G,n,h)</code></li> 
+ </ul> 
+ <p>经过在 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=http%3A%2F%2Fwww.secg.org%2Fsec2-v2.pdf" target="_blank" rel="nofollow">SECG-SEC2 2.4.2 Recommended Parameters secp256r1</a> 中能够查到 secp256r1 对应的参数以下：</p> 
+ <pre class="hljs makefile">secp256r1使用的参数以下：
+使用的素数p:
+<span class="hljs-constant">p</span>=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
+=2224(232−1)+2192+296−1
+椭圆曲线E:y^2=x^3+ax+b的参数定义以下：
+<span class="hljs-constant">a</span>=FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFC
+<span class="hljs-constant">b</span>=5AC635D8AA3A93E7B3EBBD55769886BC651D06B0CC53B0F63BCE3C3E27D2604B
+基点G的非压缩格式：
+<span class="hljs-constant">G</span>=046B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C2964FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5
+有限域的阶n:
+<span class="hljs-constant">n</span>=FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
+辅助因子h:
+<span class="hljs-constant">h</span>=01</pre> 
+ <h3>经过 KeyExchange 交换椭圆曲线算法公钥</h3> 
+ <p>ECDH Server Parameter</p> 
+ <pre class="hljs css"><span class="hljs-tag">Pubkey</span><span class="hljs-pseudo">:04b0ce3c5f2c4a9fbe7c2257c1328438f3378f74e9f528b6e27a00b44eee4c19e5e6b2cb6cab09f796bcf8c05102b2a4bcdc753d91cc4f431f558c845a1ba6f1ce</span></pre> 
+ <p>记为 <code>Spk</code></p> 
+ <p>ECDH Client Paramter</p> 
+ <pre class="hljs http"><span class="hljs-attribute">PubKey</span>: <span class="hljs-string">0454e8fbef1503109d619c39be0ccaf89efa3c3962300476465cbc66b15152cd8a900c45d506420f0123e65d8fbb70cb60b497893f81c5c2a0ef2f4bc2da996d9e</span></pre> 
+ <p>记为 <code>Cpk</code></p> 
+ <h3>根据 ECDHE 算法计算共享密钥 S(pre-master-secret)</h3> 
+ <p>假设 Server 的使用的椭圆曲线私钥为 Ds, Client 使用的 Dc，计算共享密钥的以下，参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fzhuanlan.zhihu.com%2Fp%2F66794410" target="_blank" rel="nofollow">ECC 椭圆曲线加密算法 - ECDH,ECDHE,ECDSA</a></p> 
+ <p>S = Ds * Cpk = Dc * Spk</p> 
+ <p>这个共享密钥 <code>S</code> 就是咱们在 RFC 文档中看到的 <code>pre-master-secret</code></p> 
+ <h3>计算 master secret</h3> 
+ <p>计算 <code>master secret</code> 过程以下，可参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5246%23section-8.1" target="_blank" rel="nofollow">Computing the Master Secret</a></p> 
+ <pre class="hljs ini"><span class="hljs-setting">master_secret = <span class="hljs-value">PRF(pre_master_secret, <span class="hljs-string">"master secret"</span>, ClientHello.random + ServerHello.random)[<span class="hljs-number">0</span>..<span class="hljs-number">47</span>];</span></span></pre> 
+ <p>计算出来的 <code>master_secret</code> 为 48 Bytes，其中 <code>ClientHello.random</code> 和 <code>ServerHello.random</code> 在 Hello 消息中给出。<code>PRF</code> 是伪随机数函数 (pseudorandom function)，在协商的加密套件中给出。</p> 
+ <h3>使用 master_secrete 导出 SRTP 加密参数字节序列</h3> 
+ <p>使用 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5705%23section-4" target="_blank" rel="nofollow">RFC5705 4. Exporter Definition</a> 给出的计算方式，使用参数 <code>master_secret</code>， <code>client_random</code>，<code>server_random</code> 计算字节序列：</p> 
+ <pre class="hljs ini"><span class="hljs-setting">key_block = <span class="hljs-value">PRF(master_secret, <span class="hljs-string">"EXTRACTOR-dtls_srtp"</span>, client_random + server_random)[length]</span></span></pre> 
+ <p>在<a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5764%23section-4.2" target="_blank" rel="nofollow"> DTLS-SRTP 4.2. Key Derivation</a> 中描述了须要的字节序列长度。</p> 
+ <pre class="hljs coffeescript"><span class="hljs-number">2</span> * (SRTPSecurityParams.master_key_len + SRTPSecurityParams.master_salt_len) bytes <span class="hljs-keyword">of</span> data</pre> 
+ <p>master_key_len 和 master_salt_len 的值，在 <code>user_srtp</code> 描述的 profile 中定义。咱们的实例中使用的 profile 为 <code>SRTP_AES128_CM_HMAC_SHA1_80</code>，对应的 profile 配置为：</p> 
+ <pre class="hljs bash">SRTP_AES128_CM_HMAC_SHA1_80
+        cipher: AES_128_CM
+        cipher_key_length: <span class="hljs-number">128</span>
+        cipher_salt_length: <span class="hljs-number">112</span>
+        maximum_lifetime: <span class="hljs-number">2</span>^<span class="hljs-number">31</span>
+        auth_<span class="hljs-keyword">function</span>: HMAC-SHA1
+        auth_key_length: <span class="hljs-number">160</span>
+        auth_tag_length: <span class="hljs-number">80</span></pre> 
+ <p>也就是咱们须要 <code>(128/8+112/8)*2 = 60 bytes</code> 字节序列。</p> 
+ <h3>导出 SRTP 密钥</h3> 
+ <p>计算出 SRTP 加密参数字节序列，在 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5764%23section-4.2" target="_blank" rel="nofollow">DTLS-SRTP 4.2. Key Derivation</a> 描述了字节序列的含义：</p> 
+ <pre class="hljs cpp">client_write_SRTP_master_key[SRTPSecurityParams.master_key_len]; <span class="hljs-comment">// 128 bits</span>
+server_write_SRTP_master_key[SRTPSecurityParams.master_key_len]; <span class="hljs-comment">// 128 bits</span>
+client_write_SRTP_master_salt[SRTPSecurityParams.master_salt_len]; <span class="hljs-comment">// 112 bits</span>
+server_write_SRTP_master_salt[SRTPSecurityParams.master_salt_len]; <span class="hljs-comment">// 112 bits</span></pre> 
+ <p>至此咱们获得了，Client 和 Server 使用的 SRTP 加密参数：master_key 和 master_salt.</p> 
+ <h2>DTLS 超时重传</h2> 
+ <p>DTLS 是基于 UDP 的，不可避免会出现丢包，须要重传。若是处理不当，会致使整个通讯双方没法创建会话，通话失败。<a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc6347%23section-4.2.4" target="_blank" rel="nofollow">RFC6347 4.2.4</a> 给出了超时和重传机制。 在处理重传时，如下几点须要注意：</p> 
+ <ol> 
+  <li>在 DTLS 协议中，为了解决丢包和重传问题，新增了 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc6347%23section-4.2.2" target="_blank" rel="nofollow">message_seq.</a> 在发送 DTLS 重传消息时，必定要更新其中的 <code>message_seq</code>，这样对端将把包识别是一个重传包，响应正确消息。不然，会默默丢弃这些包，不进行响应。</li> 
+  <li>当 server 端收到 client 的 FINISHED 消息，并发送 FINISHED 消息给 client，更新 server 状态为协商完成，开始发送 SRTP 数据。此时发送给 client 的 FINISHED 消息，出现丢包。client 收到 SRTP 数据后丢弃。同时，再次发送 FINISHED 消息到 server，server 要正确响应。不然，会致使 DTLS 协商完成的假象，通话失败。</li> 
+  <li>使用 openssl 1.1.1 以前版本，没法设置 DTLS 超时重传时间，能够超时重传机制不可用，你们开始转向使用 boringssl。openssl 1.1.1 开始版本已经支持设置 DTLS 超时重传，达到和 boringssl 一样的效果。参考 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.1%2Fman3%2FDTLS_set_timer_cb.html" target="_blank" rel="nofollow">DTLS_set_timer_cb</a></li> 
+ </ol> 
+ <h2>OpenSSL 的 DTLS 功能</h2> 
+ <p>DTLS 是一个庞大的协议体系，其中包括了各类加密，签名，证书，压缩等多种算法。大多数项目是基于 OpenSSL 或 BoringSSL 实现的 DTLS 功能。在实际项目使用 OpenSSL 的 DTLS 功能，与协商有关的接口总结以下。</p> 
+ <ol> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.0%2Fman3%2FX509_digest.html" target="_blank" rel="nofollow">X509_digest</a>，计算证书 fingerprint，用在 SDP 协商中的 <code>fingerprint</code> 属性。</li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fmanmaster%2Fman3%2FSSL_CTX_set_cipher_list.html" target="_blank" rel="nofollow">SSL_CTX_set_cipher_list</a>，设置使用的加密套件，经过设置算法的描述，影响 Hello 消息中的 cipher list。</li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.0%2Fman3%2FSSL_CTX_set1_sigalgs_list.html" target="_blank" rel="nofollow">SSL_CTX_set1_sigalgs_list</a> 设置签名算法。经过设置签名算法的描述，影响 hello 消息中 <code>signature_algorithms</code> 扩展。<code>signature_algorithms</code> 对 DTLS 的 <code>Hello 消息</code> ，<code>KeyExchange</code>，<code>CerficateVerify</code> 消息。<code>signature_algorithms</code> 设置不正确，会出现 internal error，不容易定位问题。</li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.0.2%2Fman3%2FSSL_CTX_set_verify.html" target="_blank" rel="nofollow">SSL_CTX_set_verify</a> 设置是否校验对端的证书。因为在 RTC 中大多数据状况下使用自签证书，因此对证书的校验，已校验身份是须要的。</li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.1%2Fman3%2FSSL_CTX_set_tlsext_use_srtp.html" target="_blank" rel="nofollow">SSL_CTX_set_tlsext_use_srtp</a> 设置 <code>srtp</code> 扩展。srtp 扩展中的 profile，影响 srtp 加密时使用密钥的协商和提取。</li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.0%2Fman3%2FSSL_set_options.html" target="_blank" rel="nofollow">SSL_set_options</a> 使用 <code>SSL_OP_NO_QUERY_MTU</code> 和 [SSL_set_mtu] 设置 fragment 的大小。默认 OpenSSL 使用 fragment 较小。经过上面两个接口，设置适合网络状况的 fragment。</li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.1%2Fman3%2FDTLS_set_timer_cb.html" target="_blank" rel="nofollow">DTLS_set_timer_cb</a>，设置超时重传的 Callback，由 callback 设置更合理的超时重传时间。</li> 
+ </ol> 
+ <p>在开源项目 <a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fgithub.com%2Fossrs%2Fsrs" target="_blank" rel="nofollow">SRS</a> 中已经支持了 WebRTC 的基础协议，对 DTLS 协议感兴趣的同窗，能够基于 SRS 快速搭建本机环境，经过调试，进一步加深对 DTLS 的理解。</p> 
+ <h2>总结</h2> 
+ <p>本文经过 WebRTC 中 SRTP 密钥的协商过程，来讲明 DTLS 在 WebRTC 中的应用。DTLS 协议设计的各个加密算法的知识较多，加上 TLS 消息的在各类应用场景中的扩展，不免有理解和认知不到的地方，还须要进一步深刻探索。</p> 
+ <h2>参考文献</h2> 
+ <ol> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5246" target="_blank" rel="nofollow">TLS 1.2</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc6347" target="_blank" rel="nofollow">DTLS 1.2</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc7627" target="_blank" rel="nofollow">TLS Session Hash Extension</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc4145" target="_blank" rel="nofollow">TCP-Based Media Transport in the Session Description Protocol</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.iana.org%2Fassignments%2Ftls-extensiontype-values%2Ftls-extensiontype-values.xhtml" target="_blank" rel="nofollow">TLS Extension</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Ftools.ietf.org%2Fhtml%2Frfc5764" target="_blank" rel="nofollow">SRTP Extension for DTLS </a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fwww.openssl.org%2Fdocs%2Fman1.1.1%2Fman3" target="_blank" rel="nofollow">OpenSSL Man</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fzhuanlan.zhihu.com%2Fp%2F36326221" target="_blank" rel="nofollow">ECC 椭圆曲线加密算法 - 介绍</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fzhuanlan.zhihu.com%2Fp%2F44743146" target="_blank" rel="nofollow">ECC 椭圆曲线加密算法 - 有限域和离散对数</a></li> 
+  <li><a href="http://www.javashuo.com/link?url=https://www.oschina.net/action/GoToLink?url=https%3A%2F%2Fzhuanlan.zhihu.com%2Fp%2F66794410" target="_blank" rel="nofollow">ECC 椭圆曲线加密算法 - ECDH、ECDHE 和 ECDSA</a></li> 
+ </ol> 
+ <blockquote> 
+  <p>「视频云技术」你最值得关注的音视频技术公众号，每周推送来自阿里云一线的实践技术文章，在这里与音视频领域一流工程师交流切磋。公众号后台回复【技术】可加入阿里云视频云技术交流群，和做者一块儿探讨音视频技术，获取更多行业最新信息。</p> 
+ </blockquote> 
+</div>
+        </div>
+            <div class="margin-top-20"></div>
+        	<div><script async="" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(3).txt"></script>
+<!-- JavaShuo 内容页底部 -->
+<ins class="adsbygoogle" style="display: block; height: 0px;" data-ad-client="ca-pub-6208739752673518" data-ad-slot="1269584562" data-ad-format="auto" data-full-width-responsive="true" data-adsbygoogle-status="done" data-ad-status="unfilled"><ins id="aswift_1_expand" style="border: none; height: 0px; width: 854px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_1_anchor" style="border: none; height: 0px; width: 854px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block; overflow: hidden; opacity: 0;"><iframe id="aswift_1" name="aswift_1" style="left: 0px; position: absolute; top: 0px; border: 0px; width: 854px; height: 0px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="854" height="0" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/ads(1).html" data-google-container-id="a!2" data-load-complete="true" data-google-query-id="CN7J_dK3pPgCFRM3vQodhuoHng"></iframe></ins></ins></ins>
+<script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+</script></div>
+    </div>
+		<div>
+	    	<div class="relative">相关文章</div>
+	    	<ul class="relative_list">
+		                <li>
+		                    1. <a href="http://www.javashuo.com/article/p-gkwplhcm-vn.html" target="_blank" title="WebRTC 传输安全机制：深刻显出 SRTP 协议"> WebRTC 传输安全机制：深刻显出 SRTP 协议 </a>
+		                </li>
+		                <li>
+		                    2. <a href="http://www.javashuo.com/article/p-tyqpqpmw-vn.html" target="_blank" title="WebRTC 传输安全机制第二话：深刻显出 SRTP 协议"> WebRTC 传输安全机制第二话：深刻显出 SRTP 协议 </a>
+		                </li>
+		                <li>
+		                    3. <a href="http://www.javashuo.com/article/p-ssrkingi-y.html" target="_blank" title="WebRTC实时通讯协议详解"> WebRTC实时通讯协议详解 </a>
+		                </li>
+		                <li>
+		                    4. <a href="http://www.javashuo.com/article/p-enmfblcc-ck.html" target="_blank" title="WebRTC会话描述协议（SDP）详解"> WebRTC会话描述协议（SDP）详解 </a>
+		                </li>
+		                <li>
+		                    5. <a href="http://www.javashuo.com/article/p-rnalftwf-wv.html" target="_blank" title="DTLS-SRTP协议学习"> DTLS-SRTP协议学习 </a>
+		                </li>
+		                <li>
+		                    6. <a href="http://www.javashuo.com/article/p-faqqsmhd-ce.html" target="_blank" title="HTTPS----安全超文本传输协议"> HTTPS----安全超文本传输协议 </a>
+		                </li>
+		                <li>
+		                    7. <a href="http://www.javashuo.com/article/p-mzxauyrr-sv.html" target="_blank" title="【WebRTC---入门篇】（十二）WebRTC传输协议"> 【WebRTC---入门篇】（十二）WebRTC传输协议 </a>
+		                </li>
+		                <li>
+		                    8. <a href="http://www.javashuo.com/article/p-pgcyafuy-kh.html" target="_blank" title="传输层安全协议"> 传输层安全协议 </a>
+		                </li>
+		                <li>
+		                    9. <a href="http://www.javashuo.com/article/p-uoiasxfi-pq.html" target="_blank" title="超文本传输安全协议 - HTTPS"> 超文本传输安全协议 - HTTPS </a>
+		                </li>
+		                <li>
+		                    10. <a href="http://www.javashuo.com/article/p-maqfyalw-ex.html" target="_blank" title="HTTPS安全超文本传输协议"> HTTPS安全超文本传输协议 </a>
+		                </li>
+	            <li><a href="http://www.javashuo.com/relative/p-hsrbadqx-vm.html" target="_blank" title="详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 的相关文章"> 更多相关文章...</a></li>
+
+						<li> • <a href="http://www.voidme.com/tcp-ip/address-resolution-protocol" target="_blank" title="ARP协议的工作机制详解"> ARP协议的工作机制详解</a> - <a href="http://www.voidme.com/tcp-ip" target="_blank" title="TCP/IP教程"> TCP/IP教程</a></li>
+						<li> • <a href="http://www.voidme.com/tcp-ip/transmission-control-protocol" target="_blank" title="TCP协议的工作机制"> TCP协议的工作机制</a> - <a href="http://www.voidme.com/tcp-ip" target="_blank" title="TCP/IP教程"> TCP/IP教程</a></li>
+
+						<li> • <a href="http://www.voidme.com/content/ifxmgrubod-bsx" target="_blank" title="Flink 数据传输及反压详解"> Flink 数据传输及反压详解</a> </li>
+						<li> • <a href="http://www.voidme.com/content/the-lock-mechanism-of-mysql-bsx" target="_blank" title="漫谈MySQL的锁机制"> 漫谈MySQL的锁机制</a> </li>
+	        </ul>
+
+                <div class="margin-top-20"></div>
+                <div>
+                    <div></div>
+                </div>
+            <div class="margin-top-20"></div>
+
+	        <div class="relative">相关标签/搜索</div>
+	        <ul>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E4%BC%A0%E8%BE%93%E5%8D%8F%E8%AE%AE" title="传输协议"> <span class="new-label">传输协议</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6" title="传输控制"> <span class="new-label">传输控制</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/dtls" title="dtls"> <span class="new-label">dtls</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E5%8D%8F%E8%AE%AE" title="协议"> <span class="new-label">协议</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E4%BC%A0%E8%BE%93" title="传输"> <span class="new-label">传输</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E8%AF%BB%E6%87%82" title="读懂"> <span class="new-label">读懂</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E5%9B%BE%E6%96%87%E8%AF%A6%E8%A7%A3" title="图文详解"> <span class="new-label">图文详解</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/webrtc" title="webrtc"> <span class="new-label">webrtc</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E6%9C%80%E5%85%A8%E8%A7%A3%E8%AF%BB" title="最全解读"> <span class="new-label">最全解读</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/tag/%E8%AE%BA%E6%96%87%E8%A7%A3%E8%AF%BB" title="论文解读"> <span class="new-label">论文解读</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/column/html" title="HTML"> <span class="new-label">HTML</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/column/network" title="系统网络"> <span class="new-label">系统网络</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/column/git" title="Git"> <span class="new-label">Git</span></a>
+	        			<a target="_blank" href="http://www.javashuo.com/column/security" title="系统安全"> <span class="new-label">系统安全</span></a>
+						<a href="http://www.voidme.com/docker-command" target="_blank" title="Docker命令大全"> <span class="new-label">Docker命令大全</span></a>
+						<a href="http://www.voidme.com/hosting" target="_blank" title="网站主机教程"> <span class="new-label">网站主机教程</span></a>
+						<a href="http://www.voidme.com/docker" target="_blank" title="Docker教程"> <span class="new-label">Docker教程</span></a>
+						<a href="http://www.voidme.com/tag/%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93" target="_blank" title="数据传输"> <span class="new-label">数据传输</span></a>
+						<a href="http://www.voidme.com/tag/%E5%BB%BA%E8%AE%AE" target="_blank" title="建议"> <span class="new-label">建议</span></a>
+						<a href="http://www.voidme.com/tag/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F" target="_blank" title="文件系统"> <span class="new-label">文件系统</span></a>
+
+	        </ul>
+	    </div>
+
+    <div class="article_social">
+        <div class="article_like">
+            <div class="circle circle-like" id="my_zan" data_id="eEvIVb6"></div>
+        </div>
+        <div class="clear"></div>
+        <div class="share">
+			<span class="share-left bdsharebuttonbox bdshare-button-style0-24" data-tag="share_1" data-bd-bind="1654915274363">
+				<a href="http://www.javashuo.com/article/p-hsrbadqx-vm.html#" class="bds_more icon-share" data-cmd="more">
+					<span class="bds_count" data-cmd="count" title="累计分享0次">0</span>
+				</a>
+			</span>
+			<div class="share-right action action-share bdsharebuttonbox bdshare-button-style0-24" data-tag="share_1" data-bd-bind="1654915274363">
+				<span class="bdshare">
+					<a href="http://www.javashuo.com/article/p-hsrbadqx-vm.html#" class="bds_sinaweibo icon-weibo" data-cmd="tsina" title="分享到新浪微博">分享到微博</a>
+					<a href="http://www.javashuo.com/article/p-hsrbadqx-vm.html#" class="bds_weixin icon-wechat" data-cmd="weixin" title="分享到微信">分享到微信</a>
+					<a href="http://www.javashuo.com/article/p-hsrbadqx-vm.html#" class="bds_qq icon-qq" data-cmd="sqq" title="分享到QQ好友">分享到QQ</a>
+				</span>
+			</div>
+		</div>
+		<div class="clear"></div>
+    <div class="bottom_plink huodong-detail-plink-banner clearfix">
+        </div>
+    </div>
+
+
+
+	<script>
+		$(function () {
+		    $("#originfo").text("https://my.oschina.net/u/4713941/blog/5042893");
+		    $("#originfo").hover(function(){
+		        $("#originfo").attr("href" , "/link?url=https://my.oschina.net/u/4713941/blog/5042893");
+			},function(){
+		        $("#originfo").attr("href" , "javascript:void()");
+			});
+		});
+	</script>
+
+    <script src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/article.js.下载" type="text/javascript"></script>
+
+</div>
+<div class="span3 article_right_side" style="height: auto !important; min-height: 0px !important;">
+    <div class="right_top" style="height: auto !important;">
+    	<div id="right_site_articles" class="article_detail_bg">
+    <div class="article-part-title">
+        <span>每日一句</span>
+    </div>
+    <ul class="side_article_list">
+    	每一个你不满意的现在，都有一个你没有努力的曾经。
+    </ul>
+</div><script async="" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/f(3).txt"></script>
+<!-- JavaShuo 侧边栏 -->
+<ins class="adsbygoogle" style="display: block; height: 600px;" data-ad-client="ca-pub-6208739752673518" data-ad-slot="5830279121" data-ad-format="auto" data-full-width-responsive="true" data-adsbygoogle-status="done" data-ad-status="unfilled"><ins id="aswift_2_expand" style="border: none; height: 600px; width: 281px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;" tabindex="0" title="Advertisement" aria-label="Advertisement"><ins id="aswift_2_anchor" style="border: none; height: 600px; width: 281px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block; overflow: visible;"><iframe id="aswift_2" name="aswift_2" style="left:0;position:absolute;top:0;border:0;width:281px;height:600px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="281" height="600" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/ads(2).html" data-google-container-id="a!3" data-load-complete="true" data-google-query-id="CNSloOevpPgCFUjRfAod0WcHHQ"></iframe></ins></ins></ins>
+<script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+    <div id="right_site_articles">
+        <div class="article-part-title">
+            <span>最新文章</span>
+        </div>
+        <ul class="side_article_list">
+	                <li class="side_article_list_item">1.
+	                    <a href="http://www.javashuo.com/article/p-brglnede-xh.html" target="_blank" title="跳槽面试的几个实用小技巧，不妨看看！"> 跳槽面试的几个实用小技巧，不妨看看！ </a>
+	                </li>
+	                <li class="side_article_list_item">2.
+	                    <a href="http://www.javashuo.com/article/p-xhbfwsif-xh.html" target="_blank" title="Mac实用技巧 |如何使用Mac系统中自带的预览工具将图片变成黑白色?"> Mac实用技巧 |如何使用Mac系统中自带的预览工具将图片变成黑白色? </a>
+	                </li>
+	                <li class="side_article_list_item">3.
+	                    <a href="http://www.javashuo.com/article/p-ryahddxm-xh.html" target="_blank" title="Mac实用技巧 |如何使用Mac系统中自带的预览工具将图片变成黑白色?"> Mac实用技巧 |如何使用Mac系统中自带的预览工具将图片变成黑白色? </a>
+	                </li>
+	                <li class="side_article_list_item">4.
+	                    <a href="http://www.javashuo.com/article/p-kjwgpklp-xh.html" target="_blank" title="如何使用Mac系统中自带的预览工具将图片变成黑白色?"> 如何使用Mac系统中自带的预览工具将图片变成黑白色? </a>
+	                </li>
+	                <li class="side_article_list_item">5.
+	                    <a href="http://www.javashuo.com/article/p-peymjqyk-xh.html" target="_blank" title="Mac OS非兼容Windows软件运行解决方案——“以VMware &amp; Microsoft Access为例“"> Mac OS非兼容Windows软件运行解决方案——“以VMware &amp; Microsoft Access为例“ </a>
+	                </li>
+	                <li class="side_article_list_item">6.
+	                    <a href="http://www.javashuo.com/article/p-yiapfmon-xh.html" target="_blank" title="封装 pyinstaller -F -i b.ico excel.py"> 封装 pyinstaller -F -i b.ico excel.py </a>
+	                </li>
+	                <li class="side_article_list_item">7.
+	                    <a href="http://www.javashuo.com/article/p-afnaxssy-xh.html" target="_blank" title="数据库作业三ER图待完善"> 数据库作业三ER图待完善 </a>
+	                </li>
+	                <li class="side_article_list_item">8.
+	                    <a href="http://www.javashuo.com/article/p-zpfntmnd-xh.html" target="_blank" title="nvm安装使用低版本node.js(非命令安装)"> nvm安装使用低版本node.js(非命令安装) </a>
+	                </li>
+	                <li class="side_article_list_item">9.
+	                    <a href="http://www.javashuo.com/article/p-ykvugpmb-xh.html" target="_blank" title="如何快速转换图片格式"> 如何快速转换图片格式 </a>
+	                </li>
+	                <li class="side_article_list_item">10.
+	                    <a href="http://www.javashuo.com/article/p-kiruecal-xh.html" target="_blank" title="将表格内容分条转换为若干文档"> 将表格内容分条转换为若干文档 </a>
+	                </li>
+        </ul>
+
+
+    </div>
+
+    </div>
+
+    <div class="operate_zone" style="position: fixed; top: 60px; width: 281px;">
+<div id="right_site_articles" class="article_detail_bg margin-top10">
+    <div class="article-part-title">
+        <span><a href="http://www.javashuo.com/contact" target="_blank">本站公众号</a></span>
+    </div>
+    <div class="side_article_list user-head">
+        <span style="color: #5ba607;font-size:14px;">&nbsp;&nbsp;&nbsp;欢迎关注本站公众号,获取更多信息</span><br>
+        <img src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/qrcode_develong_1.jpg">
+    </div>
+</div>
+
+    <div id="right_site_articles">
+        <div class="article-part-title">
+            <span>相关文章</span>
+        </div>
+        <ul class="side_article_list">
+	                <li class="side_article_list_item">1.
+	                    <a href="http://www.javashuo.com/article/p-gkwplhcm-vn.html" target="_blank" title="WebRTC 传输安全机制：深刻显出 SRTP 协议"> WebRTC 传输安全机制：深刻显出 SRTP 协议 </a>
+	                </li>
+	                <li class="side_article_list_item">2.
+	                    <a href="http://www.javashuo.com/article/p-tyqpqpmw-vn.html" target="_blank" title="WebRTC 传输安全机制第二话：深刻显出 SRTP 协议"> WebRTC 传输安全机制第二话：深刻显出 SRTP 协议 </a>
+	                </li>
+	                <li class="side_article_list_item">3.
+	                    <a href="http://www.javashuo.com/article/p-ssrkingi-y.html" target="_blank" title="WebRTC实时通讯协议详解"> WebRTC实时通讯协议详解 </a>
+	                </li>
+	                <li class="side_article_list_item">4.
+	                    <a href="http://www.javashuo.com/article/p-enmfblcc-ck.html" target="_blank" title="WebRTC会话描述协议（SDP）详解"> WebRTC会话描述协议（SDP）详解 </a>
+	                </li>
+	                <li class="side_article_list_item">5.
+	                    <a href="http://www.javashuo.com/article/p-rnalftwf-wv.html" target="_blank" title="DTLS-SRTP协议学习"> DTLS-SRTP协议学习 </a>
+	                </li>
+	                <li class="side_article_list_item">6.
+	                    <a href="http://www.javashuo.com/article/p-faqqsmhd-ce.html" target="_blank" title="HTTPS----安全超文本传输协议"> HTTPS----安全超文本传输协议 </a>
+	                </li>
+	                <li class="side_article_list_item">7.
+	                    <a href="http://www.javashuo.com/article/p-mzxauyrr-sv.html" target="_blank" title="【WebRTC---入门篇】（十二）WebRTC传输协议"> 【WebRTC---入门篇】（十二）WebRTC传输协议 </a>
+	                </li>
+	                <li class="side_article_list_item">8.
+	                    <a href="http://www.javashuo.com/article/p-pgcyafuy-kh.html" target="_blank" title="传输层安全协议"> 传输层安全协议 </a>
+	                </li>
+	                <li class="side_article_list_item">9.
+	                    <a href="http://www.javashuo.com/article/p-uoiasxfi-pq.html" target="_blank" title="超文本传输安全协议 - HTTPS"> 超文本传输安全协议 - HTTPS </a>
+	                </li>
+	                <li class="side_article_list_item">10.
+	                    <a href="http://www.javashuo.com/article/p-maqfyalw-ex.html" target="_blank" title="HTTPS安全超文本传输协议"> HTTPS安全超文本传输协议 </a>
+	                </li>
+        </ul>
+
+        	<div style="padding-left:10px;font-size:14px;padding-bottom:10px;">
+        		<a href="http://www.javashuo.com/relative/p-hsrbadqx-vm.html" target="_blank" title="详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 的相关文章"> &gt;&gt;更多相关文章&lt;&lt; </a>
+    		</div>
+
+    </div>
+
+    </div>
+</div>
+
+	</div>
+
+	<script type="text/javascript">
+        $('table').each(function (i) {
+            var size = $(this).children().size();
+            if (size > 1) {
+                $(this).attr('class', "table table-bordered");
+            } else if (size == 1) {
+                var e11 = $(this).children(":first");
+                var e1 = e11[0];
+                var name = e1.nodeName.toLowerCase();
+                if ("tbody" == name) {
+                    if (e1.children.length > 1) {
+                        $(this).attr('class', "table table-bordered");
+                    } else if (e1.children.length == 1) {
+                        var e12 = e1.children[0];
+                        var name2 = e12.nodeName.toLowerCase();
+                        if ("tr" == name2) {
+                            if (e12.children.length > 1) {
+                                $(this).attr('class', "table table-bordered");
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        window.page = 0;
+        window.last = 0;
+        window.first = true;
+        resize_article_image('#nei', 550);
+        
+        
+        
+		+ (function($){
+			window._bd_share_config = {
+				common: {
+					"bdText": "【" + $("title").text() + "】" + $(".post-content p:lt(2)").text(),
+					"bdMini": "2",
+					"bdMiniList": false,
+					"bdPic": $(".post-content img:first") ? $(".post-content img:first").attr("src") : "",
+					"bdStyle": "0",
+					"bdSize": "24"
+				},
+				share: [{
+					bdCustomStyle: 'http://static2.javashuo.com/static/css/share.css'
+				}],
+			};
+			with(document) 0[(getElementsByTagName("head")[0] || body).appendChild(createElement("script")).src = "http://bdimg.share.baidu.com/static/api/js/share.js?cdnversion=" + ~ ( - new Date() / 36e5)];
+		})(window.jQuery);
+    </script>
+</div>
+<script type="text/javascript" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/highlight.pack.js.下载"></script>
+<link href="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/docco.css" media="screen" rel="stylesheet" type="text/css">
+<script type="text/javascript">
+$('pre').each(function(i, e) {
+    hljs.highlightBlock(e, "<span class='indent'>  </span>", false)
+});
+</script>
+<div class="footer">
+    <div class="footer-inner" style="padding-top: 50px;padding-bottom: 50px">
+        <a href="http://www.javashuo.com/contact" target="_blank">联系我们</a>
+        <a href="http://www.javashuo.com/search">最近搜索</a>
+        <a href="http://www.javashuo.com/recent">最新文章</a>
+        <script type="text/javascript" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/z_stat.php"></script>
+        <a href="https://beian.miit.gov.cn/" target="_blank">沪ICP备13005482号-10</a>
+
+            <a href="http://www.voidme.com/mybatis" target="_blank">MyBatis教程</a>
+            <a href="http://www.voidme.com/sql" target="_blank">SQL 教程</a>
+            <a href="http://www.voidme.com/mysql" target="_blank">MySQL教程</a>
+            <a href="http://www.voidme.com/java" target="_blank">Java 教程</a>
+            <a href="http://www.voidme.com/thymeleaf" target="_blank">Thymeleaf 教程</a>
+            <a href="http://www.voidme.com/hibernate" target="_blank">Hibernate教程</a>
+            <a href="http://www.voidme.com/spring" target="_blank">Spring教程 </a>
+            <a href="http://www.voidme.com/redis" target="_blank">Redis教程 </a>
+    </div>
+    <div style="display:none;">
+        <script>
+            var _hmt = _hmt || [];
+            (function() {
+                var hm = document.createElement("script");
+                hm.src = "https://hm.baidu.com/hm.js?2936bf9a19a3d5abb5c9c726af070b7c";
+                var s = document.getElementsByTagName("script")[0];
+                s.parentNode.insertBefore(hm, s);
+            })();
+        </script>
+    </div>
+</div>
+
+<script type="text/javascript" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/tip.js.下载" async=""></script>
+
+
+<div class="return" title="返回顶部" style="display: block;"></div><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important;" data-ad-status="unfilled"><ins id="aswift_3_expand" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none; height: 0px; width: 0px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-table;"><ins id="aswift_3_anchor" style="border: none; height: 0px; width: 0px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: block;"><iframe id="aswift_3" name="aswift_3" style="left:0;position:absolute;top:0;border:0;width:undefinedpx;height:undefinedpx;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/ads(3).html" data-google-container-id="a!4" data-load-complete="true"></iframe></ins></ins></ins><iframe src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/aframe.html" width="0" height="0" style="display: none;"></iframe><div class="xl-chrome-ext-bar" id="xl_chrome_ext_{4DB361DE-01F7-4376-B494-639E489D19ED}" style="display: none;">
+      <div class="xl-chrome-ext-bar__logo"></div>
+
+      <a id="xl_chrome_ext_download" href="javascript:;" class="xl-chrome-ext-bar__option">下载视频</a>
+      <a id="xl_chrome_ext_close" href="javascript:;" class="xl-chrome-ext-bar__close"></a>
+    </div></body><iframe id="google_esf" name="google_esf" src="./详解 WebRTC 传输安全机制：一文读懂 DTLS 协议 - JavaShuo_files/zrt_lookup.html" style="display: none;"></iframe></html>

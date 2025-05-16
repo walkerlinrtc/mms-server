@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<!-- saved from url=(0074)https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>
+            
+    
+        draft-ietf-avtcore-rfc5764-mux-fixes-11
+    
+
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            @media only screen
+            and (min-width: 992px)
+            and (max-width: 1199px) {
+                body { font-size: 14pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (min-width: 768px)
+            and (max-width: 991px) {
+                body { font-size: 14pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (min-width: 480px)
+            and (max-width: 767px) {
+                body { font-size: 11pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (max-width: 479px) {
+                body { font-size: 8pt; }
+                div.content { width: 96ex; margin: 0 auto; }
+            }
+            @media only screen
+            and (min-width : 375px)
+            and (max-width : 667px) {
+                body { font-size: 9.5pt; }
+                div.content { width: 96ex; margin: 0; }
+            }
+            @media only screen
+            and (min-width: 1200px) {
+                body { font-size: 10pt; margin: 0 4em; }
+                div.content { width: 96ex; margin: 0; }
+            }
+            h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+                font-weight: bold;
+                /* line-height: 0pt; */
+                display: inline;
+                white-space: pre;
+                font-family: monospace;
+                font-size: 1em;
+                font-weight: bold;
+            }
+            pre {
+                font-size: 1em;
+                margin-top: 0px;
+                margin-bottom: 0px;
+            }
+            .pre {
+                white-space: pre;
+                font-family: monospace;
+            }
+            .header{
+                font-weight: bold;
+            }
+            .newpage {
+                page-break-before: always;
+            }
+            .invisible {
+                text-decoration: none;
+                color: white;
+            }
+            @media print {
+                body {
+                    margin-top: 5em;
+                    font-family: monospace;
+                    font-size: 10.5pt;
+                }
+                h1, h2, h3, h4, h5, h6 {
+                    font-size: 1em;
+                }
+
+                a:link, a:visited {
+                    color: inherit;
+                    text-decoration: none;
+                }
+                .noprint {
+                    display: none;
+                }
+            }
+            @media screen {
+                .grey, .grey a:link, .grey a:visited {
+                    color: #777;
+                }
+                .meta-info {
+                    background-color: #EEE;
+                    width: 96ex;
+                }
+                .top {
+                    border-top: 7px solid #EEE;
+                }
+                .pad {
+                    padding-top: 7px;
+                    line-height: 24px;
+                    padding-bottom: 4px;
+                }
+                .bgwhite  { background-color: white; }
+                .bgred    { background-color: #F44; }
+                .bggrey   { background-color: #666; }
+                .bgbrown  { background-color: #840; }
+                .bgorange { background-color: #FA0; }
+                .bgyellow { background-color: #EE0; }
+                .bgmagenta{ background-color: #F4F; }
+                .bgblue   { background-color: #66F; }
+                .bgcyan   { background-color: #4DD; }
+                .bggreen  { background-color: #4F4; }
+
+                .legend   { font-size: 90%; }
+                .cplate   { font-size: 70%; border: solid grey 1px; }
+            }
+
+            
+    .bgwhite  { background-color: white; }
+    .bgred    { background-color: #F44; }
+    .bggrey   { background-color: #666; }
+    .bgbrown  { background-color: #840; }
+    .bgorange { background-color: #FA0; }
+    .bgyellow { background-color: #EE0; }
+    .bgmagenta{ background-color: #F4F; }
+    .bgblue   { background-color: #66F; }
+    .bgcyan   { background-color: #4DD; }
+    .bggreen  { background-color: #4F4; }
+    .draftcontent { margin-top:1em;}
+
+        </style>
+        
+    <link rel="alternate" type="application/atom+xml" title="Document changes" href="https://datatracker.ietf.org/feed/document-changes/draft-ietf-avtcore-rfc5764-mux-fixes/">
+    <meta name="description" content="Multiplexing Scheme Updates for Secure Real-time Transport Protocol (SRTP) Extension for Datagram Transport Layer Security (DTLS) (Internet-Draft, 2016)">
+
+        
+            <link rel="shortcut icon" href="https://www.ietf.org/lib/dt/8.2.0/ietf/images/ietf-icon-blue3.png">
+        
+        <link rel="apple-touch-icon" href="https://www.ietf.org/lib/dt/8.2.0/ietf/images/apple-touch-icon.png">
+    <script async="" src="./draft-ietf-avtcore-rfc5764-mux-fixes-11_files/invisible.js.下载"></script></head>
+    <body>
+        <div class="content" id="content">
+            
+<!-- [html-validate-disable-block no-inline-style, attr-quotes, void-style -- FIXME: it's everywhere in this old code] -->
+    
+    <div class="rfcmarkup">
+        <div class="noprint" style="height: .5em;">
+<<<<<<< HEAD
+            <div onmouseover="this.style.cursor=&#39;pointer&#39;;" onclick="showLegend();" onmouseout="hideLegend()" style="height: .5em; min-height: .5em; width: 96ex; " class="meta-info bgred" title="Click for color legend.">
+            </div>
+            <div id="legend" class="meta-info noprint pre legend" style="position:absolute; top: 4px; left: 4ex; visibility:hidden; background-color: white; padding: 4px 9px 5px 7px; border: solid #345 1px; " onmouseover="showLegend();" onmouseout="hideLegend();">
+            </div>
+=======
+            <div onmouseover="this.style.cursor=&#39;pointer&#39;;" onclick="showLegend();" onmouseout="hideLegend()" style="height: 0.5em; min-height: 0.5em; width: 96ex; cursor: pointer;" class="meta-info bgred" title="Click for color legend.">
+            </div>
+            <div id="legend" class="meta-info noprint pre legend" style="position:absolute; top: 4px; left: 4ex; visibility:hidden; background-color: white; padding: 4px 9px 5px 7px; border: solid #345 1px; " onmouseover="showLegend();" onmouseout="hideLegend();"></div>
+>>>>>>> def6e3b644c9efd122f46df3eae4bb9677677279
+        </div>
+        
+            <div class="noprint">
+                <pre class="pre meta-info">[<a href="https://datatracker.ietf.org/" title="Document search and retrieval page">Search</a>] [<a href="https://www.ietf.org/archive/id/draft-ietf-avtcore-rfc5764-mux-fixes-11.txt" title="Plaintext version of this document">txt</a>|<a href="https://www.ietf.org/archive/id/draft-ietf-avtcore-rfc5764-mux-fixes-11.xml" title="XML source for this document">xml</a>|<a href="https://datatracker.ietf.org/doc/pdf/draft-ietf-avtcore-rfc5764-mux-fixes-11">pdfized</a>|<a href="https://datatracker.ietf.org/doc/draft-ietf-avtcore-rfc5764-mux-fixes/11/bibtex/" title="BibTex entry for this document">bibtex</a>] [<a href="https://datatracker.ietf.org/doc/draft-ietf-avtcore-rfc5764-mux-fixes/" title="Datatracker information for this document">Tracker</a>] [<a href="https://datatracker.ietf.org/group/avtcore/" title="The working group handling this document">WG</a>] [<a href="mailto:draft-ietf-avtcore-rfc5764-mux-fixes@ietf.org?subject=draft-ietf-avtcore-rfc5764-mux-fixes" title="Send email to the document authors">Email</a>] [<a href="https://www.ietf.org/rfcdiff?difftype=--hwdiff&amp;url2=draft-ietf-avtcore-rfc5764-mux-fixes-11.txt" title="Inline diff (wdiff)">Diff1</a>] [<a href="https://www.ietf.org/rfcdiff?url2=draft-ietf-avtcore-rfc5764-mux-fixes-11.txt" title="Side-by-side diff">Diff2</a>] [<a href="https://www.ietf.org/tools/idnits?url=https://www.ietf.org/archive/id/draft-ietf-avtcore-rfc5764-mux-fixes-11.txt" title="Run an idnits check of this document">Nits</a>]
+Versions: (<a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes">draft-petithuguenin-avtcore-rfc5764-mux-fixes</a>)               
+          <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-00">00</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-01">01</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-02">02</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-03">03</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-04">04</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-05">05</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-06">06</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-07">07</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-08">08</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-09">09</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-10">10</a> <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-11"><b>11</b></a>            Standards Track
+          <a href="https://datatracker.ietf.org/doc/html/rfc7983">rfc7983</a>                                       <a class="text-warning" href="https://datatracker.ietf.org/ipr/search/?submit=draft&amp;id=draft-ietf-avtcore-rfc5764-mux-fixes">IPR declarations</a>
+                                                                        </pre>
+            </div>
+        
+        <div class="draftcontent"><pre>AVTCORE                                                M. Petit-Huguenin
+Internet-Draft                                        Impedance Mismatch
+Updates: <a href="https://datatracker.ietf.org/doc/html/rfc5764">5764</a> (if approved)                                 G. Salgueiro
+Intended status: Standards Track                           Cisco Systems
+Expires: March 5, 2017                                 September 1, 2016
+
+
+  <span class="h1">Multiplexing Scheme Updates for Secure Real-time Transport Protocol</span>
+     <span class="h1">(SRTP) Extension for Datagram Transport Layer Security (DTLS)</span>
+                <span class="h1">draft-ietf-avtcore-rfc5764-mux-fixes-11</span>
+
+Abstract
+
+   This document defines how Datagram Transport Layer Security (DTLS),
+   Real-time Transport Protocol (RTP), RTP Control Protocol (RTCP),
+   Session Traversal Utilities for NAT (STUN), Traversal Using Relays
+   around NAT (TURN), and ZRTP packets are multiplexed on a single
+   receiving socket.  It overrides the guidance from <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> ("SRTP
+   Extension for DTLS"), which suffered from four issues described and
+   fixed in this document.
+
+   This document updates <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a>.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of <a href="https://datatracker.ietf.org/doc/html/bcp78">BCP 78</a> and <a href="https://datatracker.ietf.org/doc/html/bcp79">BCP 79</a>.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at <a href="https://datatracker.ietf.org/drafts/current/">http://datatracker.ietf.org/drafts/current/</a>.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on March 5, 2017.
+
+Copyright Notice
+
+   Copyright (c) 2016 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to <a href="https://datatracker.ietf.org/doc/html/bcp78">BCP 78</a> and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (<a href="https://trustee.ietf.org/license-info">http://trustee.ietf.org/license-info</a>) in effect on the date of
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 1]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-2"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+   This document may contain material from IETF Documents or IETF
+   Contributions published or made publicly available before November
+   10, 2008.  The person(s) controlling the copyright in some of this
+   material may not have granted the IETF Trust the right to allow
+   modifications of such material outside the IETF Standards Process.
+   Without obtaining an adequate license from the person(s) controlling
+   the copyright in such materials, this document may not be modified
+   outside the IETF Standards Process, and derivative works of it may
+   not be created outside the IETF Standards Process, except to format
+   it for publication as an RFC or to translate it into languages other
+   than English.
+
+Table of Contents
+
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-1">1</a>.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-3">3</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-2">2</a>.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-4">4</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-3">3</a>.  Implicit Allocation of Codepoints for New STUN Methods  . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-4">4</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-4">4</a>.  Multiplexing of ZRTP  . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-5">5</a>
+   5.  Implicit Allocation of New Codepoints for TLS ContentTypes  .   5
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-6">6</a>.  Multiplexing of TURN Channels . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-6">6</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-7">7</a>.  <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Updates  . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-8">8</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-8">8</a>.  Security Considerations . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-9">9</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9">9</a>.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-9">9</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9.1">9.1</a>.  STUN Methods  . . . . . . . . . . . . . . . . . . . . . .   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-9">9</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9.2">9.2</a>.  TLS ContentType . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-10">10</a>
+     9.3.  Traversal Using Relays around NAT (TURN) Channel Numbers   10
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-10">10</a>. Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-10">10</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-11">11</a>. References  . . . . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-11">11</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-11.1">11.1</a>.  Normative References . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-11">11</a>
+     <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-11.2">11.2</a>.  Informative References . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-12">12</a>
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A">Appendix A</a>.  Release notes  . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-12">12</a>
+     A.1.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-11">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-11">fixes-11</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-10">draft-ietf-avtcore-rfc5764-mux-fixes-10</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-12">12</a>
+     A.2.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-10">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-10">fixes-10</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-09">draft-ietf-avtcore-rfc5764-mux-fixes-09</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+     A.3.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-09">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-09">fixes-09</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-08">draft-ietf-avtcore-rfc5764-mux-fixes-08</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+     A.4.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-08">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-08">fixes-08</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-07">draft-ietf-avtcore-rfc5764-mux-fixes-07</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+     A.5.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-07">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-07">fixes-07</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-06">draft-ietf-avtcore-rfc5764-mux-fixes-06</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 2]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-3"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+     A.6.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-06">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-06">fixes-06</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-05">draft-ietf-avtcore-rfc5764-mux-fixes-05</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+     A.7.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-05">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-05">fixes-05</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-04">draft-ietf-avtcore-rfc5764-mux-fixes-04</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+     A.8.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-04">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-04">fixes-04</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-03">draft-ietf-avtcore-rfc5764-mux-fixes-03</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-13">13</a>
+     A.9.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-03">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-03">fixes-03</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-02">draft-ietf-avtcore-rfc5764-mux-fixes-02</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-14">14</a>
+     A.10. Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-02">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-02">fixes-02</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-01">draft-ietf-avtcore-rfc5764-mux-fixes-01</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-14">14</a>
+     A.11. Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-01">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-01">fixes-01</a> and <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-00">draft-ietf-avtcore-rfc5764-mux-fixes-00</a>  . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-14">14</a>
+     A.12. Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-00">draft-ietf-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-00">fixes-00</a> and <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes-02">draft-petithuguenin-avtcore-rfc5764-mux-</a>
+           <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes-02">fixes-02</a>  . . . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-14">14</a>
+     A.13. Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764">draft-petithuguenin-avtcore-rfc5764</a>
+           -mux-fixes-00 and <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764">draft-petithuguenin-avtcore-rfc5764</a>
+           -mux-fixes-01 . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-15">15</a>
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#page-15">15</a>
+
+<span class="h2"><a class="selflink" id="section-1" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-1">1</a>.  Introduction</span>
+
+   <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-5.1.2">Section 5.1.2</a> of Secure Real-time Transport Protocol (SRTP) Extension
+   for DTLS [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>] defines a scheme for a Real-time Transport
+   Protocol (RTP) [<a href="https://datatracker.ietf.org/doc/html/rfc3550" title="&quot;RTP: A Transport Protocol for Real-Time Applications&quot;">RFC3550</a>] receiver to demultiplex Datagram Transport
+   Layer Security (DTLS) [<a href="https://datatracker.ietf.org/doc/html/rfc6347" title="&quot;Datagram Transport Layer Security Version 1.2&quot;">RFC6347</a>], Session Traversal Utilities for NAT
+   (STUN) [<a href="https://datatracker.ietf.org/doc/html/rfc5389" title="&quot;Session Traversal Utilities for NAT (STUN)&quot;">RFC5389</a>] and Secure Real-time Transport Protocol
+   (SRTP)/Secure RTP Control Protocol (SRTCP) [<a href="https://datatracker.ietf.org/doc/html/rfc3711" title="&quot;The Secure Real-time Transport Protocol (SRTP)&quot;">RFC3711</a>] packets that are
+   arriving on the RTP port.  Unfortunately, this demultiplexing scheme
+   has created problematic issues:
+
+   1.  It implicitly allocated codepoints for new STUN methods without
+       an IANA registry reflecting these new allocations.
+
+   2.  It did not take into account the fact that ZRTP [<a href="https://datatracker.ietf.org/doc/html/rfc6189" title="&quot;ZRTP: Media Path Key Agreement for Unicast Secure RTP&quot;">RFC6189</a>] also
+       needs to be demultiplexed with the other packet types explicitly
+       mentioned in <a href="https://datatracker.ietf.org/doc/html/rfc5764#section-5.1.2">Section&nbsp;5.1.2 of RFC 5764</a>.
+
+   3.  It implicitly allocated codepoints for new Transport Layer
+       Security (TLS) ContentTypes without an IANA registry reflecting
+       these new allocations.
+
+   4.  It did not take into account the fact that the Traversal Using
+       Relays around NAT (TURN) usage of STUN can create TURN channels
+       that also need to be demultiplexed with the other packet types
+       explicitly mentioned in <a href="https://datatracker.ietf.org/doc/html/rfc5764#section-5.1.2">Section&nbsp;5.1.2 of RFC 5764</a>.
+
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 3]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-4"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   Having overlapping ranges between different IANA registries becomes
+   an issue when a new codepoint is allocated in one of these registries
+   without carefully analyzing the impact it could have on the other
+   registries when that codepoint is demultiplexed.  Among other
+   downsides of the bad design of the demultiplexing algorithm detailed
+   in [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>], it creates a requirement for coordination between
+   codepoint assignments where none should exist, and that is
+   organizationally and socially undesirable.  However, <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> has
+   been widely deployed so there must be an awareness of this issue and
+   how it must be dealt with.  Thus, even if the feature related to a
+   codepoint is not initially thought to be useful in the context of
+   demultiplexing, the respective IANA registry expert should at least
+   raise a flag when the allocated codepoint irrevocably prevents
+   multiplexing.
+
+   The first goal of this document is to make sure that future
+   allocations in any of the affected protocols are done with the full
+   knowledge of their impact on multiplexing.  This is achieved by
+   updating [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>], which includes modifying the IANA registries with
+   instructions for coordination between the protocols at risk.
+
+   A second goal is to permit the addition of new protocols to the list
+   of existing multiplexed protocols in a manner that does not break
+   existing implementations.
+
+   At the time of this writing, the flaws in the demultiplexing scheme
+   were unavoidably inherited by other documents, such as [<a href="https://datatracker.ietf.org/doc/html/rfc7345" title="&quot;UDP Transport Layer (UDPTL) over Datagram Transport Layer Security (DTLS)&quot;">RFC7345</a>] and
+   [<a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#ref-I-D.ietf-mmusic-sdp-bundle-negotiation">I-D.ietf-mmusic-sdp-bundle-negotiation</a>].  So in addition, these and
+   any other affected documents will need to be corrected with the
+   updates this document provides.
+
+<span class="h2"><a class="selflink" id="section-2" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-2">2</a>.  Terminology</span>
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [<a href="https://datatracker.ietf.org/doc/html/rfc2119" title="&quot;Key words for use in RFCs to Indicate Requirement Levels&quot;">RFC2119</a>].
+
+<span class="h2"><a class="selflink" id="section-3" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-3">3</a>.  Implicit Allocation of Codepoints for New STUN Methods</span>
+
+   The demultiplexing scheme in [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>] states that the receiver can
+   identify the packet type by looking at the first byte.  If the value
+   of this first byte is 0 or 1, the packet is identified to be STUN.
+   The problem that arises as a result of this implicit allocation is
+   that this restricts the codepoints for STUN methods (as described in
+   <a href="https://datatracker.ietf.org/doc/html/rfc5389#section-18.1">Section&nbsp;18.1 of [RFC5389]</a>) to values between 0x000 and 0x07F, which
+   in turn reduces the number of possible STUN method codepoints
+   assigned by IETF Review (i.e., the range from (0x000 - 0x7FF) from
+   2048 to only 128 and eliminating the possibility of having STUN
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 4]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-5"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   method codepoints assigned by Designated Expert (i.e., the range
+   0x800 - 0xFFF).
+
+   To preserve the Designated Expert range, this document allocates the
+   value 2 and 3 to also identify STUN methods.
+
+   The IANA Registry for STUN methods is modified to mark the codepoints
+   from 0x100 to 0xFFF as Reserved.  These codepoints can still be
+   allocated, but require IETF Review with a document that will properly
+   evaluate the risk of an assignment overlapping with other registries.
+
+   In addition, this document also updates the IANA registry such that
+   the STUN method codepoints assigned in the 0x080-0x0FF range are also
+   assigned via Designated Expert.  The proposed changes to the STUN
+   Method Registry are:
+
+   OLD:
+
+   0x000-0x7FF     IETF Review
+   0x800-0xFFF     Designated Expert
+
+   NEW:
+
+   0x000-0x07F     IETF Review
+   0x080-0x0FF     Designated Expert
+   0x100-0xFFF     Reserved
+
+<span class="h2"><a class="selflink" id="section-4" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-4">4</a>.  Multiplexing of ZRTP</span>
+
+   ZRTP [<a href="https://datatracker.ietf.org/doc/html/rfc6189" title="&quot;ZRTP: Media Path Key Agreement for Unicast Secure RTP&quot;">RFC6189</a>] is a protocol for media path Diffie-Hellman exchange
+   to agree on a session key and parameters for establishing unicast
+   Secure Real-time Transport Protocol (SRTP) sessions for Voice over IP
+   (VoIP) applications.  The ZRTP protocol is media path keying because
+   it is multiplexed on the same port as RTP and does not require
+   support in the signaling protocol.
+
+   In order to prevent future documents from assigning values from the
+   unused range to a new protocol, this document modifies the [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>]
+   demultiplexing algorithm to properly account for ZRTP [<a href="https://datatracker.ietf.org/doc/html/rfc6189" title="&quot;ZRTP: Media Path Key Agreement for Unicast Secure RTP&quot;">RFC6189</a>] by
+   allocating the values from 16 to 19 for this purpose.
+
+<span class="h2"><a class="selflink" id="section-5" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-5">5</a>.  Implicit Allocation of New Codepoints for TLS ContentTypes</span>
+
+   The demultiplexing scheme in [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>] dictates that if the value of
+   the first byte is between 20 and 63 (inclusive), then the packet is
+   identified to be DTLS.  For DTLS 1.0 [<a href="https://datatracker.ietf.org/doc/html/rfc4347" title="&quot;Datagram Transport Layer Security&quot;">RFC4347</a>] and DTLS 1.2 [<a href="https://datatracker.ietf.org/doc/html/rfc6347" title="&quot;Datagram Transport Layer Security Version 1.2&quot;">RFC6347</a>]
+   that first byte corresponds to the TLS ContentType field.
+   Considerations must be taken into account when assigning additional
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 5]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-6"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   ContentTypes in the code point ranges 0 to 19 and 64 to 255 so this
+   does not prevent demultiplexing when this functionality is desirable.
+   Note that [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>] describes a narrow use of DTLS that works as long
+   as the specific DTLS version used abides by the restrictions on the
+   demultiplexing byte (the ones that this document imposes on the TLS
+   ContentType Registry).  Any extension or revision to DTLS that causes
+   it to no longer meet these constraints should consider what values
+   may occur in the first byte of the DTLS message and what impact it
+   would have on the multiplexing that [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>] describes.
+
+   With respect to TLS packet identification, this document explicitly
+   adds a warning to the codepoints from 0 to 19 and from 64 to 255
+   indicating that allocations in these ranges require coordination, as
+   described in this document.  The proposed changes to the TLS
+   ContentType Registry are:
+
+   OLD:
+
+   0-19    Unassigned
+   20      change_cipher_spec
+   21      alert
+   22      handshake
+   23      application_data
+   24      heartbeat
+   25-255  Unassigned
+
+   NEW:
+
+   0-19    Unassigned (Requires coordination, see RFCXXXX)
+   20      change_cipher_spec
+   21      alert
+   22      handshake
+   23      application_data
+   24      heartbeat
+   25-63   Unassigned
+   64-255  Unassigned (Requires coordination, see RFCXXXX)
+
+<span class="h2"><a class="selflink" id="section-6" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-6">6</a>.  Multiplexing of TURN Channels</span>
+
+   When used with ICE [<a href="https://datatracker.ietf.org/doc/html/rfc5245" title="&quot;Interactive Connectivity Establishment (ICE): A Protocol for Network Address Translator (NAT) Traversal for Offer/Answer Protocols&quot;">RFC5245</a>], an <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> implementation can receive
+   packets on the same socket from three different paths, as shown in
+   Figure 1:
+
+   1.  Directly from the source
+
+   2.  Through a NAT
+
+   3.  Relayed by a TURN server
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 6]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-7"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+       +------+
+       | TURN |&lt;------------------------+
+       +------+                         |
+          |                             |
+          | +-------------------------+ |
+          | |                         | |
+          v v                         | |
+   NAT -----------                    | |
+          | | +---------------------+ | |
+          | | |                     | | |
+          v v v                     | | |
+      +----------+              +----------+
+      | <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> |              | <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> |
+      +----------+              +----------+
+
+         Figure 1: Packet Reception by an <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Implementation
+
+   Even if the ICE algorithm succeeded in selecting a non-relayed path,
+   it is still possible to receive data from the TURN server.  For
+   instance, when ICE is used with aggressive nomination the media path
+   can quickly change until it stabilizes.  Also, freeing ICE candidates
+   is optional, so the TURN server can restart forwarding STUN
+   connectivity checks during an ICE restart.
+
+   TURN channels are an optimization where data packets are exchanged
+   with a 4-byte prefix, instead of the standard 36-byte STUN overhead
+   (see <a href="https://datatracker.ietf.org/doc/html/rfc5766#section-2.5">Section&nbsp;2.5 of [RFC5766]</a>).  The problem is that the <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a>
+   demultiplexing scheme does not define what to do with packets
+   received over a TURN channel since these packets will start with a
+   first byte whose value will be between 64 and 127 (inclusive).  If
+   the TURN server was instructed to send data over a TURN channel, then
+   the current <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> demultiplexing scheme will reject these packets.
+   Current implementations violate <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> for values 64 to 127
+   (inclusive) and they instead parse packets with such values as TURN.
+
+   In order to prevent future documents from assigning values from the
+   unused range to a new protocol, this document modifies the <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a>
+   demultiplexing algorithm to properly account for TURN channels by
+   allocating the values from 64 to 79 for this purpose.  This
+   modification restricts the TURN channel space to a more limited set
+   of possible channels when the TURN client does the channel binding
+   request in combination with the demultiplexing scheme described in
+   [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>].
+
+
+
+
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 7]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-8"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+<span class="h2"><a class="selflink" id="section-7" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-7">7</a>.  <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Updates</span>
+
+   This document updates the text in <a href="https://datatracker.ietf.org/doc/html/rfc5764#section-5.1.2">Section&nbsp;5.1.2 of [RFC5764]</a> as
+   follows:
+
+   OLD TEXT
+
+   The process for demultiplexing a packet is as follows.  The receiver
+   looks at the first byte of the packet.  If the value of this byte is
+   0 or 1, then the packet is STUN.  If the value is in between 128 and
+   191 (inclusive), then the packet is RTP (or RTCP, if both RTCP and
+   RTP are being multiplexed over the same destination port).  If the
+   value is between 20 and 63 (inclusive), the packet is DTLS.  This
+   process is summarized in Figure 3.
+
+             +----------------+
+             | 127 &lt; B &lt; 192 -+--&gt; forward to RTP
+             |                |
+ packet --&gt;  |  19 &lt; B &lt; 64  -+--&gt; forward to DTLS
+             |                |
+             |       B &lt; 2   -+--&gt; forward to STUN
+             +----------------+
+
+     Figure 3: The DTLS-SRTP receiver's packet demultiplexing algorithm.
+          Here the field B denotes the leading byte of the packet.
+
+   END OLD TEXT
+
+   NEW TEXT
+
+   The process for demultiplexing a packet is as follows.  The receiver
+   looks at the first byte of the packet.  If the value of this byte is
+   in between 0 and 3 (inclusive), then the packet is STUN.  If the
+   value is between 16 and 19 (inclusive), then the packet is ZRTP.  If
+   the value is between 20 and 63 (inclusive), then the packet is DTLS.
+   If the value is between 64 and 79 (inclusive), then the packet is
+   TURN Channel.  If the value is in between 128 and 191 (inclusive),
+   then the packet is RTP (or RTCP, if both RTCP and RTP are being
+   multiplexed over the same destination port).  If the value does not
+   match any known range then the packet MUST be dropped and an alert
+   MAY be logged.  This process is summarized in Figure 3.
+
+
+
+
+
+
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 8]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-9"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+                    +----------------+
+                    |        [0..3] -+--&gt; forward to STUN
+                    |                |
+                    |      [16..19] -+--&gt; forward to ZRTP
+                    |                |
+        packet --&gt;  |      [20..63] -+--&gt; forward to DTLS
+                    |                |
+                    |      [64..79] -+--&gt; forward to TURN Channel
+                    |                |
+                    |    [128..191] -+--&gt; forward to RTP/RTCP
+                    +----------------+
+
+     Figure 3: The DTLS-SRTP receiver's packet demultiplexing algorithm.
+
+   END NEW TEXT
+
+<span class="h2"><a class="selflink" id="section-8" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-8">8</a>.  Security Considerations</span>
+
+   This document updates existing IANA registries and adds a new range
+   for TURN channels in the demuxing algorithm.
+
+   These modifications do not introduce any specific security
+   considerations beyond those detailed in [<a href="https://datatracker.ietf.org/doc/html/rfc5764" title="&quot;Datagram Transport Layer Security (DTLS) Extension to Establish Keys for the Secure Real-time Transport Protocol (SRTP)&quot;">RFC5764</a>].
+
+<span class="h2"><a class="selflink" id="section-9" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9">9</a>.  IANA Considerations</span>
+
+<span class="h3"><a class="selflink" id="section-9.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9.1">9.1</a>.  STUN Methods</span>
+
+   This specification contains the registration information for reserved
+   STUN Methods codepoints, as explained in <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-3">Section 3</a> and in accordance
+   with the procedures defined in <a href="https://datatracker.ietf.org/doc/html/rfc5389#section-18.1">Section&nbsp;18.1 of [RFC5389]</a>.
+
+   Value:   0x100-0xFFF
+
+   Name:   Reserved (MUST be allocated with IETF Review.  For DTLS-SRTP
+      multiplexing collision avoidance see RFCXXXX)
+
+   Reference:   <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC5764</a>, RFCXXXX
+
+   This specification also reassigns the ranges in the STUN Methods
+   Registry as follow:
+
+   Range:   0x000-0x07F
+
+   Registration Procedures:   IETF Review
+
+   Range:   0x080-0x0FF
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                 [Page 9]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-10"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   Registration Procedures:   Designated Expert
+
+<span class="h3"><a class="selflink" id="section-9.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9.2">9.2</a>.  TLS ContentType</span>
+
+   This specification contains the registration information for reserved
+   TLS ContentType codepoints, as explained in <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-5">Section 5</a> and in
+   accordance with the procedures defined in <a href="https://datatracker.ietf.org/doc/html/rfc5246#section-12">Section&nbsp;12 of [RFC5246]</a>.
+
+   Value:   0-19
+
+   Description:   Unassigned (Requires coordination, see RFCXXXX)
+
+   DTLS-OK:   N/A
+
+   Reference:   <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC5764</a>, RFCXXXX
+
+   Value:   64-255
+
+   Description:   Unassigned (Requires coordination, see RFCXXXX))
+
+   DTLS-OK:   N/A
+
+   Reference:   <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC5764</a>, RFCXXXX
+
+<span class="h3"><a class="selflink" id="section-9.3" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-9.3">9.3</a>.  Traversal Using Relays around NAT (TURN) Channel Numbers</span>
+
+   This specification contains the registration information for reserved
+   Traversal Using Relays around NAT (TURN) Channel Numbers codepoints,
+   as explained in <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-6">Section 6</a> and in accordance with the procedures
+   defined in <a href="https://datatracker.ietf.org/doc/html/rfc5766#section-18">Section&nbsp;18 of [RFC5766]</a>.
+
+   Value:   0x5000-0xFFFF
+
+   Name:   Reserved (For DTLS-SRTP multiplexing collision avoidance see
+      RFCXXXX)
+
+   Reference:   RFCXXXX
+
+   [RFC EDITOR NOTE: Please replace RFCXXXX with the RFC number assigned
+   to this document (for all instances where this convention is used
+   throughout this draft).]
+
+<span class="h2"><a class="selflink" id="section-10" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-10">10</a>.  Acknowledgements</span>
+
+   The implicit STUN Method codepoint allocations problem was first
+   reported by Martin Thomson in the RTCWEB mailing-list and discussed
+   further with Magnus Westerlund.
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                [Page 10]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-11"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   Thanks to Simon Perreault, Colton Shields, Cullen Jennings, Colin
+   Perkins, Magnus Westerlund, Paul Jones, Jonathan Lennox, Varun Singh,
+   Justin Uberti, Joseph Salowey, Martin Thomson, Ben Campbell, Stephen
+   Farrell, Alan Johnston, Mehmet Ersue, Matt Miller, Spencer Dawkins,
+   Joel Halpern and Paul Kyzivat for the comments, suggestions, and
+   questions that helped improve this document.
+
+<span class="h2"><a class="selflink" id="section-11" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-11">11</a>.  References</span>
+
+<span class="h3"><a class="selflink" id="section-11.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-11.1">11.1</a>.  Normative References</span>
+
+   [<a id="ref-RFC2119">RFC2119</a>]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", <a href="https://datatracker.ietf.org/doc/html/bcp14">BCP 14</a>, <a href="https://datatracker.ietf.org/doc/html/rfc2119">RFC 2119</a>,
+              DOI 10.17487/RFC2119, March 1997,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc2119">http://www.rfc-editor.org/info/rfc2119</a>&gt;.
+
+   [<a id="ref-RFC3550">RFC3550</a>]  Schulzrinne, H., Casner, S., Frederick, R., and V.
+              Jacobson, "RTP: A Transport Protocol for Real-Time
+              Applications", STD 64, <a href="https://datatracker.ietf.org/doc/html/rfc3550">RFC 3550</a>, DOI 10.17487/RFC3550,
+              July 2003, &lt;<a href="https://www.rfc-editor.org/info/rfc3550">http://www.rfc-editor.org/info/rfc3550</a>&gt;.
+
+   [<a id="ref-RFC3711">RFC3711</a>]  Baugher, M., McGrew, D., Naslund, M., Carrara, E., and K.
+              Norrman, "The Secure Real-time Transport Protocol (SRTP)",
+              <a href="https://datatracker.ietf.org/doc/html/rfc3711">RFC 3711</a>, DOI 10.17487/RFC3711, March 2004,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc3711">http://www.rfc-editor.org/info/rfc3711</a>&gt;.
+
+   [<a id="ref-RFC5245">RFC5245</a>]  Rosenberg, J., "Interactive Connectivity Establishment
+              (ICE): A Protocol for Network Address Translator (NAT)
+              Traversal for Offer/Answer Protocols", <a href="https://datatracker.ietf.org/doc/html/rfc5245">RFC 5245</a>,
+              DOI 10.17487/RFC5245, April 2010,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5245">http://www.rfc-editor.org/info/rfc5245</a>&gt;.
+
+   [<a id="ref-RFC5246">RFC5246</a>]  Dierks, T. and E. Rescorla, "The Transport Layer Security
+              (TLS) Protocol Version 1.2", <a href="https://datatracker.ietf.org/doc/html/rfc5246">RFC 5246</a>,
+              DOI 10.17487/RFC5246, August 2008,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5246">http://www.rfc-editor.org/info/rfc5246</a>&gt;.
+
+   [<a id="ref-RFC5389">RFC5389</a>]  Rosenberg, J., Mahy, R., Matthews, P., and D. Wing,
+              "Session Traversal Utilities for NAT (STUN)", <a href="https://datatracker.ietf.org/doc/html/rfc5389">RFC 5389</a>,
+              DOI 10.17487/RFC5389, October 2008,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5389">http://www.rfc-editor.org/info/rfc5389</a>&gt;.
+
+   [<a id="ref-RFC5764">RFC5764</a>]  McGrew, D. and E. Rescorla, "Datagram Transport Layer
+              Security (DTLS) Extension to Establish Keys for the Secure
+              Real-time Transport Protocol (SRTP)", <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a>,
+              DOI 10.17487/RFC5764, May 2010,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5764">http://www.rfc-editor.org/info/rfc5764</a>&gt;.
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                [Page 11]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-12"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+   [<a id="ref-RFC5766">RFC5766</a>]  Mahy, R., Matthews, P., and J. Rosenberg, "Traversal Using
+              Relays around NAT (TURN): Relay Extensions to Session
+              Traversal Utilities for NAT (STUN)", <a href="https://datatracker.ietf.org/doc/html/rfc5766">RFC 5766</a>,
+              DOI 10.17487/RFC5766, April 2010,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc5766">http://www.rfc-editor.org/info/rfc5766</a>&gt;.
+
+   [<a id="ref-RFC6347">RFC6347</a>]  Rescorla, E. and N. Modadugu, "Datagram Transport Layer
+              Security Version 1.2", <a href="https://datatracker.ietf.org/doc/html/rfc6347">RFC 6347</a>, DOI 10.17487/RFC6347,
+              January 2012, &lt;<a href="https://www.rfc-editor.org/info/rfc6347">http://www.rfc-editor.org/info/rfc6347</a>&gt;.
+
+<span class="h3"><a class="selflink" id="section-11.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-11.2">11.2</a>.  Informative References</span>
+
+   [<a id="ref-RFC4347">RFC4347</a>]  Rescorla, E. and N. Modadugu, "Datagram Transport Layer
+              Security", <a href="https://datatracker.ietf.org/doc/html/rfc4347">RFC 4347</a>, DOI 10.17487/RFC4347, April 2006,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc4347">http://www.rfc-editor.org/info/rfc4347</a>&gt;.
+
+   [<a id="ref-RFC6189">RFC6189</a>]  Zimmermann, P., Johnston, A., Ed., and J. Callas, "ZRTP:
+              Media Path Key Agreement for Unicast Secure RTP",
+              <a href="https://datatracker.ietf.org/doc/html/rfc6189">RFC 6189</a>, DOI 10.17487/RFC6189, April 2011,
+              &lt;<a href="https://www.rfc-editor.org/info/rfc6189">http://www.rfc-editor.org/info/rfc6189</a>&gt;.
+
+   [<a id="ref-RFC7345">RFC7345</a>]  Holmberg, C., Sedlacek, I., and G. Salgueiro, "UDP
+              Transport Layer (UDPTL) over Datagram Transport Layer
+              Security (DTLS)", <a href="https://datatracker.ietf.org/doc/html/rfc7345">RFC 7345</a>, DOI 10.17487/RFC7345, August
+              2014, &lt;<a href="https://www.rfc-editor.org/info/rfc7345">http://www.rfc-editor.org/info/rfc7345</a>&gt;.
+
+   [<a id="ref-I-D.ietf-mmusic-sdp-bundle-negotiation">I-D.ietf-mmusic-sdp-bundle-negotiation</a>]
+              Holmberg, C., Alvestrand, H., and C. Jennings,
+              "Negotiating Media Multiplexing Using the Session
+              Description Protocol (SDP)", <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-sdp-bundle-negotiation-32">draft-ietf-mmusic-sdp-bundle-</a>
+              <a href="https://datatracker.ietf.org/doc/html/draft-ietf-mmusic-sdp-bundle-negotiation-32">negotiation-32</a> (work in progress), August 2016.
+
+<span class="h2"><a class="selflink" id="appendix-A" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A">Appendix A</a>.  Release notes</span>
+
+   This section must be removed before publication as an RFC.
+
+<span class="h3"><a class="selflink" id="appendix-A.1" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.1">A.1</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-11">draft-ietf-avtcore-rfc5764-mux-fixes-11</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-10">draft-ietf-avtcore-rfc5764-mux-fixes-10</a>
+
+   o  Addressed comments from AD review (editorial).
+
+   o  Addressed comments from Gen-ART, Sec-Dir and OPS-Dir reviews.
+
+
+
+
+
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                [Page 12]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-13"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+<span class="h3"><a class="selflink" id="appendix-A.2" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.2">A.2</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-10">draft-ietf-avtcore-rfc5764-mux-fixes-10</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-09">draft-ietf-avtcore-rfc5764-mux-fixes-09</a>
+
+   o  Removed Implementation Status section.
+
+   o  Updated based on Magnus Westerlund's LC review comments.
+
+   o  On advice of EKR changed boilerplate to pre5378Trust200902.
+
+<span class="h3"><a class="selflink" id="appendix-A.3" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.3">A.3</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-09">draft-ietf-avtcore-rfc5764-mux-fixes-09</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-08">draft-ietf-avtcore-rfc5764-mux-fixes-08</a>
+
+   o  Added ZRTP awareness to demultiplexing logic.
+
+<span class="h3"><a class="selflink" id="appendix-A.4" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.4">A.4</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-08">draft-ietf-avtcore-rfc5764-mux-fixes-08</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-07">draft-ietf-avtcore-rfc5764-mux-fixes-07</a>
+
+   o  Minor update to Security Considerations section.
+
+<span class="h3"><a class="selflink" id="appendix-A.5" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.5">A.5</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-07">draft-ietf-avtcore-rfc5764-mux-fixes-07</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-06">draft-ietf-avtcore-rfc5764-mux-fixes-06</a>
+
+   o  Addresses Martin Thomson, Ben Campbell and Stephen Farrell's
+      review comments about TLS ContentType registrations.
+
+<span class="h3"><a class="selflink" id="appendix-A.6" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.6">A.6</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-06">draft-ietf-avtcore-rfc5764-mux-fixes-06</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-05">draft-ietf-avtcore-rfc5764-mux-fixes-05</a>
+
+   o  Addresses Colin's WGLC review comments
+
+<span class="h3"><a class="selflink" id="appendix-A.7" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.7">A.7</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-05">draft-ietf-avtcore-rfc5764-mux-fixes-05</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-04">draft-ietf-avtcore-rfc5764-mux-fixes-04</a>
+
+   o  Removed some remnants of the ordering from <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-6">Section 6</a>
+
+   o  Moved Terminology from <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-5">Section 5</a> to <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#section-2">Section 2</a>
+
+<span class="h3"><a class="selflink" id="appendix-A.8" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.8">A.8</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-04">draft-ietf-avtcore-rfc5764-mux-fixes-04</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-03">draft-ietf-avtcore-rfc5764-mux-fixes-03</a>
+
+   o  Removed Section on "Demultiplexing Algorithm Test Order"
+
+   o  Split the Introduction into separate sections
+
+
+
+
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                [Page 13]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-14"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+<span class="h3"><a class="selflink" id="appendix-A.9" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.9">A.9</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-03">draft-ietf-avtcore-rfc5764-mux-fixes-03</a> and</span>
+      <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-02">draft-ietf-avtcore-rfc5764-mux-fixes-02</a>
+
+   o  Revert to the <a href="https://datatracker.ietf.org/doc/html/rfc5389">RFC 5389</a>, as the stunbis reference was needed only
+      for STUN over SCTP.
+
+<span class="h3"><a class="selflink" id="appendix-A.10" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.10">A.10</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-02">draft-ietf-avtcore-rfc5764-mux-fixes-02</a> and</span>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-01">draft-ietf-avtcore-rfc5764-mux-fixes-01</a>
+
+   o  Remove any discussion about SCTP until a consensus emerges in
+      TRAM.
+
+<span class="h3"><a class="selflink" id="appendix-A.11" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.11">A.11</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-01">draft-ietf-avtcore-rfc5764-mux-fixes-01</a> and</span>
+       <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-00">draft-ietf-avtcore-rfc5764-mux-fixes-00</a>
+
+   o  Instead of allocating the values that are common on each registry,
+      the specification now only reserves them, giving the possibility
+      to allocate them in case muxing is irrelevant.
+
+   o  STUN range is now 0-3m with 2-3 being Designated Expert.
+
+   o  TLS ContentType 0-19 and 64-255 are now reserved.
+
+   o  Add SCTP over UDP value.
+
+   o  If an implementation uses the source IP address/port to separate
+      TURN channels packets then the whole channel numbers are
+      available.
+
+   o  If not the prefix is between 64 and 79.
+
+   o  First byte test order is now by incremental values, so failure is
+      deterministic.
+
+   o  Redraw the demuxing diagram.
+
+<span class="h3"><a class="selflink" id="appendix-A.12" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.12">A.12</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes-00">draft-ietf-avtcore-rfc5764-mux-fixes-00</a> and</span>
+       <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes-02">draft-petithuguenin-avtcore-rfc5764-mux-fixes-02</a>
+
+   o  Adoption by WG.
+
+   o  Add reference to STUNbis.
+
+
+
+
+
+
+
+
+
+<span class="grey">Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                [Page 14]</span></pre>
+<hr class="noprint"><!--NewPage--><pre class="newpage"><span id="page-15"></span>
+<span class="grey">Internet-Draft             <a href="https://datatracker.ietf.org/doc/html/rfc5764">RFC 5764</a> Mux Fixes             September 2016</span>
+
+
+<span class="h3"><a class="selflink" id="appendix-A.13" href="https://datatracker.ietf.org/doc/html/draft-ietf-avtcore-rfc5764-mux-fixes#appendix-A.13">A.13</a>.  Modifications between <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes-00">draft-petithuguenin-avtcore-rfc5764-mux-</a></span>
+       <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes-00">fixes-00</a> and <a href="https://datatracker.ietf.org/doc/html/draft-petithuguenin-avtcore-rfc5764-mux-fixes-01">draft-petithuguenin-avtcore-rfc5764-mux-fixes-01</a>
+
+   o  Change affiliation.
+
+Authors' Addresses
+
+   Marc Petit-Huguenin
+   Impedance Mismatch
+
+   Email: marc@petit-huguenin.org
+
+
+   Gonzalo Salgueiro
+   Cisco Systems
+   7200-12 Kit Creek Road
+   Research Triangle Park, NC  27709
+   US
+
+   Email: gsalguei@cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Petit-Huguenin &amp; SalgueiroExpires March 5, 2017                [Page 15]
+</pre></div>
+    </div>
+
+            
+        </div>
+        
+    
+    <script>
+        var legend_html = 'Color legend:<br> \
+        <table> \
+        <tr><td>Unknown:</td>                   <td><span class="bgwhite">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Draft:</td>                     <td><span class="bgred">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Informational:</td>             <td><span class="bgorange">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Experimental:</td>              <td><span class="bgyellow">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Best Common Practice:</td>      <td><span class="bgmagenta">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Proposed Standard:</td>         <td><span class="bgblue">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Draft Standard (old designation):</td> <td><span class="bgcyan">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Internet Standard:</td>         <td><span class="bggreen">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Historic:</td>                  <td><span class="bggrey">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        <tr><td>Obsolete:</td>                  <td><span class="bgbrown">&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr> \
+        </table>';
+        function showLegend() {
+            var elem = document.getElementById('legend');
+            elem.innerHTML = legend_html
+            elem.style.visibility='visible';
+        }
+        function hideLegend() {
+            var elem = document.getElementById('legend');
+            elem.style.visibility='hidden';
+            elem.innerHTML = "";
+        }
+    </script>
+
+<<<<<<< HEAD
+<script type="text/javascript">(function(){window['__CF$cv$params']={r:'70d24b3118f37bf5',m:'.Vnu5a3KG_yxpe0pAgUZBlnwp3pQ0AMZbHexqKOYXtw-1652852800-0-Ac9QwaDfIXEe8wVqKLXCccD4j+v++QX7qiOEuO9pi2AlavISdhD7JDX2VJ0FmmCOAwOlnjzp9e/r4uZFyy+q/kOKk8dCAsqjO74R4rjqLH6lH5eXnZVs14xXaJZsw8S17NoD+cPcFFk8fYGf7TSGumofzA+/WTVPhDNbnpKoIMTv',s:[0x52afec7fc6,0x0f9c9b1ba6],u:'/cdn-cgi/challenge-platform/h/b'}})();</script>
+=======
+<script type="text/javascript">(function(){window['__CF$cv$params']={r:'70da9b0b68873da6',m:'ecycENBSg2jiXnYopZeZKDBLNX7mNyEYxU3MPtVdLX0-1652939957-0-AYlvAaqYEHAluxnjL6RoewfQmXn+fEX6GxUKubtDG1Op894j4fea5U+TvgxK+I9j2I3Y54Mml8l8R0c/ie4hmphTkG15PNp/fcigtnfD7Y0TMxw/ib2va32aRCsf/ayzzkpWTv4FlK1EFX1wd760kz7YZNXBT0LuRNYkxRyNbVpZ',s:[0x4a431805bb,0x0a429e8421],u:'/cdn-cgi/challenge-platform/h/b'}})();</script>
+>>>>>>> def6e3b644c9efd122f46df3eae4bb9677677279
+</body></html>
