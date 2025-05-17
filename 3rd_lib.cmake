@@ -19,7 +19,7 @@ ExternalProject_Add(libboost
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./bootstrap.sh --prefix=${PROJECT_BINARY_DIR}
     BUILD_COMMAND ./b2 cxxflags="-std=c++20" --with-program_options --with-system --with-thread --with-date_time --with-regex --with-serialization --with-context --with-coroutine link=static
-    INSTALL_COMMAND ./b2 install --perfix=${PROJECT_BINARY_DIR}
+    INSTALL_COMMAND ./b2 install --prefix=${PROJECT_BINARY_DIR}
 )
 add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
 
