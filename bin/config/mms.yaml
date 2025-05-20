@@ -1,0 +1,43 @@
+cert_root: "./certs" #证书存储根路径
+log_level: debug
+record_root_path: /data/record
+socket_timeout: 10s #socket没有数据收发的话，超时关闭
+
+rtmp: 
+  enabled: true               # 使能
+  port: 1935                # 监听的端口
+  out_chunk_size: 40960    # 输出给对端的chunk size
+rtmps:
+  enabled: true
+  port: 1936
+http:
+  enabled: true
+  port: 80
+  static_file_server:
+    enabled: true
+    path_map:
+      /static/record/*: /data/record
+      /static/console/*: /data/console
+https:
+  enabled: true
+  port: 443
+  static_file_server:
+    enabled: true
+    path_map:
+      /static/record/*: /data/record
+      /static/console/*: /data/console
+rtsp:
+  enabled: true
+  port: 554
+rtsps:
+  enabled: true
+  port: 555
+http_api:
+  enabled: true
+  port: 8080
+webrtc:
+  enabled: true
+  udp_port: 8878
+  ip: 192.168.108.211
+  internal_ip: 192.168.108.211
+
