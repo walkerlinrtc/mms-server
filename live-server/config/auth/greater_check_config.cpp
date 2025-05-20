@@ -21,7 +21,6 @@ bool GreaterCheckConfig::check(StreamSession & session, const std::vector<std::s
     try {
         auto i1 = std::atoll(method_params[0].c_str());
         auto i2 = std::atoll(method_params[1].c_str());
-        spdlog::info("i1:{}, i2:{}", i1, i2);
         if (can_equal_) {
             return i1 >= i2;
         } else {

@@ -9,6 +9,7 @@
  */
 #include "hmac_sha1_param.h"
 #include "base/utils/utils.h"
+#include "log/log.h"
 using namespace mms;
 
 HMACSha1Param::HMACSha1Param() : Param("hmac_sha1") {
@@ -30,5 +31,7 @@ std::string HMACSha1Param::get_val(StreamSession & session, std::vector<std::str
     }
     
     std::string res = Utils::calc_hmac_sha1(method_params[0], method_params[1]);
-    return res;
+    std::string hex_str;
+    Utils::bin_to_hex_str(res, hex_str);
+    return hex_str;
 }

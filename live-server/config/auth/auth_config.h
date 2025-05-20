@@ -19,8 +19,7 @@ public:
     int32_t check(std::shared_ptr<StreamSession> s);
     int32_t load(const YAML::Node & node);
 protected:
-    std::shared_ptr<Param> recursive_search_param_node(const YAML::Node & node, const std::string & param_name);
-    int32_t parse_check_config(const YAML::Node & node);
+    int32_t parse_check_config(const YAML::Node & node, const YAML::Node & parent_node);
     int32_t parse_method_param(const YAML::Node & node, std::shared_ptr<Param> param_holder, const std::string & method_param);
     int32_t parse_check_param(const YAML::Node & node, std::shared_ptr<CheckConfig> check, const std::string & method_param);
     std::shared_ptr<PlaceHolder> gen_holder(const YAML::Node & node, const std::string & seg, bool is_string_holder);

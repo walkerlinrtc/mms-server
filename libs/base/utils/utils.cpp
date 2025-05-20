@@ -645,7 +645,7 @@ bool Utils::bin_to_hex_str(const std::string & input, std::string & output, bool
         if (t < 10) {
             t += '0';
         } else {
-            t += 'a' - 10;
+            t += (upper?'A':'a') - 10;
         }
         output[i*2] = t;
 
@@ -653,7 +653,7 @@ bool Utils::bin_to_hex_str(const std::string & input, std::string & output, bool
         if (t < 10) {
             t += '0';
         } else {
-            t += (upper?'a':'A') - 10;
+            t += (upper?'A':'a') - 10;
         }
         output[i*2+1] = t;
     }

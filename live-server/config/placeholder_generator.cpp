@@ -126,7 +126,7 @@ std::shared_ptr<PlaceHolder> PlaceHolderGenerator::gen_holder(const YAML::Node &
         auto placeholder = std::make_shared<StringPlaceHolder>(seg);
         return placeholder;
     }
-
+    
     if (seg == "domain") {
         auto placeholder = std::make_shared<DomainPlaceHolder>();
         return placeholder;

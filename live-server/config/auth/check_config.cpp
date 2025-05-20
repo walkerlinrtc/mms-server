@@ -5,6 +5,7 @@
 #include "greater_check_config.h"
 #include "smaller_check_config.h"
 #include "../placeholder/placeholder.h"
+#include "log/log.h"
 
 using namespace mms;
 
@@ -38,7 +39,8 @@ bool CheckConfig::check(StreamSession & session) {
     for (auto & mph : holders_) {
         std::string p;
         for (auto & h : mph) {
-            p += h->get_val(session);
+            auto v = h->get_val(session);
+            p += v;
         }
         method_params.emplace_back(p);
     }

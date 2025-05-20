@@ -9,6 +9,7 @@
  */
 #include "base64_param.h"
 #include "base/utils/utils.h"
+#include "log/log.h"
 
 using namespace mms;
 

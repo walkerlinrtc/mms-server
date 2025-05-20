@@ -24,18 +24,18 @@ apps:
     #   params:
     #     time: get_time()
     #     sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
-    # publish_auth_check: #限时鉴权sk(expiry_sk)
-    #   params:
-    #     SignStr: string(/${app}/${stream_name}/?e=${url_params[e]})
-    #     SecretKey: string(312ae9gd2BrCfpTdF4U8aIg9Puh62K4eEGY72Ea_)
-    #     AccessKey: string(7O7hf7Ld1RrC_fpZdFvU8aCgOPuhw2K4eapYOdII)
-    #     HMAC: hmac_sha1(${params[SignStr]},${params[SecretKey]})
-    #     Base64: base64(${params[HMAC]})
-    #     Token: string(${params[AccessKey]}:${params[Base64]})
-    #     time: get_time()
-    #   checks:
-    #     - "{$url_params[token]} == ${params[Token]}"
-    #     - "{$url_params[e]} == ${params[time]}"
+    publish_auth_check: #限时鉴权sk(expiry_sk)
+      params:
+        SignStr: string(/${app}/${stream_name}/?e=${url_params[e]})
+        SecretKey: string(312ae9gd2BrCfpTdF4U8aIg9Puh62K4eEGY72Ea_)
+        AccessKey: string(7O7hf7Ld1RrC_fpZdFvU8aCgOPuhw2K4eapYOdII)
+        HMAC: hmac_sha1(${params[SecretKey]},${params[SignStr]})
+        Base64: base64(${params[HMAC]})
+        Token: string(${params[AccessKey]}:${params[Base64]})
+        time: get_time()
+      checks:
+        - "${url_params[token]} == ${params[Token]}"
+        - "${url_params[e]} > ${params[time]}"
     # http_callbacks:             # 回调配置
     #   on_publish: 
     #       - async: false

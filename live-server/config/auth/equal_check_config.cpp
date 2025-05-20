@@ -20,10 +20,8 @@ bool EqualCheckConfig::check(StreamSession & session, const std::vector<std::str
     }
 
     if (equal_) {
-        CORE_DEBUG("equal check config, param0:{} == param1:{}", method_params[0], method_params[1]);
         return method_params[0] == method_params[1];
     } else {
-        CORE_DEBUG("equal check config, param0:{} != param1:{}", method_params[0], method_params[1]);
         return method_params[0] != method_params[1];
     }
 }

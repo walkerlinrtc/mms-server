@@ -633,7 +633,27 @@ bool RtmpServerSession::parse_connect_cmd(RtmpConnectCommandMessage & connect_co
 bool RtmpServerSession::parse_publish_cmd(RtmpPublishMessage & pub_cmd) {
     auto & stream_name = pub_cmd.stream_name();
     if (stream_name_.empty()) {
-        stream_name_ = stream_name;
+        auto question_mark_pos = stream_name.find("?");
+        if (question_mark_pos != std::string::npos) {//解析错误
+            stream_name_ = stream_name.substr(0, question_mark_pos);
+            std::vector<std::string> vs;
+            std::string params_list = stream_name.substr(question_mark_pos + 1, stream_name.size() - question_mark_pos - 1);
+            boost::split(vs, params_list, boost::is_any_of("&"));
+            for (auto & s : vs) {
+                auto equ_pos = s.find("=");
+                if (equ_pos == std::string::npos) {
+                    continue;
+                }
+
+                std::string name = s.substr(0, equ_pos);
+                std::string value = s.substr(equ_pos + 1);
+                set_param(name, value);
+            }
+        } else {
+            stream_name_ = stream_name;
+        }
+        
+        CORE_DEBUG("stream_name:{}", stream_name_);
     }
     set_session_info(domain_name_, app_name_, stream_name_);
     return true;
