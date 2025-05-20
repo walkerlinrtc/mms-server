@@ -334,9 +334,9 @@ bool RtmpMetaDataMessage::retrieve_info(Amf0EcmaArray *metadata) {
         width_ = *t;
     }
     
-    t = metadata->get_property<Amf0Boolean>("stereo");
-    if (t) {
-        stereo_ = *t;
+    auto v = metadata->get_property<Amf0Boolean>("stereo");
+    if (v) {
+        stereo_ = *v;
     }
 
     t = metadata->get_property<Amf0Number>("videocodecid");
@@ -409,9 +409,9 @@ bool RtmpMetaDataMessage::retrieve_info(Amf0Object *metadata) {
         width_ = *t;
     }
     
-    t = metadata->get_property<Amf0Boolean>("stereo");
-    if (t) {
-        stereo_ = *t;
+    auto v = metadata->get_property<Amf0Boolean>("stereo");
+    if (v) {
+        stereo_ = *v;
     }
 
     t = metadata->get_property<Amf0Number>("videocodecid");

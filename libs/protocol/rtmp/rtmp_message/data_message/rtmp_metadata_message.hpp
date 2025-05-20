@@ -82,7 +82,7 @@ private:
     uint32_t frame_rate_;
     uint32_t height_;
     uint32_t width_;
-    bool stereo_;
+    bool stereo_ = true;
     VideoTagHeader::CodecID video_codec_id_;
     uint32_t video_data_rate_;
 
