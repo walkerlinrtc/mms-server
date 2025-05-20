@@ -30,7 +30,8 @@ apps:
         SecretKey: string(312ae9gd2BrCfpTdF4U8aIg9Puh62K4eEGY72Ea_)
         AccessKey: string(7O7hf7Ld1RrC_fpZdFvU8aCgOPuhw2K4eapYOdII)
         HMAC: hmac_sha1(${params[SecretKey]},${params[SignStr]})
-        Base64: base64(${params[HMAC]})
+        HMAC_Hex: bin_to_hex(${params[HMAC]})
+        Base64: base64(${params[HMAC_Hex]})
         Token: string(${params[AccessKey]}:${params[Base64]})
         time: get_time()
       checks:

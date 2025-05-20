@@ -18,6 +18,7 @@
 #include "base64_param.h"
 #include "add_param.h"
 #include "sub_param.h"
+#include "bin_to_hex_param.h"
 
 using namespace mms;
 Param::Param(const std::string & method_name) : method_name_(method_name) {
@@ -45,6 +46,8 @@ std::shared_ptr<Param> Param::gen_param(const std::string & method_name) {
         return std::make_shared<AddParam>();
     } else if (method_name == "sub") {
         return std::make_shared<SubParam>();
+    } else if (method_name == "bin_to_hex") {
+        return std::make_shared<BinToHexParam>();
     }
     return nullptr;
 }

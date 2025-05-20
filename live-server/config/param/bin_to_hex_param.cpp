@@ -7,29 +7,30 @@
  * @FilePath: \mms\mms\config\param\md5_param.cpp
  * Copyright (c) 2023 by jbl19860422@gitee.com, All Rights Reserved. 
  */
-#include "hmac_sha1_param.h"
+#include "bin_to_hex_param.h"
 #include "base/utils/utils.h"
 #include "log/log.h"
+
 using namespace mms;
 
-HMACSha1Param::HMACSha1Param() : Param("hmac_sha1") {
+BinToHexParam::BinToHexParam() : Param("bin_to_hex") {
 
 }
 
-HMACSha1Param::~HMACSha1Param() {
+BinToHexParam::~BinToHexParam() {
     
 }
 
-int32_t HMACSha1Param::param_count() {
-    return 2;
+int32_t BinToHexParam::param_count() {
+    return 1;
 }
 
-std::string HMACSha1Param::get_val(StreamSession & session, std::vector<std::string> & method_params) {
+std::string BinToHexParam::get_val(StreamSession & session, std::vector<std::string> & method_params) {
     ((void)session);
-    if (method_params.size() < 2) {
+    if (method_params.size() < 1) {
         return "";
     }
-    
-    std::string res = Utils::calc_hmac_sha1(method_params[0], method_params[1]);
+    std::string res;
+    Utils::bin_to_hex_str(method_params[0], res);
     return res;
 }
