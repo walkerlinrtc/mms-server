@@ -130,6 +130,10 @@ Error PublishApp::publish_auth_check(std::shared_ptr<StreamSession> session) {
         return Error{ERROR_SUCCESS, ""};
     }
 
+    if (!publish_auth_check->is_enabled()) {
+        return Error{ERROR_SUCCESS, ""};
+    }
+
     if (0 != publish_auth_check->check(session)) {
         return Error{ERROR_FORBIDDEN, "Forbidden"};
     }

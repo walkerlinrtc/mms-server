@@ -25,6 +25,7 @@ apps:
     #     time: get_time()
     #     sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
     publish_auth_check: #限时鉴权sk(expiry_sk)
+      enabled: true
       params:
         SignStr: string(/${app}/${stream_name}/?e=${url_params[e]})
         SecretKey: string(312ae9gd2BrCfpTdF4U8aIg9Puh62K4eEGY72Ea_)

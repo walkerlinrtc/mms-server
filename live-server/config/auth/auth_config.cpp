@@ -30,15 +30,14 @@
 #include "../placeholder_generator.h"
 
 using namespace mms;
-AuthConfig::AuthConfig() {
-
-}
-
-AuthConfig::~AuthConfig() {
-
-}
-
 int32_t AuthConfig::load(const YAML::Node & node) {
+    YAML::Node enabled = node["enabled"];
+    if (enabled.IsDefined()) {
+        enabled_ = enabled.as<bool>();
+    } else {
+        enabled_ = false;
+    }
+
     auto checks_node = node["checks"];
     if (!checks_node.IsDefined() || !checks_node.IsSequence()) {
         return -6;
