@@ -30,12 +30,13 @@ for docs please refer to http://www.mms-server.tech/en/.
 * Requires automake autoconf libtoool.
 * Requires golang for build libboringssl.
 * Requires nasm/yasm for build libav.
-：：：tip attention
-If compiling g++ 13.1 or later from source, use g++ -v to confirm the compilation options used during configuration:
+* If compiling g++ 13.1 or later from source, use g++ -v to confirm the compilation options used during configuration:
+```
 ../configure --enable-bootstrap --enable-languages=c,c++,lto --prefix=/root/gcc-13.1 --with-bugurl=https://bugs.rockylinux.org/ --enable-shared --enable-threads=posix --enable-checking=release --disable-multilib --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-gnu-unique-object --enable-linker-build-id --with-gcc-major-version-only --enable-libstdcxx-backtrace --with-linker-hash-style=gnu --enable-plugin --enable-initfini-array --enable-offload-targets=nvptx-none --without-cuda-driver --enable-offload-defaulted --enable-gnu-indirect-function --enable-cet --with-tune=generic --with-arch_64=x86-64-v2 --with-build-config=bootstrap-lto --enable-link-serialization=1
+```
 Otherwise, the following linking errors may occur. For reference, see:
 https://github.com/jbl19860422/mms-server/issues/2
-:::
+
 ### Source Compilation
 
 ```
