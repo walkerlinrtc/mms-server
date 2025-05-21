@@ -64,7 +64,7 @@ void HttpM3u8ServerSession::service() {
         }
         auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + http_request_->get_path_param("stream");
         // 1.本机查找
-        auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+        auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
         if (!source) {// 2.本地配置查找外部回源
             source = co_await publish_app->find_media_source(self);
         }

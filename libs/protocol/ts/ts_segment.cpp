@@ -4,11 +4,12 @@
 #include "string.h"
 
 #include "ts_segment.hpp"
+#include "spdlog/spdlog.h"
 using namespace mms;
 
 TsSegment::TsSegment() {
-    ts_buf_ = std::make_unique<uint8_t[]>(188*1024);
-    ts_buf_max_len_ = 188*1024;
+    ts_buf_ = std::make_unique<uint8_t[]>(188*4096);
+    ts_buf_max_len_ = 188*4096;
 }
 
 TsSegment::~TsSegment() {

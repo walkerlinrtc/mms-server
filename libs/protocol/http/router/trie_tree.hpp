@@ -84,11 +84,11 @@ private:
             }
 
             size_t j = 0;//:stream.flv
-            while (j < path.size() && path[j] != '/' && path[j] != '.') {
+            while (j < path.size() && path[j] != '/') {
                 j++;
             }
 
-            if (j == path.size()) {//到了末尾 /:stream
+            if (j == path.size()) {//到了末尾
                 std::string param_name(path.substr(1, j));
                 auto param_child_node = child_node->get_param_child(param_name);
                 if (!param_child_node) {
@@ -99,7 +99,7 @@ private:
                 param_child_node->handler_ = handler;
                 return true;
             } else {
-                std::string param_name(path.substr(1, j-1));//去掉'/','.'
+                std::string param_name(path.substr(1, j-1));//去掉'/'
                 auto param_child_node = child_node->get_param_child(param_name);
                 if (!param_child_node) {
                     param_child_node = std::make_shared<TrieNode>();
@@ -161,7 +161,7 @@ private:
         child = node.get_child(':');//   /apd  /:app
         if (child) {
             size_t j = 0;  // app/   test.flv
-            while (j < path.size() && path[j] != '/' && path[j] != '.') {
+            while (j < path.size() && path[j] != '/') {
                 j++;
             }
             std::string param_val(path.substr(0, j));

@@ -28,7 +28,7 @@ HttpTsServerSession::HttpTsServerSession(std::shared_ptr<HttpRequest> http_req, 
 }
 
 HttpTsServerSession::~HttpTsServerSession() {
-
+    CORE_INFO("destroy HttpTsServerSession");
 }
 
 void HttpTsServerSession::service() {
@@ -64,8 +64,8 @@ void HttpTsServerSession::service() {
         }
 
         auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + http_request_->get_path_param("stream");
-        const std::string ts_name = stream_name_ + "/" + http_request_->get_path_param("id") + ".ts";
-        auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+        const std::string ts_name = http_request_->get_path_param("filename");
+        auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
         std::shared_ptr<HlsLiveMediaSource> hls_source;
         if (!source) {//todo : reply 404
             CORE_DEBUG("could not find source for domain:{}, app:{}", domain_name_, app_name_);

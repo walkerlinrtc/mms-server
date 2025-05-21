@@ -86,7 +86,7 @@ void HttpLongTsServerSession::service() {
         auto publish_app = play_app->get_publish_app();
         auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + http_request_->get_path_param("stream");
         // 2. 本地流级别回源配置
-        auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+        auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
         auto endpoint = this->get_param("mms-endpoint");
         if (endpoint && endpoint.value().get() == "1") {
             // if (!source) {

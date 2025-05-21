@@ -214,7 +214,7 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}, dur:{} by video", 
+            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", 
                             get_session_name(), 
                             curr_seg_->get_seqno(),
                             curr_seg_->get_filename(),
@@ -450,7 +450,7 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}, dur:{} by video", 
+            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", 
                             get_session_name(), 
                             curr_seg_->get_seqno(),
                             curr_seg_->get_filename(),
@@ -1057,7 +1057,7 @@ bool RtmpToTs::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(false, curr_seg_)) {
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}, dur:{} by audio", 
+            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", 
                             get_session_name(), 
                             curr_seg_->get_seqno(),
                             curr_seg_->get_filename(),
@@ -1247,7 +1247,7 @@ bool RtmpToTs::process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(false, curr_seg_)) {
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}, dur:{} by audio", 
+            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", 
                             get_session_name(), 
                             curr_seg_->get_seqno(),
                             curr_seg_->get_filename(),

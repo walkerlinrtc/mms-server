@@ -42,7 +42,7 @@ void HlsLiveMediaSource::update_last_access_time() {
 
 bool HlsLiveMediaSource::on_ts_segment(std::shared_ptr<TsSegment> ts) {
     ts->set_seqno(++curr_seq_no_);
-    ts->set_filename(stream_name_ + "/" + std::to_string(curr_seq_no_) + ".ts");
+    ts->set_filename(std::to_string(curr_seq_no_) + ".ts");
     std::unique_lock<std::shared_mutex> lck(ts_segments_mtx_);
     if (ts_segments_.size() >= 10) {
         ts_segments_.pop_front();
@@ -99,7 +99,7 @@ void HlsLiveMediaSource::update_m3u8() {
     ss.setf(std::ios::fixed, std::ios::floatfield);
     for (size_t seg_index = first_seg_index; seg_index < ts_segments_.size(); seg_index++) {
         ss << "#EXTINF:" << ts_segments_[seg_index]->get_duration() / 1000.0 << "\r\n";
-        ss << ts_segments_[seg_index]->get_filename() << "\r\n";
+        ss << "live/ts/" << ts_segments_[seg_index]->get_filename() << "\r\n";
     }
 
     m3u8_ = ss.str();
