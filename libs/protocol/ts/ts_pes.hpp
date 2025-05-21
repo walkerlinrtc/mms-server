@@ -71,6 +71,7 @@ struct PESPacket : public Packet {
     std::string_view pes_payload;
 
     std::shared_ptr<TsSegment> ts_seg;//ts切片holder
+    int32_t ts_index = 0;
     int32_t ts_off = 0;//ts在ts_seg中的偏移
     int32_t ts_bytes = 0;//ts在ts_seg中的字节数
     int32_t decode(const char *data, int32_t len);

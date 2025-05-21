@@ -40,8 +40,9 @@ public:
     int64_t get_duration();
 
     int32_t get_curr_ts_offset();
+    int32_t get_curr_ts_index();
     std::string_view alloc_ts_packet();
-    std::string_view get_ts_data();
+    std::vector<std::string_view> get_ts_data();
     int64_t get_ts_bytes();
     void set_reaped() {
         is_reaped_ = true;
@@ -62,9 +63,12 @@ private:
 
     std::string filename_;
     int64_t seq_ = 0;
-    std::unique_ptr<uint8_t[]> ts_buf_;
+
+    std::vector<std::unique_ptr<uint8_t[]>> ts_bufs_;
+    int32_t ts_buf_index_ = 0;
     size_t ts_buf_len_ = 0;
     size_t ts_buf_max_len_;
+    int64_t total_ts_bytes_ = 0;
     bool is_reaped_  = false;
 };
 };

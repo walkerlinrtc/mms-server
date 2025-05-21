@@ -113,17 +113,26 @@ void HttpTsServerSession::service() {
                 co_return;
             }
             
-            auto ts_data = ts_seg->get_ts_data();
+            auto ts_datas = ts_seg->get_ts_data();
             http_response_->add_header("Content-Type", "video/MP2T");
             http_response_->add_header("Connection", "close");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
-            http_response_->add_header("Content-Length", std::to_string(ts_data.size()));
+            int64_t total_bytes = 0;
+            for (auto & ts_data : ts_datas) {
+                total_bytes += ts_data.size();
+            }
+
+            http_response_->add_header("Content-Length", std::to_string(total_bytes));
             if (!co_await http_response_->write_header(200, "Ok")) {
                 close();
                 co_return;
             }
-
-            co_await http_response_->write_data(ts_data);
+            
+            std::vector<boost::asio::const_buffer> bufs;
+            for (auto & ts_data : ts_datas) {
+                bufs.push_back(boost::asio::const_buffer((char*)ts_data.data(), ts_data.size()));
+            }
+            co_await http_response_->write_data(bufs);
         }
 
         co_return;

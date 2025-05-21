@@ -75,8 +75,10 @@ bool TsRecorder::init() {
             }
 
             record_seg_count_++;
-            auto ts_data = ts_seg->get_ts_data();
-            ts_file.write(ts_data.data(), ts_data.size());
+            auto ts_datas = ts_seg->get_ts_data();
+            for (auto & ts_data : ts_datas) {
+                ts_file.write(ts_data.data(), ts_data.size());
+            }
             ts_file.close();
             
             Json::Value ts_rec;

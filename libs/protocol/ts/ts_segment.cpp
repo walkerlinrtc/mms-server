@@ -8,7 +8,8 @@
 using namespace mms;
 
 TsSegment::TsSegment() {
-    ts_buf_ = std::make_unique<uint8_t[]>(188*4096);
+    ts_bufs_.emplace_back(std::move(std::make_unique<uint8_t[]>(188*4096)));
+    ts_buf_index_ = 0;
     ts_buf_max_len_ = 188*4096;
 }
 
@@ -95,23 +96,37 @@ int32_t TsSegment::get_curr_ts_offset() {
     return ts_buf_len_;
 }
 
+int32_t TsSegment::get_curr_ts_index() {
+    return ts_buf_index_;
+}
+
 std::string_view TsSegment::alloc_ts_packet() {
-    if ((ts_buf_len_ + 188) > ts_buf_max_len_) {
-        auto ts_buf_new = std::make_unique<uint8_t[]>(ts_buf_max_len_*2);
-        ts_buf_max_len_ = ts_buf_max_len_*2;
-        memcpy(ts_buf_new.get(), ts_buf_.get(), ts_buf_len_);
-        ts_buf_.swap(ts_buf_new);
+    if (ts_buf_len_ >= ts_buf_max_len_) {
+        auto new_ts_buf = std::make_unique<uint8_t[]>(ts_buf_max_len_);
+        ts_bufs_.push_back(std::move(new_ts_buf));
+        ts_buf_index_++;
+        ts_buf_len_ = 0;
     }
 
-    auto pkt = std::string_view((char*)ts_buf_.get() + ts_buf_len_, 188);
+    auto pkt = std::string_view((char*)ts_bufs_[ts_buf_index_].get() + ts_buf_len_, 188);
     ts_buf_len_ += 188;
+    total_ts_bytes_ += 188;
     return pkt;
 }
 
-std::string_view TsSegment::get_ts_data() {
-    return std::string_view((char*)ts_buf_.get(), ts_buf_len_);
+std::vector<std::string_view> TsSegment::get_ts_data() {
+    std::vector<std::string_view> vs;
+    for (auto it = ts_bufs_.begin(); it != ts_bufs_.end(); it++) {
+        if ((it + 1) == ts_bufs_.end()) {
+            vs.push_back(std::string_view((char*)(*it).get(), ts_buf_len_));
+        } else {
+            vs.push_back(std::string_view((char*)(*it).get(), ts_buf_max_len_));
+        }
+    }
+
+    return vs;
 }
 
 int64_t TsSegment::get_ts_bytes() {
-    return ts_buf_len_;
+    return total_ts_bytes_;
 }
