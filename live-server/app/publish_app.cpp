@@ -39,7 +39,12 @@ PublishApp::~PublishApp() {
 
 }
 
-std::shared_ptr<MediaSource> PublishApp::create_pull_media_source(std::shared_ptr<OriginPullConfig> origin_pull_config, std::shared_ptr<StreamSession> session) {
+boost::asio::awaitable<std::shared_ptr<MediaSource>> PublishApp::find_media_source(std::shared_ptr<StreamSession> session) {
+    auto origin_pull_config = app_conf_->origin_pull_config();
+    if (!origin_pull_config) {
+        co_return nullptr;
+    }
+
     if (origin_pull_config->get_protocol() == "http-flv") {
         auto url = origin_pull_config->gen_url(session);
         auto http_flv_client_session = std::make_shared<HttpFlvClientSession>(std::static_pointer_cast<PublishApp>(shared_from_this()), 
@@ -50,7 +55,7 @@ std::shared_ptr<MediaSource> PublishApp::create_pull_media_source(std::shared_pt
         http_flv_client_session->set_pull_config(origin_pull_config);
         http_flv_client_session->set_url(url);
         http_flv_client_session->service();
-        return http_flv_client_session->get_flv_media_source();
+        co_return http_flv_client_session->get_flv_media_source();
     } else if (origin_pull_config->get_protocol() == "rtmp") {
         auto url = origin_pull_config->gen_url(session);
         std::shared_ptr<RtmpPlayClientSession> rtmp_play_client_session = std::make_shared<RtmpPlayClientSession>(std::static_pointer_cast<PublishApp>(shared_from_this()),
@@ -61,9 +66,9 @@ std::shared_ptr<MediaSource> PublishApp::create_pull_media_source(std::shared_pt
         rtmp_play_client_session->set_pull_config(origin_pull_config);
         rtmp_play_client_session->set_url(url);
         rtmp_play_client_session->service();
-        return rtmp_play_client_session->get_rtmp_media_source();
+        co_return rtmp_play_client_session->get_rtmp_media_source();
     }
-    return nullptr;
+    co_return nullptr;
 }
 
 int32_t PublishApp::on_create_source(const std::string & session_name, std::shared_ptr<MediaSource> source) {

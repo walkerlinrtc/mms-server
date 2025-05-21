@@ -458,10 +458,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(std::sh
     // auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + stream_name_;
     auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
     if (!source) {// 2.本地配置查找外部回源
-        auto source_config = publish_app->get_conf()->origin_pull_config();
-        if (source_config) {
-            source = publish_app->create_pull_media_source(source_config, self);
-        }
+        source = co_await publish_app->find_media_source(self);
     }
     // 3.到media center中心查找
     // todo

@@ -143,14 +143,10 @@ void HttpFlvServerSession::service() {
             //     co_return;
             // }
         }
-
-        auto publish_app_conf = publish_app->get_conf();
+        
         // 3. 本地配置查找外部回源
         if (!source) {
-            auto source_config = publish_app_conf->origin_pull_config();
-            if (source_config) {
-                source = publish_app->create_pull_media_source(source_config, self);
-            }
+            source = co_await publish_app->find_media_source(self);
         }
         // 3. 到media center中心查找
         // if (!source) {

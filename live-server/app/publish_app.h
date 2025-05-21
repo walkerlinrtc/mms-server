@@ -13,6 +13,7 @@
 #include <atomic>
 #include <boost/asio/awaitable.hpp>
 
+#include "core/media_source_finder.h"
 #include "core/error_code.hpp"
 #include "log/log.h"
 #include "app.h"
@@ -29,13 +30,13 @@ class HttpCallbackConfig;
 class TsSegment;
 class Mp4Segment;
 
-class PublishApp : public App {
+class PublishApp : public App, public MediaSourceFinder {
 public:
     PublishApp(const std::string & domain_name, const std::string & app_name);
     virtual ~PublishApp();
 public:
     int32_t on_create_source(const std::string & session_name, std::shared_ptr<MediaSource> source);
-    virtual std::shared_ptr<MediaSource> create_pull_media_source(std::shared_ptr<OriginPullConfig> source_config, std::shared_ptr<StreamSession> session);
+    boost::asio::awaitable<std::shared_ptr<MediaSource>> find_media_source(std::shared_ptr<StreamSession> session) override;
     std::vector<std::shared_ptr<MediaSink>> create_push_streams(std::shared_ptr<MediaSource> source, std::shared_ptr<StreamSession> session);
 
     virtual boost::asio::awaitable<Error> on_publish(std::shared_ptr<StreamSession> session);

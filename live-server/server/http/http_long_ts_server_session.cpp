@@ -99,40 +99,9 @@ void HttpLongTsServerSession::service() {
             // }
         }
 
-        // 2. 到media center中心查找
-        // if (!source) {
-        //     source = co_await MediaCenterClient::get_instance().find_and_create_pull_media_source(self);
-        // }
-        // 2. 流中心查询
-        // 2.1 流中心处理逻辑
-        // 2.1.1 判断redis里面，有没有该流的存在信息，有的话，返回该流所在的ip
-        // 2.2 如果流中心没有，那么通过机房回源配置，到上层回源
-        // 2.3 上层根据app配置，回源
-        // if (!source) {
-        //     auto & system = System::get_instance();
-        //     auto room_route = system.get_room_route();
-        //     if (room_route) {
-        //         CORE_INFO("try to get pull media source from room");
-        //         source = room_route->create_pull_media_source(self);
-        //     } else {
-        //         CORE_INFO("no room source find");
-        //     }
-        // }
-        // 3. 本地流级别回源配置
-        // if (!source) {
-        //     auto & app_conf = app->get_conf();
-        //     auto stream_source_conf = app_conf.find_stream_source_config(get_stream_name());
-        //     if (stream_source_conf) {
-        //         CORE_INFO("find stream source config for {}/{}/{}", domain_, app_name_, stream_name_);
-        //         source = app->create_pull_media_source(stream_source_conf, self);
-        //     }
-        // }
         // 4. 本地app级别回源配置
         if (!source) {
-            auto source_config = publish_app->get_conf()->origin_pull_config();
-            if (source_config) {
-                source = publish_app->create_pull_media_source(source_config, self);
-            }
+            source = co_await publish_app->find_media_source(self);
         }
         
         std::shared_ptr<TsMediaSource> ts_source;

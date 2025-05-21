@@ -66,11 +66,7 @@ void HttpM3u8ServerSession::service() {
         // 1.本机查找
         auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
         if (!source) {// 2.本地配置查找外部回源
-            auto app_conf = publish_app->get_conf();
-            auto source_config = app_conf->origin_pull_config();
-            if (source_config) {
-                source = publish_app->create_pull_media_source(source_config, self);
-            }
+            source = co_await publish_app->find_media_source(self);
         }
         // 3.到media center中心查找
         // if (!source) {
