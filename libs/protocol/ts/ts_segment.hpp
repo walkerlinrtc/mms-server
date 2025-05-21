@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <memory>
+#include <boost/asio/buffer.hpp>
 
 #include "base/utils/utils.h"
 namespace mms {
@@ -43,6 +44,7 @@ public:
     int32_t get_curr_ts_index();
     std::string_view alloc_ts_packet();
     std::vector<std::string_view> get_ts_data();
+    std::vector<boost::asio::const_buffer> get_ts_seg(size_t ts_index, size_t ts_off, int32_t ts_bytes);
     int64_t get_ts_bytes();
     void set_reaped() {
         is_reaped_ = true;
@@ -67,8 +69,9 @@ private:
     std::vector<std::unique_ptr<uint8_t[]>> ts_bufs_;
     int32_t ts_buf_index_ = 0;
     size_t ts_buf_len_ = 0;
-    size_t ts_buf_max_len_;
     int64_t total_ts_bytes_ = 0;
     bool is_reaped_  = false;
+
+    constexpr static int SINGLE_TS_BYTES = 188*4096; 
 };
 };

@@ -8,9 +8,8 @@
 using namespace mms;
 
 TsSegment::TsSegment() {
-    ts_bufs_.emplace_back(std::move(std::make_unique<uint8_t[]>(188*4096)));
+    ts_bufs_.emplace_back(std::move(std::make_unique<uint8_t[]>(SINGLE_TS_BYTES)));
     ts_buf_index_ = 0;
-    ts_buf_max_len_ = 188*4096;
 }
 
 TsSegment::~TsSegment() {
@@ -100,9 +99,28 @@ int32_t TsSegment::get_curr_ts_index() {
     return ts_buf_index_;
 }
 
+std::vector<boost::asio::const_buffer> TsSegment::get_ts_seg(size_t ts_index, size_t ts_off, int32_t ts_bytes) {
+    std::vector<boost::asio::const_buffer> bufs;
+    while (ts_bytes > 0) {
+        int32_t ts_seg_left = SINGLE_TS_BYTES - ts_off;
+        if (ts_seg_left > ts_bytes) {
+            boost::asio::const_buffer buf(ts_bufs_[ts_index].get() + ts_off, ts_bytes);
+            ts_bytes = 0;
+            bufs.push_back(buf); 
+        } else {
+            boost::asio::const_buffer buf(ts_bufs_[ts_index].get() + ts_off, ts_seg_left);
+            ts_index++;
+            ts_off = 0;
+            ts_bytes -= ts_seg_left;
+            bufs.push_back(buf); 
+        }
+    }
+    return bufs;
+}
+
 std::string_view TsSegment::alloc_ts_packet() {
-    if (ts_buf_len_ >= ts_buf_max_len_) {
-        auto new_ts_buf = std::make_unique<uint8_t[]>(ts_buf_max_len_);
+    if (ts_buf_len_ >= SINGLE_TS_BYTES) {
+        auto new_ts_buf = std::make_unique<uint8_t[]>(SINGLE_TS_BYTES);
         ts_bufs_.push_back(std::move(new_ts_buf));
         ts_buf_index_++;
         ts_buf_len_ = 0;
@@ -120,7 +138,7 @@ std::vector<std::string_view> TsSegment::get_ts_data() {
         if ((it + 1) == ts_bufs_.end()) {
             vs.push_back(std::string_view((char*)(*it).get(), ts_buf_len_));
         } else {
-            vs.push_back(std::string_view((char*)(*it).get(), ts_buf_max_len_));
+            vs.push_back(std::string_view((char*)(*it).get(), SINGLE_TS_BYTES));
         }
     }
 

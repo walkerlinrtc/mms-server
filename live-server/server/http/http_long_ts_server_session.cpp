@@ -197,23 +197,8 @@ boost::asio::awaitable<bool> HttpLongTsServerSession::send_ts_seg(std::vector<st
             prev_ts_seg_ = ts_seg;
         }
 
-        auto ts_bytes = pes_pkt->ts_bytes;
-        auto ts_off = pes_pkt->ts_off;
-        auto ts_index = pes_pkt->ts_index;
-        while (ts_bytes > 0) {
-            int32_t ts_seg_left = 188*4096 - ts_off;
-            if (ts_seg_left > ts_bytes) {
-                boost::asio::const_buffer buf(ts_datas[ts_index].data() + ts_off, ts_bytes);
-                ts_bytes = 0;
-                send_bufs_.push_back(buf); 
-            } else {
-                boost::asio::const_buffer buf(ts_datas[ts_index].data() + ts_off, ts_seg_left);
-                ts_index++;
-                ts_off = 0;
-                ts_bytes -= ts_seg_left;
-                send_bufs_.push_back(buf); 
-            }
-        }
+        auto bufs = ts_seg->get_ts_seg(pes_pkt->ts_index, pes_pkt->ts_off, pes_pkt->ts_bytes);
+        send_bufs_.insert(send_bufs_.end(), bufs.begin(), bufs.end());
     }
 
     if (send_bufs_.size() <= 0) {
