@@ -699,8 +699,8 @@ void WebRtcToTs::create_pmt(std::string_view & pmt_seg) {
 void WebRtcToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pes_len, bool is_key) {
     int32_t left_count = pes_len;
     int32_t curr_pes_seg_index = 0;
-    pes_packet->ts_index = curr_seg_->get_curr_ts_index();
-    pes_packet->ts_off = curr_seg_->get_curr_ts_offset();
+    pes_packet->ts_index = curr_seg_->get_curr_ts_chunk_index();
+    pes_packet->ts_off = curr_seg_->get_curr_ts_chunk_offset();
     pes_packet->ts_seg = curr_seg_;
     int32_t ts_total_bytes = 0;
     while (left_count > 0) {
@@ -1006,8 +1006,8 @@ void WebRtcToTs::process_opus_packet(std::shared_ptr<RtpPacket> pkt, int64_t tim
 void WebRtcToTs::create_audio_ts(std::shared_ptr<PESPacket> pes_packet) {
     int curr_pes_seg_index = 0;
     int32_t left_count = audio_buf_.audio_pes_len;
-    pes_packet->ts_index = curr_seg_->get_curr_ts_index();
-    pes_packet->ts_off = curr_seg_->get_curr_ts_offset();
+    pes_packet->ts_index = curr_seg_->get_curr_ts_chunk_index();
+    pes_packet->ts_off = curr_seg_->get_curr_ts_chunk_offset();
     pes_packet->ts_seg = curr_seg_;
     int32_t ts_total_bytes = 0;
 
