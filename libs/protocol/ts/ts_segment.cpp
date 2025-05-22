@@ -8,8 +8,8 @@
 using namespace mms;
 
 TsSegment::TsSegment() {
-    ts_bufs_.emplace_back(std::move(std::make_unique<uint8_t[]>(SINGLE_TS_BYTES)));
-    ts_buf_index_ = 0;
+    ts_chunks_.emplace_back(std::move(std::make_unique<uint8_t[]>(SINGLE_TS_BYTES)));
+    ts_chunk_index_ = 0;
 }
 
 TsSegment::~TsSegment() {
@@ -91,27 +91,27 @@ int64_t TsSegment::get_duration() {
     return 0;
 }
 
-int32_t TsSegment::get_curr_ts_offset() {
-    return ts_buf_len_;
+int32_t TsSegment::get_curr_ts_chunk_offset() {
+    return ts_chunk_off_;
 }
 
-int32_t TsSegment::get_curr_ts_index() {
-    return ts_buf_index_;
+int32_t TsSegment::get_curr_ts_chunk_index() {
+    return ts_chunk_index_;
 }
 
-std::vector<boost::asio::const_buffer> TsSegment::get_ts_seg(size_t ts_index, size_t ts_off, int32_t ts_bytes) {
+std::vector<boost::asio::const_buffer> TsSegment::get_ts_seg(size_t chunk_index, size_t chunk_off, int32_t bytes) {
     std::vector<boost::asio::const_buffer> bufs;
-    while (ts_bytes > 0) {
-        int32_t ts_seg_left = SINGLE_TS_BYTES - ts_off;
-        if (ts_seg_left > ts_bytes) {
-            boost::asio::const_buffer buf(ts_bufs_[ts_index].get() + ts_off, ts_bytes);
-            ts_bytes = 0;
+    while (bytes > 0) {
+        int32_t ts_seg_left = SINGLE_TS_BYTES - chunk_off;
+        if (ts_seg_left > bytes) {
+            boost::asio::const_buffer buf(ts_chunks_[chunk_index].get() + chunk_off, bytes);
+            bytes = 0;
             bufs.push_back(buf); 
         } else {
-            boost::asio::const_buffer buf(ts_bufs_[ts_index].get() + ts_off, ts_seg_left);
-            ts_index++;
-            ts_off = 0;
-            ts_bytes -= ts_seg_left;
+            boost::asio::const_buffer buf(ts_chunks_[chunk_index].get() + chunk_off, ts_seg_left);
+            chunk_index++;
+            chunk_off = 0;
+            bytes -= ts_seg_left;
             bufs.push_back(buf); 
         }
     }
@@ -119,24 +119,24 @@ std::vector<boost::asio::const_buffer> TsSegment::get_ts_seg(size_t ts_index, si
 }
 
 std::string_view TsSegment::alloc_ts_packet() {
-    if (ts_buf_len_ >= SINGLE_TS_BYTES) {
+    if (ts_chunk_off_ >= SINGLE_TS_BYTES) {
         auto new_ts_buf = std::make_unique<uint8_t[]>(SINGLE_TS_BYTES);
-        ts_bufs_.push_back(std::move(new_ts_buf));
-        ts_buf_index_++;
-        ts_buf_len_ = 0;
+        ts_chunks_.push_back(std::move(new_ts_buf));
+        ts_chunk_index_++;
+        ts_chunk_off_ = 0;
     }
 
-    auto pkt = std::string_view((char*)ts_bufs_[ts_buf_index_].get() + ts_buf_len_, 188);
-    ts_buf_len_ += 188;
+    auto pkt = std::string_view((char*)ts_chunks_[ts_chunk_index_].get() + ts_chunk_off_, 188);
+    ts_chunk_off_ += 188;
     total_ts_bytes_ += 188;
     return pkt;
 }
 
 std::vector<std::string_view> TsSegment::get_ts_data() {
     std::vector<std::string_view> vs;
-    for (auto it = ts_bufs_.begin(); it != ts_bufs_.end(); it++) {
-        if ((it + 1) == ts_bufs_.end()) {
-            vs.push_back(std::string_view((char*)(*it).get(), ts_buf_len_));
+    for (auto it = ts_chunks_.begin(); it != ts_chunks_.end(); it++) {
+        if ((it + 1) == ts_chunks_.end()) {
+            vs.push_back(std::string_view((char*)(*it).get(), ts_chunk_off_));
         } else {
             vs.push_back(std::string_view((char*)(*it).get(), SINGLE_TS_BYTES));
         }

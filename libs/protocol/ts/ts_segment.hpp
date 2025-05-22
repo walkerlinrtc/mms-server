@@ -40,11 +40,11 @@ public:
     
     int64_t get_duration();
 
-    int32_t get_curr_ts_offset();
-    int32_t get_curr_ts_index();
+    int32_t get_curr_ts_chunk_offset();
+    int32_t get_curr_ts_chunk_index();
     std::string_view alloc_ts_packet();
     std::vector<std::string_view> get_ts_data();
-    std::vector<boost::asio::const_buffer> get_ts_seg(size_t ts_index, size_t ts_off, int32_t ts_bytes);
+    std::vector<boost::asio::const_buffer> get_ts_seg(size_t chunk_index, size_t chunk_off, int32_t bytes);
     int64_t get_ts_bytes();
     void set_reaped() {
         is_reaped_ = true;
@@ -66,9 +66,9 @@ private:
     std::string filename_;
     int64_t seq_ = 0;
 
-    std::vector<std::unique_ptr<uint8_t[]>> ts_bufs_;
-    int32_t ts_buf_index_ = 0;
-    size_t ts_buf_len_ = 0;
+    std::vector<std::unique_ptr<uint8_t[]>> ts_chunks_;
+    int32_t ts_chunk_index_ = 0;
+    size_t ts_chunk_off_ = 0;
     int64_t total_ts_bytes_ = 0;
     bool is_reaped_  = false;
 
