@@ -64,7 +64,7 @@ void HttpTsServerSession::service() {
         }
 
         auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + http_request_->get_path_param("stream");
-        const std::string ts_name = http_request_->get_path_param("filename");
+        const std::string ts_name = http_request_->get_path_param("seq") + ".ts";
         auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
         std::shared_ptr<HlsLiveMediaSource> hls_source;
         if (!source) {//todo : reply 404

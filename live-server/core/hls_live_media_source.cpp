@@ -99,7 +99,7 @@ void HlsLiveMediaSource::update_m3u8() {
     ss.setf(std::ios::fixed, std::ios::floatfield);
     for (size_t seg_index = first_seg_index; seg_index < ts_segments_.size(); seg_index++) {
         ss << "#EXTINF:" << ts_segments_[seg_index]->get_duration() / 1000.0 << "\r\n";
-        ss << "live/ts/" << ts_segments_[seg_index]->get_filename() << "\r\n";
+        ss << get_stream_name() << "/" << ts_segments_[seg_index]->get_filename() << "\r\n";
     }
 
     m3u8_ = ss.str();
