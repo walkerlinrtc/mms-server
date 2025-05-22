@@ -410,10 +410,16 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
     }
 
     spdlog::info("add source:{}", get_session_name());
-    SourceManager::get_instance().add_source_if_not_exist(get_domain_name(), 
-                                                          get_app_name(),
-                                                          get_stream_name(),
-                                                          rtmp_media_source_);
+    auto ret = SourceManager::get_instance().add_source(get_domain_name(), 
+                                                        get_app_name(),
+                                                        get_stream_name(),
+                                                        rtmp_media_source_);
+    if (!ret) {
+        rtmp_media_source_->close();
+        co_return false;
+    }
+
+    publish_app->on_create_source(get_domain_name(),get_app_name(), get_stream_name(), rtmp_media_source_);
     start_alive_checker();
     co_return true;
 }

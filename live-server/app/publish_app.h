@@ -35,7 +35,10 @@ public:
     PublishApp(const std::string & domain_name, const std::string & app_name);
     virtual ~PublishApp();
 public:
-    int32_t on_create_source(const std::string & session_name, std::shared_ptr<MediaSource> source);
+    int32_t on_create_source(const std::string & domain, 
+                             const std::string & app_name,
+                             const std::string & stream_name, 
+                             std::shared_ptr<MediaSource> source);
     boost::asio::awaitable<std::shared_ptr<MediaSource>> find_media_source(std::shared_ptr<StreamSession> session) override;
     std::vector<std::shared_ptr<MediaSink>> create_push_streams(std::shared_ptr<MediaSource> source, std::shared_ptr<StreamSession> session);
 

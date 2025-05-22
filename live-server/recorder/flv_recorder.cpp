@@ -77,6 +77,7 @@ bool FlvRecorder::init() {
     record_start_time_ = time(NULL);
     std::string file_name = get_stream_name() + "_" + std::to_string(time(NULL)) + ".flv";
     std::string file_dir = Config::get_instance()->get_record_root_path() + "/" + domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/flv";
+    std::filesystem::create_directories(file_dir);
     flv_file_ = open((file_dir + "/" + file_name).c_str(), O_WRONLY | O_CREAT, 0644);
     if (flv_file_ == -1) {
         return false;

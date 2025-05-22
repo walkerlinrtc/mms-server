@@ -18,10 +18,6 @@ public:
                     const std::string & app_name,
                     const std::string & stream_name, std::shared_ptr<MediaSource> source);
 
-    void add_source_if_not_exist(const std::string & domain, 
-                                 const std::string & app_name, 
-                                 const std::string & stream_name, std::shared_ptr<MediaSource> source);
-
     bool remove_source(const std::string & domain, 
                        const std::string & app_name,
                        const std::string & stream_name);

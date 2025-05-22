@@ -27,25 +27,7 @@ bool SourceManager::add_source(const std::string & domain,
     sources_[domain][app_name][stream_name] = source;
     total_source_count_++;
     map_source_count_[source->get_media_type()]++;
-    // auto app = source->get_app();
-    // if (app) {
-    //     app->on_create_source(source_name, source);
-    // }
     return true;
-}
-
-void SourceManager::add_source_if_not_exist(const std::string & domain, 
-                                            const std::string & app_name, 
-                                            const std::string & stream_name, 
-                                            std::shared_ptr<MediaSource> source) {
-    std::lock_guard<std::mutex> lck(sources_mtx_);
-    auto it = sources_[domain][app_name].find(stream_name);
-    if (it != sources_[domain][app_name].end()) {
-        return;
-    }
-    sources_[domain][app_name][stream_name] = source;
-    total_source_count_++;
-    map_source_count_[source->get_media_type()]++;
 }
 
 bool SourceManager::remove_source(const std::string & domain,

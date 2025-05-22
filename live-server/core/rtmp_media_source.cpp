@@ -45,6 +45,7 @@ Json::Value RtmpMediaSource::to_json() {
     v["app"] = app_name_;
     v["stream"] = stream_name_;
     v["sinks"] = sinks_count_.load();
+    v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
     return v;
 }
