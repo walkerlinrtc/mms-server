@@ -50,20 +50,31 @@ std::shared_ptr<MediaSource> MediaSink::get_source() {
     return source_;
 }
 
-void MediaSink::set_event_cb(const std::function<void(const MediaEvent & ev)> & ev_cb) {
-    ev_cb_ = ev_cb;
-}
-
-void MediaSink::recv_event(const MediaEvent & ev) {
+void MediaSink::on_source_status_changed(SourceStatus status) {
     auto self(shared_from_this());
     // 在自己的worker里面进行处理
-    boost::asio::co_spawn(worker_->get_io_context(), [ev, this, self]()->boost::asio::awaitable<void> {
-        if (ev_cb_) {
-            ev_cb_(ev);
+    boost::asio::co_spawn(worker_->get_io_context(), [status, this, self]()->boost::asio::awaitable<void> {
+        if (status_cb_) {
+            co_await status_cb_(status);
         }
         co_return;
     }, boost::asio::detached);
 }
+
+void MediaSink::set_on_source_status_changed_cb(const std::function<boost::asio::awaitable<void>(SourceStatus status)> & status_cb) {
+    status_cb_ = status_cb;
+}
+
+// void MediaSink::recv_event(const MediaEvent & ev) {
+//     auto self(shared_from_this());
+//     // 在自己的worker里面进行处理
+//     boost::asio::co_spawn(worker_->get_io_context(), [ev, this, self]()->boost::asio::awaitable<void> {
+//         if (ev_cb_) {
+//             co_await ev_cb_(ev);
+//         }
+//         co_return;
+//     }, boost::asio::detached);
+// }
 
 LazyMediaSink::LazyMediaSink(ThreadWorker *worker) : MediaSink(worker),  wg_(worker) {
 

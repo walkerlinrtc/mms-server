@@ -8,6 +8,7 @@
 #include <atomic>
 
 #include "base/wait_group.h"
+#include "source_status.h"
 
 namespace mms {
 class MediaSource;
@@ -27,15 +28,15 @@ public:
     virtual void close();
     void on_close(const std::function<void()> & close_cb);
 
-    void set_event_cb(const std::function<void(const MediaEvent & ev)> & ev_cb);
-    void recv_event(const MediaEvent & ev);
+    void on_source_status_changed(SourceStatus status);
+    void set_on_source_status_changed_cb(const std::function<boost::asio::awaitable<void>(SourceStatus)> & cb);
 protected:
     std::shared_ptr<MediaSource> source_{nullptr};
     ThreadWorker *worker_;
     bool working_ = false; 
 
     std::function<void()> close_cb_;
-    std::function<void(const MediaEvent & ev)> ev_cb_;
+    std::function<boost::asio::awaitable<void>(SourceStatus)> status_cb_;
 };
 
 class LazyMediaSink : public MediaSink {

@@ -9,7 +9,7 @@
 
 #include "base/wait_group.h"
 #include "json/json.h"
-
+#include "source_status.h"
 namespace mms {
 class MediaSink;
 class MediaBridge;
@@ -91,8 +91,13 @@ public:
     std::shared_ptr<PublishApp> get_app() {
         return app_;
     }
+
+    SourceStatus get_status() const;
+    void set_status(SourceStatus status);
+
     virtual Json::Value to_json();
-    void emit_event(const MediaEvent & ev);
+
+    void notify_status(SourceStatus status);
     virtual void close();
 protected:
     bool is_origin_ = true;
@@ -122,6 +127,7 @@ protected:
     std::shared_ptr<Codec> audio_codec_;
 
     int64_t create_at_ = time(NULL);
+    std::atomic<SourceStatus> status_{E_SOURCE_STATUS_INIT};
 
     std::atomic<bool> waiting_cleanup_{false};
     boost::asio::steady_timer cleanup_timer_;

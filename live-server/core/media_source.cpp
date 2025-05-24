@@ -49,12 +49,19 @@ Json::Value MediaSource::to_json() {
     return v;
 }
 
-void MediaSource::emit_event(const MediaEvent & ev) {
-    {
-        std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
-        for (auto s : sinks_) {
-            s->recv_event(ev);
-        }
+SourceStatus MediaSource::get_status() const {
+    return status_.load();
+}
+
+void MediaSource::set_status(SourceStatus status) {
+    status_.store(status);
+    notify_status(status);
+}
+
+void MediaSource::notify_status(SourceStatus status) {
+    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    for (auto s : sinks_) {
+        s->on_source_status_changed(status);
     }
 }
 
@@ -75,6 +82,9 @@ bool MediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
     sinks_.insert(media_sink);
     media_sink->set_source(this->shared_from_this());
+    if (get_status() != E_SOURCE_STATUS_INIT) {
+        media_sink->on_source_status_changed(status_.load());
+    }
     sinks_count_++;
     return true;
 }

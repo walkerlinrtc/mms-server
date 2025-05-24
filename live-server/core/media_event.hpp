@@ -10,6 +10,7 @@
 #pragma once
 namespace mms {
 enum E_MEDIA_EVENT_CODE {
+    E_MEDIA_EVENT_FOUND,
     E_MEDIA_EVENT_STREAM_END,
     E_MEDIA_EVENT_UNAUTH,
     E_MEDIA_EVENT_NOT_FOUND,

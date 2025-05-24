@@ -22,6 +22,7 @@
 #include "core/stream_session.hpp"
 #include "base/utils/utils.h"
 #include "base/wait_group.h"
+#include "core/source_status.h"
 
 namespace mms {
 class HttpRequest;
@@ -39,7 +40,7 @@ public:
     void close();
 private:
     boost::asio::awaitable<bool> send_flv_tags(std::vector<std::shared_ptr<FlvTag>> tags);
-    void process_media_event(const MediaEvent & ev);
+    boost::asio::awaitable<void> process_source_status(SourceStatus status);
 
     void start_send_coroutine();
     void start_alive_checker();
@@ -60,6 +61,7 @@ private:
     int32_t prev_tag_sizes_[1024];
 
     WaitGroup wg_;
+    bool has_send_http_header_ = false;
     bool has_write_flv_header_ = false;
 };
 

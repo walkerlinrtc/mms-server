@@ -178,9 +178,35 @@ void HttpFlvServerSession::service() {
         }
 
         flv_media_sink_ = std::make_shared<FlvMediaSink>(get_worker());
-        // 创建发送协程
+        // 关闭flv
+        flv_media_sink_->on_close([this, self]() {
+            close();
+        });
+        // 事件处理
+        flv_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
+            co_return co_await process_source_status(status);
+        });
+        source->add_media_sink(flv_media_sink_);
+        co_return;
+    }, boost::asio::detached);
+}
+
+boost::asio::awaitable<void> HttpFlvServerSession::process_source_status(SourceStatus status) {
+    auto self(shared_from_this());
+    if (status == E_SOURCE_STATUS_OK) {
+        if (!has_send_http_header_) {
+            has_send_http_header_ = true;
+            //找到源流，先发http送头部
+            http_response_->add_header("Content-Type", "video/x-flv");
+            http_response_->add_header("Connection", "Keep-Alive");
+            http_response_->add_header("Access-Control-Allow-Origin", "*");
+            if (!(co_await http_response_->write_header(200, "OK"))) {
+                close(true);
+                co_return;
+            }
+        }
+        // 发送完头部后，再开发送flv的tag
         start_send_coroutine();
-        // 收到新的flv消息
         flv_media_sink_->on_flv_tag([this, self](std::vector<std::shared_ptr<FlvTag>> & flv_tags)->boost::asio::awaitable<bool> {
             boost::system::error_code ec;
             if (flv_tags.size() <= 0) {
@@ -193,40 +219,8 @@ void HttpFlvServerSession::service() {
             }
             co_return true;
         });
-        // 关闭flv
-        flv_media_sink_->on_close([this, self]() {
-            close();
-        });
-        // 事件处理
-        flv_media_sink_->set_event_cb([this, self](const MediaEvent & ev) {
-            process_media_event(ev);
-        });
-        //找到源流，先发http送头部
-        http_response_->add_header("Content-Type", "video/x-flv");
-        http_response_->add_header("Connection", "Keep-Alive");
-        http_response_->add_header("Access-Control-Allow-Origin", "*");
-        if (!(co_await http_response_->write_header(200, "OK"))) {
-            close(true);
-            co_return;
-        }
-    
-        source->add_media_sink(flv_media_sink_);
-        co_return;
-    }, boost::asio::detached);
-}
-
-void HttpFlvServerSession::process_media_event(const MediaEvent & ev) {
-    if (ev.code_ == E_MEDIA_EVENT_UNAUTH) {
-
-    } else if (ev.code_ == E_MEDIA_EVENT_NOT_FOUND) {
-
-    } else if (ev.code_ == E_MEDIA_EVENT_TIMEOUT) {
-        
-    } else if (ev.code_ == E_MEDIA_EVENT_CONN_FAIL) {
-        // close();
-    } else if (ev.code_ == E_MEDIA_EVENT_STREAM_END) {
-        // close();
-    }
+    } 
+    co_return;
 }
 
 boost::asio::awaitable<bool> HttpFlvServerSession::send_flv_tags(std::vector<std::shared_ptr<FlvTag>> tags) {
@@ -296,7 +290,7 @@ void HttpFlvServerSession::close() {
             flv_media_sink_->close();
             flv_media_sink_->on_close({});
             flv_media_sink_->on_flv_tag({});
-            flv_media_sink_->set_event_cb({});
+            flv_media_sink_->set_on_source_status_changed_cb({});
             flv_media_sink_ = nullptr;
         }
         CORE_DEBUG("HttpFlvServerSession closed");

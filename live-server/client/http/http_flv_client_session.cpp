@@ -132,7 +132,7 @@ void HttpFlvClientSession::service() {
         auto ip = DnsService::get_instance().get_ip(domain);
         if (!ip) {
             CORE_ERROR("HttpFlvClientSession:{} could not find ip for:%s", get_session_name(), domain.c_str());
-            flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_CONN_FAIL));
+            flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
             co_return;
         }
         auto & server_ip = ip.value();
@@ -159,14 +159,14 @@ void HttpFlvClientSession::service() {
         auto resp = co_await http_client_->do_req(server_ip, port, http_req);
         if (!resp) {
             CORE_ERROR("connect to ip:{} failed", server_ip);
-            flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_CONN_FAIL));
+            flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
             co_return;
         }
 
         bool ret = co_await resp->recv_http_header();
         if (!ret) {
             CORE_WARN("recv http header from ip:{} failed", server_ip);
-            flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_CONN_FAIL));
+            flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
             co_return;
         }
 
@@ -177,14 +177,14 @@ void HttpFlvClientSession::service() {
             CORE_DEBUG("HttpFlvClientSession:{} http response 302, redirect to:", get_session_name(), location.c_str());
             if (!Utils::parse_url(location, protocol, domain, port, path, params)) {//todo:add log
                 CORE_ERROR("parse http url failed, url:%s", location.c_str());
-                flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_CONN_FAIL));
+                flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
                 co_return;
             }
             //获取域名ip
             auto ip = DnsService::get_instance().get_ip(domain);
             if (!ip) {
                 CORE_ERROR("could not find ip for:%s", domain.c_str());
-                flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_CONN_FAIL));
+                flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
                 co_return;
             }
             
@@ -207,9 +207,9 @@ void HttpFlvClientSession::service() {
 
         if (resp->get_status_code() != 200) {//todo: notify media event
             if (resp->get_status_code() == 403) {
-                flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_UNAUTH));
+                flv_media_source_->set_status(E_SOURCE_STATUS_FORBIDDEN);
             } else if (resp->get_status_code() == 404) {
-                flv_media_source_->emit_event(MediaEvent(E_MEDIA_EVENT_NOT_FOUND));
+                flv_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
             }
             CORE_ERROR("http code error, code:%d", resp->get_status_code());
             co_return;
