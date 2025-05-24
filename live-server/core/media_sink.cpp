@@ -65,7 +65,7 @@ void MediaSink::recv_event(const MediaEvent & ev) {
     }, boost::asio::detached);
 }
 
-LazyMediaSink::LazyMediaSink(ThreadWorker *worker) : MediaSink(worker),  close_ch_(worker->get_io_context()) {
+LazyMediaSink::LazyMediaSink(ThreadWorker *worker) : MediaSink(worker),  wg_(worker) {
 
 }
 
@@ -85,25 +85,21 @@ void LazyMediaSink::wakeup() {
     }, [this, self](std::exception_ptr exp) {
         (void)(exp);
         working_ = false;
-        if (closing_ && close_ch_.is_open()) {
-            close_ch_.close();
+        if (closing_) {
+            wg_.done();
         }
     });
 }
 
 void LazyMediaSink::close() {
     closing_ = true;
-    MediaSink::close();
-
     if (working_) {
+        wg_.add(1);
         auto self(shared_from_this());
         // 确保wakeup结束了，自己才释放
         boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-            boost::system::error_code ec;
-            if (close_ch_.is_open()) {
-                co_await close_ch_.async_receive(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
-            }
-            co_return;
+            co_await wg_.wait();
+            MediaSink::close();
         }, boost::asio::detached);
     }
 }

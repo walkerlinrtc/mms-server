@@ -7,6 +7,8 @@
 #include <functional>
 #include <atomic>
 
+#include "base/wait_group.h"
+
 namespace mms {
 class MediaSource;
 class MediaEvent;
@@ -45,7 +47,7 @@ public:
     virtual void close() override;
 protected:
     std::atomic<bool> closing_{false};
-    boost::asio::experimental::concurrent_channel<void(boost::system::error_code, bool)> close_ch_;
+    WaitGroup wg_;
 };
 
 };

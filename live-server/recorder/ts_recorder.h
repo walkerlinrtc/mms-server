@@ -39,5 +39,6 @@ private:
     int64_t record_seg_count_ = 0;
     int64_t record_duration_ = 0;
     int64_t record_start_time_ = 0;
+    std::vector<TsRecordSeg> ts_segs_;
 };
 };

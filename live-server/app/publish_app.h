@@ -44,6 +44,12 @@ public:
 
     virtual boost::asio::awaitable<Error> on_publish(std::shared_ptr<StreamSession> session);
     virtual boost::asio::awaitable<Error> on_unpublish(std::shared_ptr<StreamSession> session);
+    
+    virtual void on_destroy_source(const std::string & domain, 
+                                   const std::string & app_name,
+                                   const std::string & stream_name, 
+                                   std::shared_ptr<MediaSource> source);
+
     virtual bool can_reap_ts(bool is_key, std::shared_ptr<TsSegment> ts_seg);
     virtual bool can_reap_mp4(bool is_key, int64_t duration, int64_t seg_bytes);
 private:

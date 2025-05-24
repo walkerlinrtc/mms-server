@@ -63,7 +63,7 @@ bool TsRecorder::init() {
         boost::system::error_code ec;
         std::string file_name = std::to_string(ts_seg->get_create_at()) + "_" + std::to_string(ts_seg->get_seqno()) + 
                                 "_" + std::to_string(ts_seg->get_duration()) + "_" + std::to_string(ts_seg->get_start_pts()) + ".ts";
-        std::string file_dir = Config::get_instance()->get_record_root_path() + "/" + domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/ts";
+        std::string file_dir = Config::get_instance()->get_record_root_path() + "/" + domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/ts/" + std::to_string(record_start_time_);
         try {
             // 写入文件
             std::filesystem::create_directories(file_dir);
@@ -81,13 +81,22 @@ bool TsRecorder::init() {
             }
             ts_file.close();
             
-            Json::Value ts_rec;
-            ts_rec["seq"] = seq_no_++;
-            ts_rec["create_at"] = ts_seg->get_create_at();
-            ts_rec["dur"] = ts_seg->get_duration();
-            ts_rec["start_pts"] = ts_seg->get_start_pts();
-            ts_rec["file"] = file_name;
-            ts_rec["update_at"] = time(NULL);
+            
+            TsRecordSeg seg;
+            seg.create_at_ = ts_seg->get_create_at();
+            seg.seq_no_ = seq_no_++;
+            seg.duration_ = ts_seg->get_duration();
+            seg.file_name_ = file_name;
+            seg.start_pts_ = ts_seg->get_start_pts();
+            seg.update_at_ = time(NULL);
+
+            // Json::Value ts_rec;
+            // ts_rec["seq"] = seq_no_++;
+            // ts_rec["create_at"] = ts_seg->get_create_at();
+            // ts_rec["dur"] = ts_seg->get_duration();
+            // ts_rec["start_pts"] = ts_seg->get_start_pts();
+            // ts_rec["file"] = file_name;
+            // ts_rec["update_at"] = time(NULL);
             // auto & server_ip = Host::get_instance().get_wan_ip();
             // ts_rec["server"] = server_ip;
         } catch (const std::exception & e) {

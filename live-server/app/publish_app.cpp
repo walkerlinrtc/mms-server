@@ -91,6 +91,16 @@ int32_t PublishApp::on_create_source(const std::string & domain,
     return 0;
 }
 
+void PublishApp::on_destroy_source(const std::string & domain, 
+                                   const std::string & app_name,
+                                   const std::string & stream_name, 
+                                   std::shared_ptr<MediaSource> source) {
+    (void)domain;
+    (void)app_name;
+    (void)stream_name;
+    (void)source;
+}
+
 std::vector<std::shared_ptr<MediaSink>> PublishApp::create_push_streams(std::shared_ptr<MediaSource> source, std::shared_ptr<StreamSession> session) {
     std::vector<std::shared_ptr<MediaSink>> sinks;
     auto push_configs = app_conf_->edge_push_configs();
