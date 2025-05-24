@@ -6,6 +6,7 @@
 
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
+#include "core/source_status.h"
 
 namespace mms {
 class HttpRequest;
@@ -21,12 +22,15 @@ public:
     virtual ~HttpLongTsServerSession();
     void service();
     boost::asio::awaitable<bool> send_ts_seg(std::vector<std::shared_ptr<PESPacket>> pkts);
+    void start_send_coroutine();
+    boost::asio::awaitable<void> process_source_status(SourceStatus status);
     void close(bool close_conn);
     void close();
 private:
     std::shared_ptr<HttpRequest> http_request_;
     std::shared_ptr<HttpResponse> http_response_;
-    
+    bool has_send_http_header_ = false;
+
     std::shared_ptr<TsMediaSink> ts_media_sink_;
     std::vector<boost::asio::const_buffer> send_bufs_;
     std::shared_ptr<TsSegment> prev_ts_seg_;

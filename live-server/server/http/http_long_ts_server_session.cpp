@@ -131,54 +131,74 @@ void HttpLongTsServerSession::service() {
             }
 
             ts_media_sink_ = std::make_shared<TsMediaSink>(worker_);
-            // 创建发送协程
-            wg_.add(1);
-            boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-                boost::system::error_code ec;
-                while (1) {
-                    auto send_func = co_await send_funcs_channel_.async_receive(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
-                    if (ec) {
-                        break;
-                    }
-
-                    bool ret = co_await send_func();
-                    if (!ret) {
-                        break;
-                    }
-                }
-                
-                co_return;
-            }, [this, self](std::exception_ptr exp) {
-                (void)exp;
-                wg_.done();
-                close();
+            // 事件处理
+            ts_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
+                co_return co_await process_source_status(status);
             });
-
-            ts_media_sink_->on_pes_pkts([this](const std::vector<std::shared_ptr<PESPacket>> & pkts)->boost::asio::awaitable<bool> {
-                boost::system::error_code ec;
-                if (pkts.size() <= 0) {
-                    co_return true;
-                }
-
-                co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&HttpLongTsServerSession::send_ts_seg, this, pkts), boost::asio::redirect_error(boost::asio::use_awaitable, ec));
-                if (ec) {
-                    co_return false;
-                }
-                co_return true;
-            });
-
-            http_response_->add_header("Content-Type", "video/MP2T");
-            http_response_->add_header("Connection", "close");
-            http_response_->add_header("Access-Control-Allow-Origin", "*");
-            if (!co_await http_response_->write_header(200, "Ok")) {
-                co_return;
-            }
-
+            
             ts_source->add_media_sink(ts_media_sink_);
         }
 
         co_return;
     }, boost::asio::detached);
+}
+
+boost::asio::awaitable<void> HttpLongTsServerSession::process_source_status(SourceStatus status) {
+    auto self(shared_from_this());
+    if (status == E_SOURCE_STATUS_OK) {
+        if (!has_send_http_header_) {
+            has_send_http_header_ = true;
+            //找到源流，先发http送头部
+            http_response_->add_header("Content-Type", "video/MP2T");
+            http_response_->add_header("Connection", "close");
+            http_response_->add_header("Access-Control-Allow-Origin", "*");
+            if (!co_await http_response_->write_header(200, "Ok")) {
+                close(true);
+                co_return;
+            }
+        }
+        // 发送完头部后，再开发送flv的tag
+        start_send_coroutine();
+        ts_media_sink_->on_pes_pkts([this](const std::vector<std::shared_ptr<PESPacket>> & pkts)->boost::asio::awaitable<bool> {
+            boost::system::error_code ec;
+            if (pkts.size() <= 0) {
+                co_return true;
+            }
+
+            co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&HttpLongTsServerSession::send_ts_seg, this, pkts), boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+            if (ec) {
+                co_return false;
+            }
+            co_return true;
+        });
+    } 
+    co_return;
+}
+
+void HttpLongTsServerSession::start_send_coroutine() {
+    // 创建发送协程
+    auto self(shared_from_this());
+    wg_.add(1);
+    boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
+        boost::system::error_code ec;
+        while (1) {
+            auto send_func = co_await send_funcs_channel_.async_receive(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+            if (ec) {
+                break;
+            }
+
+            bool ret = co_await send_func();
+            if (!ret) {
+                break;
+            }
+        }
+        
+        co_return;
+    }, [this, self](std::exception_ptr exp) {
+        (void)exp;
+        wg_.done();
+        close();
+    });
 }
 
 boost::asio::awaitable<bool> HttpLongTsServerSession::send_ts_seg(std::vector<std::shared_ptr<PESPacket>> pkts) {
