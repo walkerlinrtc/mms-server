@@ -219,7 +219,19 @@ boost::asio::awaitable<void> HttpFlvServerSession::process_source_status(SourceS
             }
             co_return true;
         });
-    } 
+    } else if (status == E_SOURCE_STATUS_NOT_FOUND) {
+        if (!has_send_http_header_) {
+            has_send_http_header_ = true;
+            //找到源流，先发http送头部
+            http_response_->add_header("Content-Type", "video/x-flv");
+            http_response_->add_header("Connection", "Keep-Alive");
+            http_response_->add_header("Access-Control-Allow-Origin", "*");
+            if (!(co_await http_response_->write_header(404, "Not Found"))) {
+                close(true);
+                co_return;
+            }
+        }
+    }
     co_return;
 }
 

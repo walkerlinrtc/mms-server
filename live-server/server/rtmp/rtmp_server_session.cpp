@@ -472,8 +472,16 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(std::sh
     //     source = co_await MediaCenterManager::get_instance().find_and_create_pull_media_source(self);
     // }
 
-    if (!source) {//todo:发送STREAM NOT FOUND
+    if (!source) {
         CORE_ERROR("no source found:{}/{}/{}", publish_app->get_domain_name(), get_app_name(), get_stream_name());
+        RtmpOnStatusMessage status_msg;
+        status_msg.info().set_item_value("level", "status");
+        status_msg.info().set_item_value("code", RTMP_STATUS_STREAM_NOT_FOUND);
+        status_msg.info().set_item_value("description", "not found");
+        status_msg.info().set_item_value("clientid", "mms");
+        if (!co_await send_rtmp_message(status_msg)) {
+            co_return false;
+        }
         co_return false;
     }
 
@@ -483,6 +491,14 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(std::sh
         bridge = source->get_or_create_bridge(source->get_media_type() + "-rtmp", publish_app, stream_name_);
         if (!bridge) {// todo:发送FORBIDDEN
             CORE_ERROR("could not create bridge:{}", source->get_media_type() + "-rtmp");
+            RtmpOnStatusMessage status_msg;
+            status_msg.info().set_item_value("level", "status");
+            status_msg.info().set_item_value("code", RTMP_RESULT_CONNECT_REJECTED);
+            status_msg.info().set_item_value("description", "forbidden");
+            status_msg.info().set_item_value("clientid", "mms");
+            if (!co_await send_rtmp_message(status_msg)) {
+                co_return false;
+            }
             co_return false;
         }
         source = bridge->get_media_source();
@@ -510,12 +526,27 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(std::sh
     is_publisher_ = false;
     is_player_ = true;
     rtmp_media_sink_ = std::make_shared<RtmpMediaSink>(get_worker());
-    rtmp_media_sink_->on_rtmp_message([this, self](const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs)->boost::asio::awaitable<bool> {
-        co_return co_await send_rtmp_message(rtmp_msgs);
-    });
-
     rtmp_media_sink_->on_close([this, self]() {
         close();
+    });
+
+    rtmp_media_sink_->set_on_source_status_changed_cb([this, self, source](SourceStatus status)->boost::asio::awaitable<void> {
+        source->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            rtmp_media_sink_->on_rtmp_message([this, self](const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs)->boost::asio::awaitable<bool> {
+                co_return co_await send_rtmp_message(rtmp_msgs);
+            });
+        } else if (status == E_SOURCE_STATUS_NOT_FOUND) {
+            RtmpOnStatusMessage status_msg;
+            status_msg.info().set_item_value("level", "status");
+            status_msg.info().set_item_value("code", RTMP_STATUS_STREAM_NOT_FOUND);
+            status_msg.info().set_item_value("description", "play start ok.");
+            status_msg.info().set_item_value("clientid", "mms");
+            if (!co_await send_rtmp_message(status_msg)) {
+                co_return;
+            }
+        }
+        co_return;
     });
 
     bool ret = true;

@@ -35,6 +35,13 @@ EdgePushConfig::~EdgePushConfig() {
 }
 
 int32_t EdgePushConfig::load(const YAML::Node & node) {
+    YAML::Node enabled = node["enabled"];
+    if (enabled.IsDefined()) {
+        enabled_ = enabled.as<bool>();
+    } else {
+        enabled_ = false;
+    }
+    
     auto proto_node = node["protocol"];
     if (!proto_node.IsDefined()) {
         return -1;

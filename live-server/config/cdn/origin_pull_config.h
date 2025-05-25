@@ -15,6 +15,10 @@ public:
     OriginPullConfig();
     virtual ~OriginPullConfig();
 
+    bool is_enabled() const {
+        return enabled_;
+    }
+
     const std::string & get_protocol() const {
         return protocol_;
     }
@@ -30,6 +34,7 @@ public:
     std::string gen_url(std::shared_ptr<StreamSession> s);
     int32_t load(const YAML::Node & node);
 protected:
+    bool enabled_ = false;
     std::string protocol_;
     std::string unformat_url_;
     std::string target_domain_;

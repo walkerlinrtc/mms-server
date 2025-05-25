@@ -211,7 +211,7 @@ void HttpFlvClientSession::service() {
             } else if (resp->get_status_code() == 404) {
                 flv_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
             }
-            CORE_ERROR("http code error, code:%d", resp->get_status_code());
+            CORE_ERROR("http code error, code:{}", resp->get_status_code());
             co_return;
         }
 

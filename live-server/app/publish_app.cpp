@@ -45,6 +45,10 @@ boost::asio::awaitable<std::shared_ptr<MediaSource>> PublishApp::find_media_sour
         co_return nullptr;
     }
 
+    if (!origin_pull_config->is_enabled()) {
+        co_return nullptr;
+    }
+
     if (origin_pull_config->get_protocol() == "http-flv") {
         auto url = origin_pull_config->gen_url(session);
         auto http_flv_client_session = std::make_shared<HttpFlvClientSession>(std::static_pointer_cast<PublishApp>(shared_from_this()), 
@@ -105,7 +109,7 @@ std::vector<std::shared_ptr<MediaSink>> PublishApp::create_push_streams(std::sha
     std::vector<std::shared_ptr<MediaSink>> sinks;
     auto push_configs = app_conf_->edge_push_configs();
     for (auto & config : push_configs) {
-        if (config->get_protocol() == "rtmp" && source->get_media_type() == "rtmp") {
+        if (config->is_enabled() && config->get_protocol() == "rtmp" && source->get_media_type() == "rtmp") {
             auto url = config->gen_url(session);
             std::shared_ptr<RtmpMediaSource> rtmp_source = std::static_pointer_cast<RtmpMediaSource>(source);
             auto rtmp_publish_client_session = std::make_shared<RtmpPublishClientSession>(

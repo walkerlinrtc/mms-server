@@ -119,24 +119,30 @@ bool RtmpToMp4::init() {
         close();
     });
 
-    rtmp_media_sink_->on_rtmp_message([this, self](const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs)->boost::asio::awaitable<bool> {
-        for (auto rtmp_msg : rtmp_msgs) {
-            if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_AUDIO) {
-                if (!this->on_audio_packet(rtmp_msg)) {
-                    co_return false;
+    rtmp_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
+        mp4_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            rtmp_media_sink_->on_rtmp_message([this, self](const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs)->boost::asio::awaitable<bool> {
+                for (auto rtmp_msg : rtmp_msgs) {
+                    if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_AUDIO) {
+                        if (!this->on_audio_packet(rtmp_msg)) {
+                            co_return false;
+                        }
+                    } else if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_VIDEO) {
+                        if (!this->on_video_packet(rtmp_msg)) {
+                            co_return false;
+                        }
+                    } else {
+                        if (!this->on_metadata(rtmp_msg)) {
+                            co_return false;
+                        }
+                    }
                 }
-            } else if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_VIDEO) {
-                if (!this->on_video_packet(rtmp_msg)) {
-                    co_return false;
-                }
-            } else {
-                if (!this->on_metadata(rtmp_msg)) {
-                    co_return false;
-                }
-            }
+                
+                co_return true;
+            });
         }
-        
-        co_return true;
+        co_return;
     });
     return true;
 }

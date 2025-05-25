@@ -15,6 +15,10 @@ public:
     EdgePushConfig();
     virtual ~EdgePushConfig();
 
+    bool is_enabled() const {
+        return enabled_;
+    }
+    
     const std::string & get_protocol() const {
         return protocol_;
     }
@@ -29,6 +33,7 @@ public:
         test_index_ = index;
     }
 protected:
+    bool enabled_ = false;
     std::string protocol_;
     std::string unformat_url_;
     std::string target_domain_;

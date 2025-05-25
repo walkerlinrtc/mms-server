@@ -4,9 +4,9 @@ key_file: test.publish.com.key
 cert_file: test.publish.com.crt
 apps:
   - name: app                   #接入点名称
-    record_types:
-      - ts
-      - flv
+    # record_types:
+    #   - ts
+    #   - flv
     # edge_push:
     #   - protocol: rtmp
     #     url: rtmp://test.publish.com:1936/${app}/${stream_name}_a?sign=${params[sign]}
@@ -93,9 +93,9 @@ apps:
     #   params:
     #     time: get_time()
     #     sign: md5_upper(sys@test.publish.com/{domain}/{app}/{stream}/{params[time]})
-    # origin_pull:
-    #   protocol: http-flv
-    #   url: http://test.play.com:8080/{app}/{stream}.live.flv
+    origin_pull:
+      protocol: http-flv
+      url: http://test.play.com:180/{app}/{stream}.flv
     # publish_auth_check: #限时鉴权(expiry)
     #   params:
     #     key: string(sys@test.publish.com)
