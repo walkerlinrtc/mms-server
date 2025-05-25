@@ -178,7 +178,7 @@ boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(Source
             co_return false;
         }
         co_return false;
-    } else {
+    } else if (status != E_SOURCE_STATUS_INIT) {
         http_response_->add_header("Connection", "close");
         http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
         http_response_->add_header("Access-Control-Allow-Origin", "*");
