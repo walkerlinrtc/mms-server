@@ -18,8 +18,9 @@
 #include "base/thread/thread_worker.hpp"
 
 using namespace mms;
-WebSocketServerSession::WebSocketServerSession(std::shared_ptr<SocketInterface> sock):Session(sock->get_worker()), sock_(sock) {
+WebSocketServerSession::WebSocketServerSession(std::shared_ptr<SocketInterface> sock):Session(sock->get_worker()), sock_(sock), wg_(sock->get_worker()) {
     set_session_type("websocket");
+    recv_buf_ = std::make_unique<char[]>(max_recv_buf_bytes_);
 }
 
 WebSocketServerSession::~WebSocketServerSession() {
@@ -27,26 +28,63 @@ WebSocketServerSession::~WebSocketServerSession() {
 
 void WebSocketServerSession::service() {
     auto self(shared_from_this());
+    wg_.add(1);
     boost::asio::co_spawn(sock_->get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-        // co_await sock_->cycle_recv([this](const char *buf, int32_t len)->boost::asio::awaitable<std::pair<bool,int32_t>> {
-        //     int32_t total_consumed = 0;
-        //     int32_t consumed = 0;
-        //     do {
-        //         if (!packet_) {
-        //             packet_ = std::make_shared<WebSocketPacket>();
-        //         }
-        //         consumed = packet_->decode(buf, len);
-        //         total_consumed += consumed;
-        //         len -= consumed;
-        //     } while(consumed > 0 && len > 0);
-        //     co_return std::make_pair(true, total_consumed);
-        // });
+        while (1) {
+            if (max_recv_buf_bytes_ - recv_buf_bytes_ <= 0) {
+                spdlog::error("no enough buffer for websocket");
+                co_return;
+            }
+
+            auto s = co_await sock_->recv_some((uint8_t*)recv_buf_.get() + recv_buf_bytes_, max_recv_buf_bytes_ - recv_buf_bytes_);
+            if (s < 0) {
+                co_return;
+            }
+            recv_buf_bytes_ += s;
+
+            while (1) {
+                auto consumed = co_await process_recv_buffer();
+                if (consumed == 0) {// 0 表示不够数据
+                    break;
+                } else if (consumed < 0) {
+                    co_return;
+                }
+
+                // 解析完成，移动buffer
+                auto left_size = recv_buf_bytes_ - consumed;
+                std::memmove((char*)recv_buf_.get(), recv_buf_.get() + consumed, left_size);
+                recv_buf_bytes_ = left_size;
+            }
+        }
         co_return;
-    }, boost::asio::detached);
+    }, [this, self](std::exception_ptr exp) {
+        (void)exp;
+        wg_.done();
+    });
+}
+
+boost::asio::awaitable<int32_t> WebSocketServerSession::process_recv_buffer() {
+    int32_t total_consumed = 0;
+    int32_t consumed = 0;
+    auto len = recv_buf_bytes_;
+    do {
+        if (!packet_) {
+            packet_ = std::make_shared<WebSocketPacket>();
+        }
+        consumed = packet_->decode((char*)recv_buf_.get(), len);
+        total_consumed += consumed;
+        len -= consumed;
+    } while(consumed > 0 && len > 0);
+    co_return total_consumed;
 }
 
 void WebSocketServerSession::close() {
-    if (sock_) {
-        sock_->close();
-    }
+    auto self(shared_from_this());
+    boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
+        if (sock_) {
+            sock_->close();
+        }
+        co_await wg_.wait();
+        co_return;
+    }, boost::asio::detached);
 }
