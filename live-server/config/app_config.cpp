@@ -142,10 +142,10 @@ int32_t AppConfig::load_config(const YAML::Node & node)
         }
     }
 
-    auto record_types = node["record_types"];
-    if (record_types.IsDefined() && record_types.IsSequence()) {
-        for (auto it = record_types.begin(); it != record_types.end(); it++) {
-            record_types_.insert(it->as<std::string>());
+    auto record = node["record"];
+    if (record.IsDefined()) {
+        if (0 != record_config_.load_config(record)) {
+            return -7;
         }
     }
 

@@ -17,6 +17,7 @@
 #include "http_callback_config.h"
 #include "hls_config.h"
 #include "bridge_config.h"
+#include "record/record_config.h"
 
 namespace mms {
 class DomainConfig;
@@ -68,8 +69,8 @@ public:
         return bridge_config_;
     }
 
-    const std::unordered_set<std::string> & record_types() const {
-        return record_types_;
+    const RecordConfig & record_config() const {
+        return record_config_;
     }
 
     inline int32_t get_fmp4_min_seg_dur() const {
@@ -103,7 +104,7 @@ private:
     // 转协议配置
     BridgeConfig bridge_config_;
     // 录制相关
-    std::unordered_set<std::string> record_types_;
+    RecordConfig record_config_;
     // dash配置相关
     int32_t fmp4_min_seg_dur_ = 2000;//fmp4切片最小时长，默认2秒，最小不能小于1秒
     int32_t fmp4_max_seg_dur_ = 60000;//fmp4切片最大时长，默认1分钟

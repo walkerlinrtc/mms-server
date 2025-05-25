@@ -4,9 +4,11 @@ key_file: test.publish.com.key
 cert_file: test.publish.com.crt
 apps:
   - name: app                   #接入点名称
-    # record_types:
-    #   - ts
-    #   - flv
+    record:
+      enabled: false
+      types: 
+        - ts
+        - flv
     # edge_push:
     #   - protocol: rtmp
     #     url: rtmp://test.publish.com:1936/${app}/${stream_name}_a?sign=${params[sign]}

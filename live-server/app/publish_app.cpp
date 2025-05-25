@@ -79,18 +79,18 @@ int32_t PublishApp::on_create_source(const std::string & domain,
                                      const std::string & app_name,
                                      const std::string & stream_name, std::shared_ptr<MediaSource> source) {
     if (source->is_origin()) {//只有是源流（真实客户端推送的流，才算，还有种流，是通过中转拉取,不算源流）
-        auto record_types = app_conf_->record_types();
-        if (record_types.size() <= 0) {
-            return 0;
-        }
-
-        for (auto & t : record_types) {
-            CORE_INFO("session:{}/{}/{} try to create record:{}", domain, app_name, stream_name, t);
-            auto recorder = source->get_or_create_recorder(t, std::static_pointer_cast<PublishApp>(shared_from_this()));
-            if (recorder) {
-                CORE_DEBUG("create recorder for:{}/{}/{} type:{} ok", domain, app_name, stream_name, t);
+        if (app_conf_->record_config().is_enabled()) {
+            auto record_types = app_conf_->record_config().get_types();
+            if (record_types.size() > 0) {
+                for (auto & t : record_types) {
+                    CORE_INFO("session:{}/{}/{} try to create record:{}", domain, app_name, stream_name, t);
+                    auto recorder = source->get_or_create_recorder(t, std::static_pointer_cast<PublishApp>(shared_from_this()));
+                    if (recorder) {
+                        CORE_DEBUG("create recorder for:{}/{}/{} type:{} ok", domain, app_name, stream_name, t);
+                    }
+                }
             }
-        }
+        }        
     }
     return 0;
 }
