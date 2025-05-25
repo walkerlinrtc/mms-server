@@ -33,12 +33,15 @@ public:
     bool init() override;
     void close() override;
 private:
+    void gen_m3u8();
     std::shared_ptr<TsMediaSink> ts_media_sink_;
     std::shared_ptr<TsSegment> prev_ts_seg_;
-    int64_t seq_no_ = 0;
+    int64_t seq_no_ = 1;
     int64_t record_seg_count_ = 0;
     int64_t record_duration_ = 0;
     int64_t record_start_time_ = 0;
+
+    std::string file_dir_;
     std::vector<TsRecordSeg> ts_segs_;
 };
 };

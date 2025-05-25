@@ -104,7 +104,7 @@ void HttpM3u8ServerSession::service() {
                     co_return;
                 }
                 hls_source = std::static_pointer_cast<HlsLiveMediaSource>(hls_bridge->get_media_source());
-                hls_source->set_source_info(domain_name_, app_name_, stream_name_);
+                hls_source->set_source_info(publish_app->get_domain_name(), app_name_, stream_name_);
             } else {
                 hls_source = std::static_pointer_cast<HlsLiveMediaSource>(source);
             }
@@ -115,8 +115,10 @@ void HttpM3u8ServerSession::service() {
                 auto status = hls_source->get_status();
                 bool ret = co_await process_source_status(status);
                 if (!ret) {
+                    close();
                     co_return;
                 }
+
                 std::string m3u8 = hls_source->get_m3u8();
                 if (m3u8.empty()) {
                     try_count++;
@@ -140,7 +142,6 @@ void HttpM3u8ServerSession::service() {
             }
 
             http_response_->add_header("Connection", "close");
-            http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(404, "Not Found");
             close();
@@ -151,6 +152,10 @@ void HttpM3u8ServerSession::service() {
 }
 
 boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(SourceStatus status) {
+    if (status == E_SOURCE_STATUS_OK) {
+        co_return true;
+    }
+
     if (status == E_SOURCE_STATUS_NOT_FOUND) {
         http_response_->add_header("Connection", "close");
         http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");

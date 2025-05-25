@@ -1450,7 +1450,6 @@ void RtmpToTs::close() {
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         check_closable_timer_.cancel();
         co_await wg_.wait();
-        
         if (ts_media_source_) {
             ts_media_source_->close();
             ts_media_source_ = nullptr;

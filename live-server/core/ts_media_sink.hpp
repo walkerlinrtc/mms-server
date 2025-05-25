@@ -15,7 +15,6 @@ class TsMediaSink : public LazyMediaSink {
 public:
     TsMediaSink(ThreadWorker *worker);
     virtual ~TsMediaSink();
-    bool init();
     boost::asio::awaitable<void> do_work() override;
     bool recv_ts_segment(std::shared_ptr<TsSegment> ts_seg);
     void on_ts_segment(const std::function<boost::asio::awaitable<bool>(std::shared_ptr<TsSegment> msg)> & cb);

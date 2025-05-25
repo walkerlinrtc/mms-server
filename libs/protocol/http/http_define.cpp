@@ -107,6 +107,8 @@ std::unordered_map<std::string, std::string> mms::http_content_type_map = {
 {".m1v"	,   "video/x-mpeg"},
 {".m2v"	,   "video/x-mpeg"},	
 {".m3u"	,   "audio/mpegurl"},
+{".m3u8",   "application/vnd.apple.mpegurl"},
+{".ts",     "video/MP2T"},
 {".m4e"	,   "video/mpeg4"},	
 {".mac"	,   "application/x-mac"},
 {".man"	,   "application/x-troff-man"},	

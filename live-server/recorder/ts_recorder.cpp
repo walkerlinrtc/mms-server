@@ -61,16 +61,18 @@ bool TsRecorder::init() {
     record_start_time_ = time(NULL);
     ts_media_sink_->on_ts_segment([this, self](std::shared_ptr<TsSegment> ts_seg)->boost::asio::awaitable<bool> {
         boost::system::error_code ec;
-        std::string file_name = std::to_string(ts_seg->get_create_at()) + "_" + std::to_string(ts_seg->get_seqno()) + 
-                                "_" + std::to_string(ts_seg->get_duration()) + "_" + std::to_string(ts_seg->get_start_pts()) + ".ts";
-        std::string file_dir = Config::get_instance()->get_record_root_path() + "/" + domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/ts/" + std::to_string(record_start_time_);
+        file_dir_ = Config::get_instance()->get_record_root_path() + "/" + domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/ts/" + std::to_string(record_start_time_);
+        std::string file_name;
         try {
             // 写入文件
-            std::filesystem::create_directories(file_dir);
+            std::filesystem::create_directories(file_dir_);
+            auto seq_no = seq_no_;
+            file_name = std::to_string(ts_seg->get_create_at()) + "_" + std::to_string(seq_no) + 
+                                "_" + std::to_string(ts_seg->get_duration()) + "_" + std::to_string(ts_seg->get_start_pts()) + ".ts";
 
-            std::ofstream ts_file(file_dir + "/" + file_name, std::ios::out|std::ios::binary|std::ios::trunc);
+            std::ofstream ts_file(file_dir_ + "/" + file_name, std::ios::out|std::ios::binary|std::ios::trunc);
             if (!ts_file.is_open()) {
-                HLS_ERROR("create file:{} failed", file_dir + "/" + file_name);
+                HLS_ERROR("create file:{} failed", file_dir_ + "/" + file_name);
                 co_return true;
             }
 
@@ -89,7 +91,7 @@ bool TsRecorder::init() {
             seg.file_name_ = file_name;
             seg.start_pts_ = ts_seg->get_start_pts();
             seg.update_at_ = time(NULL);
-
+            ts_segs_.emplace_back(seg);
             // Json::Value ts_rec;
             // ts_rec["seq"] = seq_no_++;
             // ts_rec["create_at"] = ts_seg->get_create_at();
@@ -100,7 +102,7 @@ bool TsRecorder::init() {
             // auto & server_ip = Host::get_instance().get_wan_ip();
             // ts_rec["server"] = server_ip;
         } catch (const std::exception & e) {
-            HLS_ERROR("create ts:{} failed, {}", file_dir + "/" + file_name, e.what());
+            HLS_ERROR("create ts:{} failed, {}", file_dir_ + "/" + file_name, e.what());
             co_return true;
         }
             
@@ -131,6 +133,41 @@ void TsRecorder::close() {
         ts_media_sink_->on_close({});
         ts_media_sink_->on_ts_segment({});
         ts_media_sink_->close();
+
+        if (!file_dir_.empty()) {
+            gen_m3u8();
+        }
         co_return;
     }, boost::asio::detached);
+}
+
+void TsRecorder::gen_m3u8() {
+    if (ts_segs_.size() <= 0) {
+        return;
+    }
+
+    std::stringstream ss;
+    ss << "#EXTM3U\r\n";
+    ss << "#EXT-X-VERSION:3\r\n";
+    // 获取最大切片时长
+    int64_t max_duration = 0;
+    for (auto & seg : ts_segs_) {
+        max_duration = std::max(max_duration, seg.duration_);
+    }
+
+    ss << "#EXT-X-TARGETDURATION:" << (int)ceil(max_duration / 1000.0) << "\r\n";
+    ss << "#EXT-X-MEDIA-SEQUENCE:" << ts_segs_[0].seq_no_ << "\r\n";
+
+    ss.precision(3);
+    ss.setf(std::ios::fixed, std::ios::floatfield);
+    for (auto & seg : ts_segs_) {
+        ss << "#EXTINF:" << seg.duration_ / 1000.0 << "\r\n";
+        ss << seg.file_name_ << "\r\n";
+    }
+    ss << "#EXT-X-ENDLIST\r\n";
+    auto m3u8 = ss.str();
+    std::string file_name = get_stream_name() + "_" + std::to_string(record_start_time_) + ".m3u8";
+    std::ofstream m3u8_file(file_dir_ + "/" + file_name, std::ios::out);
+    m3u8_file << m3u8;
+    m3u8_file.close();
 }

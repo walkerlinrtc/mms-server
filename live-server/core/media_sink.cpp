@@ -32,6 +32,10 @@ void MediaSink::close() {
     if (close_cb_) {
         close_cb_();
     }
+
+    if (source_) {
+        source_ = nullptr;
+    }
 }
 
 void MediaSink::on_close(const std::function<void()> & cb) {
@@ -104,14 +108,20 @@ void LazyMediaSink::wakeup() {
 
 void LazyMediaSink::close() {
     closing_ = true;
-    if (working_) {
+    auto self(shared_from_this());
+    auto working = working_;
+    if (working) {
         wg_.add(1);
-        auto self(shared_from_this());
-        // 确保wakeup结束了，自己才释放
-        boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-            co_await wg_.wait();
-            MediaSink::close();
-        }, boost::asio::detached);
     }
+
+    // 确保wakeup结束了，自己才释放
+    boost::asio::co_spawn(worker_->get_io_context(), [this, self, working]()->boost::asio::awaitable<void> {
+        if (working) {
+            co_await wg_.wait();
+        }
+        
+        MediaSink::close();
+        co_return;
+    }, boost::asio::detached);
 }
 

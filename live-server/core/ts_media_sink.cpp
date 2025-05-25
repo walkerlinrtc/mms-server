@@ -5,6 +5,7 @@
 #include "core/ts_media_source.hpp"
 
 #include "base/thread/thread_worker.hpp"
+#include "log/log.h"
 using namespace mms;
 TsMediaSink::TsMediaSink(ThreadWorker *worker) : LazyMediaSink(worker) {
 
@@ -15,8 +16,7 @@ TsMediaSink::~TsMediaSink() {
 }
 
 void TsMediaSink::close() {
-    cb_ = {};
-    pes_pkts_cb_ = {};
+    LazyMediaSink::close();
     return;
 }
 

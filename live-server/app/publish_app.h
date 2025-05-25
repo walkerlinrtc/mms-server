@@ -39,12 +39,13 @@ public:
                              const std::string & app_name,
                              const std::string & stream_name, 
                              std::shared_ptr<MediaSource> source);
+                             
     boost::asio::awaitable<std::shared_ptr<MediaSource>> find_media_source(std::shared_ptr<StreamSession> session) override;
     std::vector<std::shared_ptr<MediaSink>> create_push_streams(std::shared_ptr<MediaSource> source, std::shared_ptr<StreamSession> session);
 
     virtual boost::asio::awaitable<Error> on_publish(std::shared_ptr<StreamSession> session);
     virtual boost::asio::awaitable<Error> on_unpublish(std::shared_ptr<StreamSession> session);
-    
+
     virtual void on_destroy_source(const std::string & domain, 
                                    const std::string & app_name,
                                    const std::string & stream_name, 
