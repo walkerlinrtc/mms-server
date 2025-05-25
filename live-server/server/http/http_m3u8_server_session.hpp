@@ -5,6 +5,7 @@
 
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
+#include "core/source_status.h"
 
 namespace mms {
 class RtmpMediaSink;
@@ -19,6 +20,7 @@ public:
     void service();
     void close();
 private:
+    boost::asio::awaitable<bool> process_source_status(SourceStatus status);
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
     std::shared_ptr<HttpRequest> http_request_;
     std::shared_ptr<HttpResponse> http_response_;

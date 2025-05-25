@@ -112,6 +112,11 @@ void HttpM3u8ServerSession::service() {
             int try_count = 0;
             while (try_count <= 400) {
                 hls_source->update_last_access_time();
+                auto status = hls_source->get_status();
+                bool ret = co_await process_source_status(status);
+                if (!ret) {
+                    co_return;
+                }
                 std::string m3u8 = hls_source->get_m3u8();
                 if (m3u8.empty()) {
                     try_count++;
@@ -143,6 +148,47 @@ void HttpM3u8ServerSession::service() {
 
         co_return;
     }, boost::asio::detached);
+}
+
+boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(SourceStatus status) {
+    if (status == E_SOURCE_STATUS_NOT_FOUND) {
+        http_response_->add_header("Connection", "close");
+        http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
+        http_response_->add_header("Access-Control-Allow-Origin", "*");
+        if (!(co_await http_response_->write_header(404, "Not Found"))) {
+            close();
+            co_return false;
+        }
+        co_return false;
+    } else if (status == E_SOURCE_STATUS_UNAUTHORIZED) {
+        http_response_->add_header("Connection", "close");
+        http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
+        http_response_->add_header("Access-Control-Allow-Origin", "*");
+        if (!(co_await http_response_->write_header(401, "Unauthorized"))) {
+            close();
+            co_return false;
+        }
+        co_return false;
+    } else if (status == E_SOURCE_STATUS_FORBIDDEN) {
+        http_response_->add_header("Connection", "close");
+        http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
+        http_response_->add_header("Access-Control-Allow-Origin", "*");
+        if (!(co_await http_response_->write_header(403, "Forbidden"))) {
+            close();
+            co_return false;
+        }
+        co_return false;
+    } else {
+        http_response_->add_header("Connection", "close");
+        http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
+        http_response_->add_header("Access-Control-Allow-Origin", "*");
+        if (!(co_await http_response_->write_header(500, "Gateway timeout"))) {
+            close();
+            co_return false;
+        }
+        co_return false;
+    }
+    co_return true;
 }
 
 void HttpM3u8ServerSession::close() {

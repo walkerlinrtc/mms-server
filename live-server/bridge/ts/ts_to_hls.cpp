@@ -59,9 +59,15 @@ bool TsToHls::init() {
         close();
     });
 
-    ts_media_sink_->on_ts_segment([this, self](std::shared_ptr<TsSegment> seg)->boost::asio::awaitable<bool> {
-        hls_media_source_->on_ts_segment(seg);
-        co_return true;
+    ts_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
+        hls_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            ts_media_sink_->on_ts_segment([this, self](std::shared_ptr<TsSegment> seg)->boost::asio::awaitable<bool> {
+                hls_media_source_->on_ts_segment(seg);
+                co_return true;
+            });
+        }
+        co_return;
     });
     return true;    
 }
