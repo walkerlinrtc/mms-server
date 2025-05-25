@@ -79,25 +79,30 @@ bool FlvToTs::init() {
         close();
     });
 
-    flv_media_sink_->on_flv_tag([this](const std::vector<std::shared_ptr<FlvTag>> & flv_tags)->boost::asio::awaitable<bool> {
-        for (auto flv_tag : flv_tags) {
-            auto tag_type = flv_tag->get_tag_type();
-            if (tag_type == FlvTagHeader::AudioTag) {
-                if (!this->on_audio_packet(flv_tag)) {
-                    co_return false;
+    flv_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
+        ts_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            flv_media_sink_->on_flv_tag([this](const std::vector<std::shared_ptr<FlvTag>> & flv_tags)->boost::asio::awaitable<bool> {
+                for (auto flv_tag : flv_tags) {
+                    auto tag_type = flv_tag->get_tag_type();
+                    if (tag_type == FlvTagHeader::AudioTag) {
+                        if (!this->on_audio_packet(flv_tag)) {
+                            co_return false;
+                        }
+                    } else if (tag_type == FlvTagHeader::VideoTag) {
+                        if (!this->on_video_packet(flv_tag)) {
+                            co_return false;
+                        }
+                    } else if (tag_type == FlvTagHeader::ScriptTag) {
+                        if (!this->on_metadata(flv_tag)) {
+                            co_return false;
+                        }
+                    }
                 }
-            } else if (tag_type == FlvTagHeader::VideoTag) {
-                if (!this->on_video_packet(flv_tag)) {
-                    co_return false;
-                }
-            } else if (tag_type == FlvTagHeader::ScriptTag) {
-                if (!this->on_metadata(flv_tag)) {
-                    co_return false;
-                }
-            }
+                co_return true;
+            });
         }
-        
-        co_return true;
+        co_return;
     });
     return true;
 }
