@@ -186,6 +186,7 @@ namespace mms {
 #define RTMP_RESULT_CONNECT_REJECTED                "NetConnection.Connect.Rejected"
 #define RTMP_STATUS_STREAM_PLAY_RESET               "NetStream.Play.Reset"
 #define RTMP_STATUS_STREAM_PLAY_START               "NetStream.Play.Start"
+#define RTMP_STATUS_STREAM_PLAY_FAILED              "NetStream.Play.Failed"
 #define RTMP_STATUS_STREAM_PAUSE_NOTIFY             "NetStream.Pause.Notify"
 #define RTMP_STATUS_STREAM_UNPAUSE_NOTIFY           "NetStream.Unpause.Notify"
 #define RTMP_STATUS_STREAM_PUBLISH_START            "NetStream.Publish.Start"

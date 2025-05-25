@@ -540,7 +540,25 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(std::sh
             RtmpOnStatusMessage status_msg;
             status_msg.info().set_item_value("level", "status");
             status_msg.info().set_item_value("code", RTMP_STATUS_STREAM_NOT_FOUND);
-            status_msg.info().set_item_value("description", "play start ok.");
+            status_msg.info().set_item_value("description", "not found");
+            status_msg.info().set_item_value("clientid", "mms");
+            if (!co_await send_rtmp_message(status_msg)) {
+                co_return;
+            }
+        } else if (status == E_SOURCE_STATUS_FORBIDDEN || status == E_SOURCE_STATUS_UNAUTHORIZED) {
+            RtmpOnStatusMessage status_msg;
+            status_msg.info().set_item_value("level", "status");
+            status_msg.info().set_item_value("code", RTMP_RESULT_CONNECT_REJECTED);
+            status_msg.info().set_item_value("description", "forbidden");
+            status_msg.info().set_item_value("clientid", "mms");
+            if (!co_await send_rtmp_message(status_msg)) {
+                co_return;
+            }
+        } else {
+            RtmpOnStatusMessage status_msg;
+            status_msg.info().set_item_value("level", "status");
+            status_msg.info().set_item_value("code", RTMP_STATUS_STREAM_PLAY_FAILED);
+            status_msg.info().set_item_value("description", "play failed");
             status_msg.info().set_item_value("clientid", "mms");
             if (!co_await send_rtmp_message(status_msg)) {
                 co_return;

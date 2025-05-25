@@ -225,38 +225,6 @@ void HttpFlvClientSession::service() {
     return;
 }
 
-void HttpFlvClientSession::close() {
-    // todo: how to record 404 error to log.
-    if (closed_.test_and_set(std::memory_order_acquire)) {
-        return;
-    }
-
-    auto self(this->shared_from_this());
-    boost::asio::co_spawn(get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-        CORE_DEBUG("closing HttpFlvClientSession ...");
-        check_closable_timer_.cancel();
-        CORE_DEBUG("check_closable_timer cancel");
-        if (http_client_) {
-            http_client_->close();
-        }
-        CORE_DEBUG("close HttpFlvClientSession wait start");
-        co_await wg_.wait();
-        CORE_DEBUG("close HttpFlvClientSession wait start");
-        if (flv_media_source_) {
-            flv_media_source_->set_session(nullptr);
-            auto publish_app = flv_media_source_->get_app();
-            start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), flv_media_source_);
-            co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
-        }
-
-        if (http_client_) {
-            http_client_.reset();
-        }
-        CORE_DEBUG("HttpFlvClientSession closed");
-        co_return;
-    }, boost::asio::detached);
-}
-
 boost::asio::awaitable<void> HttpFlvClientSession::cycle_pull_flv_tag(std::shared_ptr<HttpResponse> resp) {
     bool flv_header_received = false;
     // todo : 这里session已经在函数hold住了，lambda没必要传值，传值会导致内存异常
@@ -302,4 +270,36 @@ boost::asio::awaitable<void> HttpFlvClientSession::cycle_pull_flv_tag(std::share
         }
     });
     co_return;
+}
+
+void HttpFlvClientSession::close() {
+    // todo: how to record 404 error to log.
+    if (closed_.test_and_set(std::memory_order_acquire)) {
+        return;
+    }
+
+    auto self(this->shared_from_this());
+    boost::asio::co_spawn(get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
+        CORE_DEBUG("closing HttpFlvClientSession ...");
+        check_closable_timer_.cancel();
+        CORE_DEBUG("check_closable_timer cancel");
+        if (http_client_) {
+            http_client_->close();
+        }
+        CORE_DEBUG("close HttpFlvClientSession wait start");
+        co_await wg_.wait();
+        CORE_DEBUG("close HttpFlvClientSession wait start");
+        if (flv_media_source_) {
+            flv_media_source_->set_session(nullptr);
+            auto publish_app = flv_media_source_->get_app();
+            start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), flv_media_source_);
+            co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+        }
+
+        if (http_client_) {
+            http_client_.reset();
+        }
+        CORE_DEBUG("HttpFlvClientSession closed");
+        co_return;
+    }, boost::asio::detached);
 }
