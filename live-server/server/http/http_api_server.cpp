@@ -18,6 +18,7 @@
 #include "core/stream_session.hpp"
 #include "core/source_manager.hpp"
 
+#include "config/config.h"
 #include "config/app_config.h"
 #include "app/app_manager.h"
 #include "app/app.h"
@@ -34,6 +35,7 @@ bool HttpApiServer::register_route() {
     if (!ret) {
         return false;
     }
+
     ret = on_get("/api/domain_streams", std::bind(&HttpApiServer::get_domain_streams, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
@@ -73,7 +75,46 @@ boost::asio::awaitable<void> HttpApiServer::get_api_version(std::shared_ptr<Http
     co_return;
 }
 
- boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<HttpServerSession> session, 
+boost::asio::awaitable<void> get_domains(std::shared_ptr<HttpServerSession> session, 
+                                         std::shared_ptr<HttpRequest> req, 
+                                         std::shared_ptr<HttpResponse> resp) {
+    (void)session;
+    (void)req;
+    auto config = Config::get_instance();
+    if (!config) {
+        if (!(co_await resp->write_header(500, "Server Error"))) {
+            resp->close();
+        }
+        co_return;
+    }
+
+    auto domains = config->get_domains();
+    Json::Value jdomains;
+    for (auto it = domains.begin(); it != domains.end(); it++) {
+        jdomains.append(*it);
+    }
+    Json::Value root;
+    root["code"] = 0;
+    root["data"] = jdomains;
+    root["msg"] = "";
+    std::string body = root.toStyledString();
+    resp->add_header("Content-type", "application/json");
+    if (!(co_await resp->write_header(200, "OK"))) {
+        resp->close();
+        co_return;
+    }
+
+    bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
+    if (!ret) {
+        resp->close();
+        co_return;
+    }
+
+    resp->close();
+    co_return;
+}
+
+boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<HttpServerSession> session, 
                                                             std::shared_ptr<HttpRequest> req, 
                                                             std::shared_ptr<HttpResponse> resp) {
     (void)session;
