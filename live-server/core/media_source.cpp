@@ -209,6 +209,7 @@ void MediaSource::close() {
                     co_return;
                 }, boost::asio::detached);
             }
+            sinks_.clear();
         }
         // 因为bridge和recorder都是挂在sink后面的，所以sink关闭了，bridge和recorder也会被删除，不需要二次处理
         // 当然也可以在这里也关闭一下所以的bridge和recorder
