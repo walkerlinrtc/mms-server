@@ -1,7 +1,11 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
+
+#include "json/json.h"
+
 namespace mms {
 class AppConfig;
 class Config;
@@ -11,10 +15,12 @@ class DomainConfig : public std::enable_shared_from_this<DomainConfig> {
 public:
     DomainConfig(Config & top_conf);
     bool load_config(const std::string & file);
+    Json::Value to_json();
     const Config & get_top_conf() const {
         return top_conf_;
     }
 
+    std::unordered_set<std::string> get_apps();
     std::shared_ptr<AppConfig> get_app_conf(const std::string & app_name);
     std::shared_ptr<DomainConfig> get_publish_domain_config() {
         return publish_domain_config_;

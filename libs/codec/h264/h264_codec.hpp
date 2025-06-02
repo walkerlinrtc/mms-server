@@ -5,6 +5,7 @@
 #include "h264_pps.hpp"
 #include "base/utils/bit_stream.hpp"
 #include "h264_avcc.hpp"
+#include "json/json.h"
 
 namespace mms {
 class MediaSdp;
@@ -95,6 +96,8 @@ public:
 
     AVCDecoderConfigurationRecord & get_avc_configuration();
     std::shared_ptr<Payload> get_payload();
+
+    Json::Value to_json() override;
 private:
     bool gen_avc_decoder_configuration_record();
     void deemulation_prevention(const std::string_view & input, std::string & output);//去除竞争字段

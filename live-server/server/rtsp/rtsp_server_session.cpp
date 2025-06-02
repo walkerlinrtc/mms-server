@@ -404,6 +404,16 @@ boost::asio::awaitable<bool> RtspServerSession::process_announce_req(std::shared
     resp->set_status(RTSP_STATUS_CODE_OK, "OK");
     co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&RtspServerSession::send_rtsp_resp, this, resp), boost::asio::redirect_error(boost::asio::use_awaitable, ec));
 
+    ret = SourceManager::get_instance().add_source(get_domain_name(), 
+                                                        get_app_name(),
+                                                        get_stream_name(),
+                                                        rtsp_media_source_);
+    if (!ret) {
+        rtsp_media_source_->close();
+        co_return false;
+    }
+    rtsp_media_source_->set_status(E_SOURCE_STATUS_OK);
+    publish_app->on_create_source(get_domain_name(),get_app_name(), get_stream_name(), rtsp_media_source_);
     co_return true;
 }
 

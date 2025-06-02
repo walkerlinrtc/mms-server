@@ -18,6 +18,7 @@
 #include "hls_config.h"
 #include "bridge_config.h"
 #include "record/record_config.h"
+#include "json/json.h"
 
 namespace mms {
 class DomainConfig;
@@ -88,6 +89,8 @@ public:
     inline uint32_t get_stream_resume_timeout() const {
         return stream_resume_timeout_;
     }
+
+    Json::Value to_json();
 private:
     std::string domain_name_;
     std::string app_name_;

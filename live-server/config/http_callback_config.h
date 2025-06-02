@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "yaml-cpp/yaml.h"
+#include "json/json.h"
 
 namespace mms {
 class PlaceHolder;
@@ -28,8 +29,12 @@ public:
     std::string gen_url(std::shared_ptr<StreamSession> s) const;
     std::string gen_body(std::shared_ptr<StreamSession> s) const;
     std::unordered_map<std::string, std::string> gen_headers(std::shared_ptr<StreamSession> s) const;
+
+    Json::Value to_json();
 public:
     std::string unformat_url_;
+    std::unordered_map<std::string, std::string> unformat_params_;
+
     std::vector<std::shared_ptr<PlaceHolder>> url_holders_;
 
     std::string unformat_body_;

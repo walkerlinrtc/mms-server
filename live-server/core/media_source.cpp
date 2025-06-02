@@ -28,9 +28,7 @@ MediaSource::MediaSource(const std::string & media_type, std::weak_ptr<StreamSes
                                                                                                     media_type_(media_type), 
                                                                                                     session_(session), 
                                                                                                     app_(app), 
-                                                                                                    worker_(worker), 
-                                                                                                    cleanup_timer_(worker->get_io_context()),
-                                                                                                    wg_(worker) 
+                                                                                                    worker_(worker)
 {
     
 }
@@ -46,6 +44,20 @@ std::shared_ptr<StreamSession> MediaSource::get_session() {
 
 Json::Value MediaSource::to_json() {
     Json::Value v;
+    v["type"] = media_type_;
+    v["domain"] = domain_name_;
+    v["app"] = app_name_;
+    v["stream"] = stream_name_;
+    v["sinks"] = sinks_count_.load();
+    v["create_at"] = create_at_;
+    v["stream_time"] = time(NULL) - create_at_;
+    if (video_codec_) {
+        v["vcodec"] = video_codec_->to_json();
+    }
+
+    if (audio_codec_) {
+        v["acodec"] = audio_codec_->to_json();
+    }
     return v;
 }
 

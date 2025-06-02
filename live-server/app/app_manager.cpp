@@ -31,8 +31,8 @@ void AppManager::add_app(const std::string & domain, const std::string & app_nam
     domain_apps_[domain].insert(std::pair(app_name, app));
 }
 
-std::set<std::string> AppManager::get_domains() {
-    std::set<std::string> domains;
+std::unordered_set<std::string> AppManager::get_domains() {
+    std::unordered_set<std::string> domains;
     std::shared_lock<std::shared_mutex> lck(mutex_);
     for (auto & p : domain_apps_) {
         domains.insert(p.first);
@@ -45,14 +45,14 @@ void AppManager::remove_domain(const std::string & domain) {
     domain_apps_.erase(domain);
 }
 
-std::set<std::string> AppManager::get_domain_apps_name(const std::string & domain) {
+std::unordered_set<std::string> AppManager::get_domain_apps_name(const std::string & domain) {
     std::shared_lock<std::shared_mutex> lck(mutex_);
     auto it_domain = domain_apps_.find(domain);
     if (it_domain == domain_apps_.end()) {
         return {};
     }
 
-    std::set<std::string> app_names;
+    std::unordered_set<std::string> app_names;
     for (auto & p : it_domain->second) {
         app_names.insert(p.first);
     }

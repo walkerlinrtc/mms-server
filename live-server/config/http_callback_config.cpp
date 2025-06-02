@@ -33,38 +33,16 @@
 using namespace mms;
 
 int32_t HttpCallbackConfig::load_config(const YAML::Node & node) {
-    // auto params_node = node["params"];
-    // if (params_node.IsDefined()) {
-    //     if (params_node.size() > 0) {
-    //         for(YAML::const_iterator it = params_node.begin(); it != params_node.end(); it++) {
-    //             std::string name = it->first.as<std::string>();
-    //             std::string param_pattern = it->second.as<std::string>();
-    //             auto left_bracket_pos = param_pattern.find("(");
-    //             if (left_bracket_pos == std::string::npos) {//解析错误
-    //                 return -2;
-    //             }
-                
-    //             if (param_pattern[param_pattern.size() - 1] != ')') {
-    //                 return -3;
-    //             }
-
-    //             std::string method_name = param_pattern.substr(0, left_bracket_pos);
-    //             std::shared_ptr<Param> param = Param::gen_param(method_name);
-    //             if (!param) {
-    //                 return -4;
-    //             }
-    //             std::string method_params_list = param_pattern.substr(left_bracket_pos + 1, param_pattern.size() - left_bracket_pos - 2);
-    //             std::vector<std::string> method_params;
-    //             boost::split(method_params, method_params_list, boost::is_any_of(","));
-    //             for (size_t i = 0; i < method_params.size(); i++) {
-    //                 if (0 != parse_method_param(node, param, method_params[i])) {
-    //                     return -5;
-    //                 }
-    //             }
-    //             params_.insert(std::pair(name, param));
-    //         }
-    //     }
-    // }
+    auto params_node = node["params"];
+    if (params_node.IsDefined()) {
+        if (params_node.size() > 0) {
+            for(YAML::const_iterator it = params_node.begin(); it != params_node.end(); it++) {
+                std::string name = it->first.as<std::string>();
+                std::string param_pattern = it->second.as<std::string>();
+                unformat_params_.insert(std::pair(name, param_pattern));
+            }
+        }
+    }
 
     auto url_node = node["url"];
     if (!url_node.IsDefined()) {
@@ -164,4 +142,15 @@ std::unordered_map<std::string, std::string> HttpCallbackConfig::gen_headers(std
         headers[it->first] = value;
     }
     return headers;
+}
+
+Json::Value HttpCallbackConfig::to_json() {
+    Json::Value jconf;
+    jconf["url"] = unformat_url_;
+    Json::Value jparams;
+    for (auto & p : unformat_params_) {
+        jparams[p.first] = p.second;
+    }
+    jconf["params"] = jparams;
+    return jconf;
 }

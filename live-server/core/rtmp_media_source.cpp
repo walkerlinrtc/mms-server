@@ -47,6 +47,13 @@ Json::Value RtmpMediaSource::to_json() {
     v["sinks"] = sinks_count_.load();
     v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
+    if (video_codec_) {
+        v["vcodec"] = video_codec_->to_json();
+    }
+
+    if (audio_codec_) {
+        v["acodec"] = audio_codec_->to_json();
+    }
     return v;
 }
 
@@ -155,17 +162,28 @@ bool RtmpMediaSource::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         sequence_header = true;
         // 解析avc configuration header
         if (!video_codec_) {
-            if (header.is_extheader) {
-                if (header.get_codec_id() == VideoTagHeader::HEVC || header.get_codec_id() == VideoTagHeader::HEVC_FOURCC) {
-                    video_codec_ = std::make_shared<HevcCodec>();
-                }
-            }
-
-            if (!video_codec_) {
-                CORE_ERROR("rtmp:unsupport video codec:{}", (int32_t)header.get_codec_id());
-                return false;
+            if (header.get_codec_id() == VideoTagHeader::AVC) {
+                video_codec_ = std::make_shared<H264Codec>();
+            } else if (header.get_codec_id() == VideoTagHeader::HEVC || header.get_codec_id() == VideoTagHeader::HEVC_FOURCC) {
+                video_codec_ = std::make_shared<HevcCodec>();
             }
         }
+
+        if (!video_codec_) {
+            CORE_ERROR("rtmp:unsupport video codec:{}", (int32_t)header.get_codec_id());
+            return false;
+        }
+
+        if (header.get_codec_id() == VideoTagHeader::AVC && video_codec_->get_codec_type() == CODEC_H264) {
+            AVCDecoderConfigurationRecord avc_decoder_configuration_record;
+            int32_t consumed = avc_decoder_configuration_record.parse((uint8_t*)payload.data() + header_consumed, payload.size() - header_consumed);
+            if (consumed < 0) {
+                return false;
+            }
+            H264Codec *h264_codec = ((H264Codec*)video_codec_.get());
+            h264_codec->set_sps_pps(avc_decoder_configuration_record.get_sps(), avc_decoder_configuration_record.get_pps());
+        }
+
         av_pkts_.clear();
     }
 

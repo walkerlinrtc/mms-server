@@ -207,13 +207,13 @@ bool Config::load_domain_config(const std::string & domain, const std::string & 
     return true;
 }
 
-std::unordered_set<std::string> Config::get_domains() {
-    std::unordered_set<std::string> domains;
+std::unordered_map<std::string, std::shared_ptr<DomainConfig>> Config::get_domain_confs() {
+    std::unordered_map<std::string, std::shared_ptr<DomainConfig>> domain_confs;
     std::unique_lock<std::shared_mutex> lck(mutex_);
     for (auto & p : domains_config_) {
-        domains.insert(p.first);
+        domain_confs.insert(std::pair(p.first, p.second));
     }
-    return domains;
+    return domain_confs;
 }
 
 std::shared_ptr<DomainConfig> Config::get_domain_config(const std::string & domain_name) {

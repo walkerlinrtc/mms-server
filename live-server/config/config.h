@@ -28,7 +28,7 @@ public:
     }
 
     std::shared_ptr<DomainConfig> get_domain_config(const std::string & domain_name);
-    std::unordered_set<std::string> get_domains();
+    std::unordered_map<std::string, std::shared_ptr<DomainConfig>> get_domain_confs();
     
     const RtmpConfig & get_rtmp_config() const {
         return rtmp_config_;

@@ -46,8 +46,16 @@ Json::Value RtspMediaSource::to_json() {
     v["domain"] = domain_name_;
     v["app"] = app_name_;
     v["stream"] = stream_name_;
+    v["create_at"] = create_at_;
     v["sinks"] = sinks_count_.load();
-    v["stream_time"] = 0;
+    v["stream_time"] = time(NULL) - create_at_;
+    if (video_codec_) {
+        v["vcodec"] = video_codec_->to_json();
+    }
+
+    if (audio_codec_) {
+        v["acodec"] = audio_codec_->to_json();
+    }
     return v;
 }
 

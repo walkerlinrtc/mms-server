@@ -5,7 +5,7 @@ cert_file: test.publish.com.crt
 apps:
   - name: app                   #接入点名称
     record:
-      enabled: true
+      enabled: false
       types: 
         - ts
         - flv
