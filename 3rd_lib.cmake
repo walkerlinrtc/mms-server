@@ -15,7 +15,8 @@ ExternalProject_Add(libspdlog
 
 ExternalProject_Add(libboost
     EXCLUDE_FROM_ALL 1
-    URL https://archives.boost.io/release/1.82.0/source/boost_1_82_0.tar.gz
+    # URL https://archives.boost.io/release/1.82.0/source/boost_1_82_0.tar.gz
+    URL https://ulive1.cn-gd.ufileos.com/boost_1_82_0.tar.gz
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./bootstrap.sh --prefix=${PROJECT_BINARY_DIR}
     BUILD_COMMAND ./b2 cxxflags="-std=c++20" --with-program_options --with-system --with-thread --with-date_time --with-regex --with-serialization --with-context --with-coroutine link=static

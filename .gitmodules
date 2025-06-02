@@ -1,0 +1,3 @@
+[submodule "console"]
+	path = console
+	url = https://github.com/jbl19860422/mms-server-console.git
