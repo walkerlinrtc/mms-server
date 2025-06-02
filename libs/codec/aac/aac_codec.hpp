@@ -33,8 +33,9 @@ private:
     std::shared_ptr<AUConfig> au_config_;
     std::shared_ptr<Payload> sdp_payload_;
 
-    int channel_;//声道数
-    int sample_rate_;//采样率
+    int channels_;//声道数
+    int sample_rate_;//采样率(44100等)
+    int bit_depth_;//位深，一般为16
 };
 
 };
