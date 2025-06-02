@@ -111,6 +111,12 @@ std::shared_ptr<AACCodec> AACCodec::create_from_sdp(const MediaSdp & media_sdp, 
     return codec;
 }
 
+Json::Value AACCodec::to_json() {
+    Json::Value data;
+    data["codec_name"] = codec_name_;
+    return data;
+}
+
 void AACCodec::set_audio_specific_config(std::shared_ptr<AudioSpecificConfig> audio_specific_config) {
     audio_specific_config_ = audio_specific_config;
     ready_ = true;

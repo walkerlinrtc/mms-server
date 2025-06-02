@@ -795,7 +795,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_srtp_packet(std::uniqu
                     audio_last_sr_ntp_ = ((uint64_t)rtcp_sr.ntp_timestamp_sec_ << 32) | (rtcp_sr.ntp_timestamp_psec_);
                     audio_last_sr_sys_ntp_ = ntp;
                     co_await send_rtcp_pkts_channel_.async_send(boost::system::error_code{}, rtcp_rr, boost::asio::use_awaitable);
-                    spdlog::info("audio rtp time:{}", rtcp_sr.rtp_time_/48000);
+                    // spdlog::info("audio rtp time:{}", rtcp_sr.rtp_time_/48000);
                 }
                 
                 break;

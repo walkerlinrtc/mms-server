@@ -104,6 +104,16 @@ std::shared_ptr<Payload> H264Codec::get_payload() {
 bool H264Codec::set_sps_pps(const std::string & sps, const std::string & pps) {
     sps_nalu_ = sps;
     pps_nalu_ = pps;
+
+    uint32_t w,h;
+    if (!get_wh(w, h)) {
+        return false;
+    }
+
+    double fps;
+    if (!get_fps(fps)) {
+        return false;
+    }
     ready_ = true;
     return true;
 }
@@ -123,25 +133,19 @@ void H264Codec::set_pps(const std::string & pps) {
 }
 
 void H264Codec::deemulation_prevention(const std::string_view & input, std::string & output) {
-    auto size = input.size();
-    output.resize(size);
-    int pos = 0;
-    for (size_t i = 0; i < size - 2; ) {
-        int val = (input.at(i)^0x00) + (input.at(i+1)^0x00) + (input.at(i+2)^0x03);
-        if (val == 0) {
-            output[pos] = 0;
-            output[pos + 1] = 0;
-            i += 3;
-            pos += 2;
+    output.clear();
+    size_t size = input.size();
+    for (size_t i = 0; i < size;) {
+        // 如果出现 0x00 0x00 0x03 模式
+        if (i + 2 < size && input[i] == 0x00 && input[i + 1] == 0x00 && input[i + 2] == 0x03) {
+            output.push_back(0x00);
+            output.push_back(0x00);
+            i += 3; // 跳过 0x03
         } else {
-            output[pos] = input[i];
+            output.push_back(input[i]);
             i++;
-            pos++;
         }
     }
-    output[pos++] = input[input.size() - 2];
-    output[pos++] = input[input.size() - 1];
-    output.resize(pos);
 }
 
 bool H264Codec::get_wh(uint32_t & w, uint32_t & h) {
@@ -168,13 +172,13 @@ bool H264Codec::get_wh(uint32_t & w, uint32_t & h) {
     // 计算长宽
     int32_t width  = (int)(sps_.pic_width_in_mbs_minus1 + 1) * 16;
     int32_t height = (int)(sps_.pic_height_in_map_units_minus1 + 1) * 16;
-    if (sps_.frame_mbs_only_flag){
+    if (!sps_.frame_mbs_only_flag){
         height *= 2;
     }
 
     if (sps_.frame_cropping_flag) {
-        width = width - sps_.frame_crop_left_offset*2 - sps_.frame_crop_right_offset*2;
-        height = height - (sps_.frame_crop_top_offset * 2) - (sps_.frame_crop_bottom_offset * 2);
+        width -= 2 * (sps_.frame_crop_left_offset + sps_.frame_crop_right_offset);
+        height -= 2 * (sps_.frame_crop_top_offset  + sps_.frame_crop_bottom_offset);
     }
     
     width_ = width;
@@ -212,13 +216,13 @@ bool H264Codec::get_fps(double & fps) {
 
     int32_t width  = (int)(sps_.pic_width_in_mbs_minus1 + 1) * 16;
     int32_t height = (int)(sps_.pic_height_in_map_units_minus1 + 1) * 16;
-    if (sps_.frame_mbs_only_flag){
+    if (!sps_.frame_mbs_only_flag){
         height *= 2;
     }
 
     if (sps_.frame_cropping_flag) {
-        width = width - sps_.frame_crop_left_offset*2 - sps_.frame_crop_right_offset*2;
-        height = height - (sps_.frame_crop_top_offset * 2) - (sps_.frame_crop_bottom_offset * 2);
+        width -= 2 * (sps_.frame_crop_left_offset + sps_.frame_crop_right_offset);
+        height -= 2 * (sps_.frame_crop_top_offset  + sps_.frame_crop_bottom_offset);
     }
     
     width_ = width;
@@ -231,4 +235,13 @@ bool H264Codec::get_fps(double & fps) {
     }
 
     return false;
+}
+
+Json::Value H264Codec::to_json() {
+    Json::Value data;
+    data["codec_name"] = codec_name_;
+    data["width"] = width_;
+    data["height"] = height_;
+    data["fps"] = fps_;
+    return data;
 }

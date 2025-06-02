@@ -17,7 +17,11 @@ private:
     boost::asio::awaitable<void> get_api_version(std::shared_ptr<HttpServerSession> session, 
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);
-
+    
+    boost::asio::awaitable<void> get_domain_apps(std::shared_ptr<HttpServerSession> session, 
+                                                 std::shared_ptr<HttpRequest> req, 
+                                                 std::shared_ptr<HttpResponse> resp);
+    
     boost::asio::awaitable<void> get_domain_streams(std::shared_ptr<HttpServerSession> session, 
                                                     std::shared_ptr<HttpRequest> req, 
                                                     std::shared_ptr<HttpResponse> resp);

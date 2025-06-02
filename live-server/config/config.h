@@ -2,6 +2,7 @@
 #include <atomic>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <shared_mutex>
 #include "domain_config.h"
 #include "http_callback_config.h"
@@ -26,20 +27,9 @@ public:
         return log_level_;
     }
 
-    // uint16_t get_webrtc_udp_port() const {
-    //     return webrtc_udp_port_;
-    // }
-
-    // const std::string & get_webrtc_ip() const {
-    //     return webrtc_ip_;
-    // }
-
-    // const std::string & get_webrtc_internal_bind_ip() const {
-    //     return webrtc_internal_bind_ip_;
-    // }
-
     std::shared_ptr<DomainConfig> get_domain_config(const std::string & domain_name);
-
+    std::unordered_map<std::string, std::shared_ptr<DomainConfig>> get_domain_confs();
+    
     const RtmpConfig & get_rtmp_config() const {
         return rtmp_config_;
     }

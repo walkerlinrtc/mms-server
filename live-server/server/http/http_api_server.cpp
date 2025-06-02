@@ -18,6 +18,7 @@
 #include "core/stream_session.hpp"
 #include "core/source_manager.hpp"
 
+#include "config/config.h"
 #include "config/app_config.h"
 #include "app/app_manager.h"
 #include "app/app.h"
@@ -34,6 +35,12 @@ bool HttpApiServer::register_route() {
     if (!ret) {
         return false;
     }
+
+    ret = on_get("/api/domain_apps", std::bind(&HttpApiServer::get_domain_apps, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    if (!ret) {
+        return false;
+    }
+
     ret = on_get("/api/domain_streams", std::bind(&HttpApiServer::get_domain_streams, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
@@ -44,9 +51,21 @@ bool HttpApiServer::register_route() {
         return false;
     }
 
-    ret = on_post("/api/cut_off_stream", std::bind(&HttpApiServer::cut_off_stream, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    ret = on_get("/api/cut_off_stream", std::bind(&HttpApiServer::cut_off_stream, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
+    }
+
+    auto & static_file_server_cfg = Config::get_instance()->get_http_api_config().get_static_file_server_config();
+    if (static_file_server_cfg.is_enabled()) {
+        auto path_map = static_file_server_cfg.get_path_map();
+        for (auto it = path_map.begin(); it != path_map.end(); it++) {
+            ret = on_static_fs(it->first, it->second);
+            CORE_INFO("register static file map:{} --> {}", it->first, it->second);
+            if (!ret) {
+                return false;
+            }
+        }
     }
 
     return true;
@@ -73,7 +92,47 @@ boost::asio::awaitable<void> HttpApiServer::get_api_version(std::shared_ptr<Http
     co_return;
 }
 
- boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<HttpServerSession> session, 
+boost::asio::awaitable<void> HttpApiServer::get_domain_apps(std::shared_ptr<HttpServerSession> session, 
+                                                            std::shared_ptr<HttpRequest> req, 
+                                                            std::shared_ptr<HttpResponse> resp) {
+    (void)session;
+    (void)req;
+    auto config = Config::get_instance();
+    if (!config) {
+        if (!(co_await resp->write_header(500, "Server Error"))) {
+            resp->close();
+        }
+        co_return;
+    }
+
+    auto domain_confs = config->get_domain_confs();
+    Json::Value jdomain_confs;
+    for (auto it_domain = domain_confs.begin(); it_domain != domain_confs.end(); it_domain++) {
+        jdomain_confs[it_domain->first] = it_domain->second->to_json();
+    }
+    Json::Value root;
+    root["code"] = 0;
+    root["data"] = jdomain_confs;
+    root["msg"] = "";
+    std::string body = root.toStyledString();
+    resp->add_header("Content-type", "application/json");
+    resp->add_header("Access-Control-Allow-Origin", "*");
+    if (!(co_await resp->write_header(200, "OK"))) {
+        resp->close();
+        co_return;
+    }
+
+    bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
+    if (!ret) {
+        resp->close();
+        co_return;
+    }
+
+    resp->close();
+    co_return;
+}
+
+boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<HttpServerSession> session, 
                                                             std::shared_ptr<HttpRequest> req, 
                                                             std::shared_ptr<HttpResponse> resp) {
     (void)session;
@@ -114,16 +173,21 @@ boost::asio::awaitable<void> HttpApiServer::get_app_streams(std::shared_ptr<Http
     Json::Value root;
     auto domain = req->get_query_param("domain");
     auto app = req->get_query_param("app");
+    if (app.empty()) {
+        co_return co_await response_json(resp, -1, "param error");
+    }
+
     auto streams = SourceManager::get_instance().get_sources(domain, app);
     Json::Value jstreams;
     for (auto & stream : streams) {
-        jstreams[stream.first]= stream.second->to_json();
+        jstreams.append(stream.second->to_json());
     }
-    root[app] = jstreams;
+    root["data"] = jstreams;
     root["code"] = 0;
 
     std::string body = root.toStyledString();
     resp->add_header("Content-type", "application/json");
+    resp->add_header("Access-Control-Allow-Origin", "*");
     if (!(co_await resp->write_header(200, "OK"))) {
         resp->close();
         co_return;
@@ -162,6 +226,7 @@ boost::asio::awaitable<void> HttpApiServer::response_json(std::shared_ptr<HttpRe
     root["code"] = code;
     root["msg"] = msg;
     std::string body = root.toStyledString();
+    resp->add_header("Access-Control-Allow-Origin", "*");
     resp->add_header("Content-Length", std::to_string(body.size()));
     if (!(co_await resp->write_header(200, "OK"))) {
         resp->close();

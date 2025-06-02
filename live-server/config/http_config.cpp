@@ -16,6 +16,8 @@ int32_t StaticFileServerConfig::load(const YAML::Node & config) {
         enabled_ = enabled.as<bool>();
     }
 
+    CORE_INFO("static file server is {}", enabled_);
+
     YAML::Node path_map = config["path_map"];
     if (path_map.IsDefined() && path_map.IsMap()) {
         for (auto it = path_map.begin(); it != path_map.end(); it++) {

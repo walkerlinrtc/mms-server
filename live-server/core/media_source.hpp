@@ -128,9 +128,5 @@ protected:
 
     int64_t create_at_ = time(NULL);
     std::atomic<SourceStatus> status_{E_SOURCE_STATUS_INIT};
-
-    std::atomic<bool> waiting_cleanup_{false};
-    boost::asio::steady_timer cleanup_timer_;
-    WaitGroup wg_;
 };
 };

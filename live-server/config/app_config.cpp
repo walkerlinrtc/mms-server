@@ -171,3 +171,18 @@ int32_t AppConfig::load_config(const YAML::Node & node)
 
     return 0;
 }
+
+Json::Value AppConfig::to_json() {
+    Json::Value japp_conf;
+    japp_conf["domain_name"] = domain_name_;
+    japp_conf["app_name"] = app_name_;
+    japp_conf["stream_resume_timeout"] = stream_resume_timeout_;
+    if (on_publish_.size() > 0) {
+        Json::Value jon_publish;
+        for (auto & on_publish : on_publish_) {
+            jon_publish.append(on_publish.to_json());
+        }
+        japp_conf["on_publish"] = jon_publish;
+    }
+    return japp_conf;
+}

@@ -121,27 +121,6 @@ bool Config::load_config(const std::string & config_path) {
         }
     }
 
-
-
-    // YAML::Node webrtc_port = config["https_api_port"];
-    // if (webrtc_port.IsDefined()) {
-    //     webrtc_udp_port_ = webrtc_port.as<uint16_t>();
-    // }
-    // CORE_INFO("webrtc port:{}", webrtc_udp_port_);
-
-    // YAML::Node webrtc_ip = config["webrtc_ip"];
-    // if (webrtc_ip.IsDefined()) {
-    //     webrtc_ip_ = webrtc_ip.as<std::string>();
-    // }
-    // CORE_INFO("webrtc ip:{}", webrtc_ip_);
-
-    // YAML::Node webrtc_internal_bind_ip = config["webrtc_internal_bind_ip"];
-    // if (webrtc_internal_bind_ip.IsDefined()) {
-    //     webrtc_internal_bind_ip_ = webrtc_internal_bind_ip.as<std::string>();
-    // } else {
-    //     webrtc_internal_bind_ip_ = webrtc_ip_;
-    // }
-
     YAML::Node cert_root = config["cert_root"];
     if (cert_root.IsDefined()) {
         cert_root_ = cert_root.as<std::string>();
@@ -226,6 +205,15 @@ bool Config::load_domain_config(const std::string & domain, const std::string & 
     std::unique_lock<std::shared_mutex> lck(mutex_);
     domains_config_[domain] = config;
     return true;
+}
+
+std::unordered_map<std::string, std::shared_ptr<DomainConfig>> Config::get_domain_confs() {
+    std::unordered_map<std::string, std::shared_ptr<DomainConfig>> domain_confs;
+    std::unique_lock<std::shared_mutex> lck(mutex_);
+    for (auto & p : domains_config_) {
+        domain_confs.insert(std::pair(p.first, p.second));
+    }
+    return domain_confs;
 }
 
 std::shared_ptr<DomainConfig> Config::get_domain_config(const std::string & domain_name) {
