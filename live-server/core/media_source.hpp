@@ -100,7 +100,7 @@ public:
     void notify_status(SourceStatus status);
     virtual void close();
 protected:
-    bool is_origin_ = true;
+    bool is_origin_ = false;
     std::atomic_flag closed_ = ATOMIC_FLAG_INIT;
     std::string media_type_;//rtmp,rtsp,flv,hls,ts,gb28181,webrtc,srt...
     bool stream_ready_ = false;

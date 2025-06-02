@@ -77,6 +77,7 @@ boost::asio::awaitable<void> HttpApiServer::get_api_version(std::shared_ptr<Http
     Json::Value root;
     root["version"] = VERSION_STR;
     std::string body = root.toStyledString();
+    resp->add_header("Access-Control-Allow-Origin", "*");
     if (!(co_await resp->write_header(200, "OK"))) {
         resp->close();
         co_return;
@@ -150,6 +151,7 @@ boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<H
 
     std::string body = root.toStyledString();
     resp->add_header("Content-type", "application/json");
+    resp->add_header("Access-Control-Allow-Origin", "*");
     if (!(co_await resp->write_header(200, "OK"))) {
         resp->close();
         co_return;

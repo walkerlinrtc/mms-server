@@ -391,6 +391,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
         co_return false;
     }
     
+    rtmp_media_source_->set_origin(true);
     rtmp_media_source_->set_session(self);
     rtmp_media_source_->set_source_info(domain_name_, app_name_, stream_name_);
     // 通知app开始播放

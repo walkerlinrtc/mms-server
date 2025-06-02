@@ -158,7 +158,6 @@ void HttpFlvServerSession::service() {
             http_response_->add_header("Content-Type", "video/x-flv");
             http_response_->add_header("Connection", "Close");
             co_await http_response_->write_header(404, "Not Found");
-            APP_TRACE(app_, "{} play http-flv end with 404", id_);
             close(true);
             co_return;
         }
