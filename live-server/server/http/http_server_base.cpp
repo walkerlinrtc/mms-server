@@ -66,6 +66,10 @@ bool HttpServerBase::on_get(const std::string & path, const HTTP_HANDLER & handl
     return get_route_tree_.add_route(path, handler);
 }
 
+bool HttpServerBase::on_options(const std::string & path, const HTTP_HANDLER & handler) {
+    return options_route_tree_.add_route(path, handler);
+}
+
 bool HttpServerBase::on_static_fs(const std::string & path, const std::string & root_path) {
     if (!boost::ends_with(path, "/*")) {
         CORE_ERROR("create static fs failed, path:{} is not end with *", path);
@@ -184,6 +188,17 @@ boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<Http
         }
         case POST : {
             auto handler = post_route_tree_.get_route(req->get_path(), req->path_params());
+            if (!handler.has_value()) {//404
+                resp->add_header("Connection", "close");
+                co_await resp->write_header(404, "Not Found");
+                resp->close();
+            } else {
+                co_await handler.value()(session, req, resp);
+            }
+            break;
+        }
+        case OPTIONS : {
+            auto handler = options_route_tree_.get_route(req->get_path(), req->path_params());
             if (!handler.has_value()) {//404
                 resp->add_header("Connection", "close");
                 co_await resp->write_header(404, "Not Found");

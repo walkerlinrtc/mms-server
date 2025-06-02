@@ -13,6 +13,7 @@ public:
     void set_webrtc_server(std::shared_ptr<WebRtcServer> wrtc_server);
 private:
     boost::asio::awaitable<void> response_json(std::shared_ptr<HttpResponse> resp, int32_t code, const std::string & msg);
+    boost::asio::awaitable<void> response_empty(std::shared_ptr<HttpResponse> resp);
     bool register_route();
 private:
     std::shared_ptr<WebRtcServer> webrtc_server_;

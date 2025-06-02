@@ -21,7 +21,7 @@ enum HTTP_METHOD {
     PUT         = 4,
     DELETE      = 5,
     TRACE       = 6,
-    OPTION      = 7,
+    OPTIONS     = 7,
 };
 
 #define HTTP_CRLF               "\r\n"

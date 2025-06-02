@@ -164,8 +164,8 @@ bool HttpRequest::parse_request_line(const char *buf, size_t len) {
         method_ = POST;
     } else if (m == "HEAD") {
         method_ = HEAD;
-    } else if (m == "OPTION") {
-        method_ = OPTION;
+    } else if (m == "OPTIONS") {
+        method_ = OPTIONS;
     } else if (m == "PUT") {
         method_ = PUT;
     } else if (m == "DELETE") {

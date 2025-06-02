@@ -41,7 +41,7 @@ protected:
         {GET, "GET"},
         {POST, "POST"},
         {HEAD, "HEAD"},
-        {OPTION, "OPTION"},
+        {OPTIONS, "OPTIONS"},
         {PUT, "PUT"},
         {DELETE, "DELETE"}
     };

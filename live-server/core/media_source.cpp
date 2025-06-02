@@ -229,7 +229,6 @@ void MediaSource::close() {
     }, boost::asio::detached);
 
     if (is_origin()) {
-        CORE_ERROR("xxxxxxxxxxxxxxx remove source:{}/{}/{} xxxxxxxxxxxxxxx", domain_name_, app_name_, stream_name_);
         SourceManager::get_instance().remove_source(domain_name_, app_name_, stream_name_);
     }
 }

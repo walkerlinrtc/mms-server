@@ -47,6 +47,17 @@ bool HttpLiveServer::register_route() {
     if (!ret) {
         return false;
     }
+
+    ret = on_options("/:app/:stream.flv", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        (void)req;
+        CORE_ERROR("get option request");
+        co_await response_empty(resp);
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
     
     ret = on_get("/:app/:stream.ts", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
@@ -241,6 +252,7 @@ boost::asio::awaitable<void> HttpLiveServer::response_json(std::shared_ptr<HttpR
     root["msg"] = msg;
     std::string body = root.toStyledString();
     resp->add_header("Content-Length", std::to_string(body.size()));
+    resp->add_header("Access-Control-Allow-Origin", "*");
     if (!(co_await resp->write_header(200, "OK"))) {
         resp->close();
         co_return;
@@ -248,6 +260,17 @@ boost::asio::awaitable<void> HttpLiveServer::response_json(std::shared_ptr<HttpR
 
     bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
     if (!ret) {
+        resp->close();
+        co_return;
+    }
+
+    resp->close();
+    co_return;
+}
+
+boost::asio::awaitable<void> HttpLiveServer::response_empty(std::shared_ptr<HttpResponse> resp) {
+    resp->add_header("Access-Control-Allow-Origin", "*");
+    if (!(co_await resp->write_header(200, "OK"))) {
         resp->close();
         co_return;
     }
