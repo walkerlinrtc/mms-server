@@ -81,3 +81,76 @@ mms-live-server -c ./config -d
 ```
 
 This will start the server. The -d option outputs logs to the console. Without it, logs will be written to log files.
+
+### Single Server Console
+
+---
+
+## 📦 Deploying the Web Console with `mms-server`
+
+The `mms-server` includes a built-in static file server, allowing you to host the standalone Vue-based web console directly within the same server environment.
+
+### 1. Configure `mms.yaml`
+
+To enable the static file server and map the console path, update your `mms.yaml` as follows:
+
+```yaml
+http_api:
+  enabled: true
+  port: 8080
+  static_file_server:
+    enabled: true
+    path_map:
+      /console/*: /data/console
+```
+
+This configuration maps requests to `/console/*` to the local directory `/data/console`.
+
+---
+
+### 2. Build and Deploy the Console
+
+#### 🔹 Clone the frontend project
+
+Navigate to the `console` directory and initialize any submodules:
+
+```bash
+cd console
+git submodule update --init --recursive
+```
+
+#### 🔹 Build the project
+
+Install dependencies and compile the Vue application:
+
+```bash
+npm install
+npm run build
+```
+
+This will generate a `console` build directory inside the current folder.
+
+#### 🔹 Deploy the build
+
+Copy the generated `console` directory to the target path configured in `mms.yaml`:
+
+```bash
+cp -r dist /data/console
+```
+
+Make sure `/data/console` matches the `path_map` configuration above.
+
+---
+
+### 3. Access the Console
+
+Once deployed, the console can be accessed at:
+
+```
+http://<your-ip>:8080/console/index.html
+```
+
+Replace `<your-ip>` and `8080` with the actual IP address and port defined in your `http_api` configuration.
+
+
+
