@@ -227,8 +227,4 @@ void MediaSource::close() {
         // 当然也可以在这里也关闭一下所以的bridge和recorder
         co_return;
     }, boost::asio::detached);
-
-    if (is_origin()) {
-        SourceManager::get_instance().remove_source(domain_name_, app_name_, stream_name_);
-    }
 }
