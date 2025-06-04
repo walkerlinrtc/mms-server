@@ -15,6 +15,7 @@
 
 #include "media_sink.hpp"
 #include "media_event.hpp"
+#include "media_source.hpp"
 
 #include "base/thread/thread_worker.hpp"
 #include "spdlog/spdlog.h"
@@ -34,7 +35,7 @@ void MediaSink::close() {
     }
 
     if (source_) {
-        source_ = nullptr;
+        source_->remove_media_sink(shared_from_this());
     }
 }
 

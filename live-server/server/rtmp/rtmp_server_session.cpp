@@ -532,7 +532,6 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(std::sh
     });
 
     rtmp_media_sink_->set_on_source_status_changed_cb([this, self, source](SourceStatus status)->boost::asio::awaitable<void> {
-        source->set_status(status);
         if (status == E_SOURCE_STATUS_OK) {
             rtmp_media_sink_->on_rtmp_message([this, self](const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs)->boost::asio::awaitable<bool> {
                 co_return co_await send_rtmp_message(rtmp_msgs);
