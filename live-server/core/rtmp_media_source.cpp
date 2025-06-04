@@ -47,12 +47,14 @@ Json::Value RtmpMediaSource::to_json() {
     v["sinks"] = sinks_count_.load();
     v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
-    if (video_codec_) {
-        v["vcodec"] = video_codec_->to_json();
+    auto vcodec = video_codec_;
+    if (vcodec) {
+        v["vcodec"] = vcodec->to_json();
     }
 
-    if (audio_codec_) {
-        v["acodec"] = audio_codec_->to_json();
+    auto acodec = audio_codec_;
+    if (acodec) {
+        v["acodec"] = acodec->to_json();
     }
     return v;
 }
@@ -182,6 +184,17 @@ bool RtmpMediaSource::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
             }
             H264Codec *h264_codec = ((H264Codec*)video_codec_.get());
             h264_codec->set_sps_pps(avc_decoder_configuration_record.get_sps(), avc_decoder_configuration_record.get_pps());
+        } else if ((header.get_codec_id() == VideoTagHeader::HEVC || header.get_codec_id() == VideoTagHeader::HEVC_FOURCC) && video_codec_->get_codec_type() == CODEC_HEVC) {
+            HEVCDecoderConfigurationRecord hevc_decoder_configuration_record;
+            int32_t consumed = hevc_decoder_configuration_record.decode((uint8_t*)payload.data() + header_consumed, payload.size() - header_consumed);
+            if (consumed < 0) {
+                return false;
+            }
+
+            HevcCodec *hevc_codec = ((HevcCodec*)video_codec_.get());
+            hevc_codec->set_sps_pps_vps(hevc_decoder_configuration_record.get_sps(), 
+                                        hevc_decoder_configuration_record.get_pps(), 
+                                        hevc_decoder_configuration_record.get_vps());
         }
 
         av_pkts_.clear();

@@ -11,15 +11,12 @@
 
 using namespace mms;
 Json::Value HevcCodec::to_json() {
-    Json::Value v;
-    v["name"] = codec_name_;
-    uint32_t w, h;
-    if (get_wh(w, h)) {
-        v["width"] = w;
-        v["height"] = h;
-    }
-
-    return v;
+    Json::Value data;
+    data["codec_name"] = codec_name_;
+    data["width"] = width_;
+    data["height"] = height_;
+    data["fps"] = (int)fps_;
+    return data;
 }
 
 bool HevcCodec::is_ready() {
@@ -151,6 +148,16 @@ bool HevcCodec::set_sps_pps_vps(const std::string & sps, const std::string & pps
     sps_nalu_ = sps;
     pps_nalu_ = pps;
     vps_nalu_ = vps;
+
+    uint32_t w,h;
+    if (!get_wh(w, h)) {
+        return false;
+    }
+
+    double fps;
+    if (!get_fps(fps)) {
+        return false;
+    }
     ready_ = true;
     return true;
 }
@@ -184,47 +191,50 @@ void HevcCodec::set_sei_prefix(const std::string & sei_prefix) {
 }
 
 void HevcCodec::deemulation_prevention(const std::string_view & input, std::string & output) {
-    auto size = input.size();
-    output.resize(size);
-    int pos = 0;
-    for (size_t i = 0; i < size - 2; ) {
-        int val = (input.at(i)^0x00) + (input.at(i+1)^0x00) + (input.at(i+2)^0x03);
-        if (val == 0) {
-            output[pos] = 0;
-            output[pos + 1] = 0;
-            i += 3;
-            pos += 2;
+    output.clear();
+    size_t size = input.size();
+    for (size_t i = 0; i < size;) {
+        // 如果出现 0x00 0x00 0x03 模式
+        if (i + 2 < size && input[i] == 0x00 && input[i + 1] == 0x00 && input[i + 2] == 0x03) {
+            output.push_back(0x00);
+            output.push_back(0x00);
+            i += 3; // 跳过 0x03
         } else {
-            output[i] = input[i];
+            output.push_back(input[i]);
             i++;
-            pos++;
         }
     }
 }
+
 
 bool HevcCodec::get_wh(uint32_t & w, uint32_t & h) {
     if (!sps_pps_parsed_) {
         // sps处理
         std::string_view sps_buf(sps_nalu_.data(), sps_nalu_.size());
-        sps_buf.remove_prefix(1);//去掉nalu头部
+        sps_buf.remove_prefix(2);//去掉nalu头部
         deemulation_prevention(sps_buf, sps_rbsp_);
         std::string_view sps_rbsp_vw(sps_rbsp_.data(), sps_rbsp_.size());
         BitStream bit_stream(sps_rbsp_vw);
-        // if (!sps_.parse(bit_stream)) {
-        //     return false;
-        // }
+        if (0 != sps_.parse(bit_stream)) {
+            return false;
+        }
 
         sps_pps_parsed_ = true;
     }
 
-    // int32_t width  = (int)(sps_.pic_width_in_mbs_minus1 + 1) * 16;
-    // int32_t height = (int)(sps_.pic_height_in_map_units_minus1 + 1) * 16;
-    // if (sps_.frame_cropping_flag) {
-    //     width = width - sps_.frame_crop_left_offset*2 - sps_.frame_crop_right_offset*2;
-    //     height = ((2 - sps_.frame_mbs_only_flag)* height) - (sps_.frame_crop_top_offset * 2) - (sps_.frame_crop_bottom_offset * 2);
-    // }
-    // width_ = width;
-    // height_ = height;
+    int32_t width  = (int)(sps_.pic_width_in_mbs_minus1 + 1) * 16;
+    int32_t height = (int)(sps_.pic_height_in_map_units_minus1 + 1) * 16;
+    if (!sps_.frame_mbs_only_flag){
+        height *= 2;
+    }
+
+    if (sps_.frame_cropping_flag) {
+        width -= 2 * (sps_.frame_crop_left_offset + sps_.frame_crop_right_offset);
+        height -= 2 * (sps_.frame_crop_top_offset  + sps_.frame_crop_bottom_offset);
+    }
+    
+    width_ = width;
+    height_ = height;
 
     w = width_;
     h = height_;
@@ -233,36 +243,36 @@ bool HevcCodec::get_wh(uint32_t & w, uint32_t & h) {
 
 bool HevcCodec::get_fps(double & fps) {
     ((void)fps);
-    // if (!sps_pps_parsed_) {
-    //     // sps处理
-    //     std::string_view sps_buf(sps_nalu_.data(), sps_nalu_.size());
-    //     sps_buf.remove_prefix(1);//去掉nalu头部
-    //     deemulation_prevention(sps_buf, sps_rbsp_);
-    //     std::string_view sps_rbsp_vw(sps_rbsp_.data(), sps_rbsp_.size());
-    //     BitStream bit_stream(sps_rbsp_vw);
-    //     if (!sps_.parse(bit_stream)) {
-    //         CORE_ERROR("parse sps failed");
-    //         return false;
-    //     }
+    if (!sps_pps_parsed_) {
+        // sps处理
+        std::string_view sps_buf(sps_nalu_.data(), sps_nalu_.size());
+        sps_buf.remove_prefix(2);//去掉nalu头部
+        deemulation_prevention(sps_buf, sps_rbsp_);
+        std::string_view sps_rbsp_vw(sps_rbsp_.data(), sps_rbsp_.size());
+        BitStream bit_stream(sps_rbsp_vw);
+        if (0 != sps_.parse(bit_stream)) {
+            return false;
+        }
 
-    //     sps_pps_parsed_ = true;
-    // }
+        sps_pps_parsed_ = true;
+    }
 
-    // if (sps_.vui_parameters_present_flag != 1) {
-    //     CORE_DEBUG("no vui parameters present, could not get fps");
-    //     return false;
-    // }
+    if (sps_.vui_parameters_present_flag != 1) {
+        return false;
+    }
     
-    // if (sps_.vui_parameters.timing_info_present_flag != 1) {
-    //     CORE_DEBUG("no timing_info_present_flag present, could not get fps");
-    //     return false;
-    // }
+    if (sps_.vui_parameters.timing_info_present_flag != 1) {
+        return false;
+    }
 
-    // if (sps_.vui_parameters.num_units_in_tick == 0) {
-    //     return false;
-    // }
+    if (sps_.vui_parameters.num_units_in_tick == 0) {
+        return false;
+    }
 
-    // fps_ = (double)sps_.vui_parameters.time_scale/sps_.vui_parameters.num_units_in_tick;
-    // fps = fps_;
+    if (sps_.vui_parameters_present_flag && sps_.vui_parameters.timing_info_present_flag && sps_.vui_parameters.num_units_in_tick > 0) {
+        fps_ = (double)sps_.vui_parameters.time_scale/(2*sps_.vui_parameters.num_units_in_tick);
+    }
+
+    fps = fps_;
     return true;
 }

@@ -180,14 +180,19 @@ boost::asio::awaitable<void> HttpApiServer::get_app_streams(std::shared_ptr<Http
     }
 
     auto streams = SourceManager::get_instance().get_sources(domain, app);
-    Json::Value jstreams;
-    for (auto & stream : streams) {
-        jstreams.append(stream.second->to_json());
+    std::string body;
+    try {
+        Json::Value jstreams;
+        for (auto it = streams.begin(); it != streams.end(); it++) {
+            jstreams.append(it->second->to_json());
+        }
+        root["data"] = jstreams;
+        root["code"] = 0;
+        body = root.toStyledString();
+    } catch (const std::exception &exp) {
+        CORE_ERROR("Exception occurred: {}", exp.what());
     }
-    root["data"] = jstreams;
-    root["code"] = 0;
-
-    std::string body = root.toStyledString();
+    
     resp->add_header("Content-type", "application/json");
     resp->add_header("Access-Control-Allow-Origin", "*");
     if (!(co_await resp->write_header(200, "OK"))) {
