@@ -470,9 +470,10 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         chunk->chunk_message_header_.message_length_ = prev_chunk->chunk_message_header_.message_length_;
         chunk->chunk_message_header_.message_type_id_ = prev_chunk->chunk_message_header_.message_type_id_;
         chunk->chunk_message_header_.message_stream_id_ = prev_chunk->chunk_message_header_.message_stream_id_;
-        chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + prev_chunk->chunk_message_header_.timestamp_delta_;
+        chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_;
         chunk->chunk_message_header_.timestamp_delta_ = prev_chunk->chunk_message_header_.timestamp_delta_;
     }
+
     // 前面有一个chunk，并且前面的chunk只要rtmp_message_变量非nullptr，则必然没有接收完整
     if (prev_chunk && prev_chunk->rtmp_message_) {
         chunk->rtmp_message_ = prev_chunk->rtmp_message_;
