@@ -97,7 +97,6 @@ void TlsSocket::close() {
 
     if (tls_session_) {
         tls_session_->close();
-        tls_session_ = nullptr;
     }
 
     if (handler_) {
