@@ -83,6 +83,7 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
 
     while(1) {
         auto recv_size = co_await sock_->recv_some((uint8_t*)buf_.get() + buf_size_, HTTP_MAX_BUF - buf_size_);
+        spdlog::info("recv_size:{}", recv_size);
         if (recv_size < 0) {
             break;
         }

@@ -55,11 +55,13 @@ void HttpsServerBase::on_socket_open(std::shared_ptr<SocketInterface> tls_socket
 }
 
 void HttpsServerBase::on_socket_close(std::shared_ptr<SocketInterface> tls_socket) {
+    spdlog::info("HttpsServerBase::on_socket_close");
     std::shared_ptr<HttpServerSession> s = std::static_pointer_cast<HttpServerSession>(tls_socket->get_session());
     tls_socket->clear_session();
     if (s) {
         s->close();
     }
+    spdlog::info("HttpsServerBase::on_socket_close done");
 }
 
 bool HttpsServerBase::register_route() {

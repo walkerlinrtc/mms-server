@@ -25,7 +25,7 @@ void TlsSession::service() {
     auto self(shared_from_this());
     boost::asio::co_spawn(get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         std::shared_ptr<TlsSocket> tls_socket = std::make_shared<TlsSocket>(tls_socket_handler_, 
-                                                                            std::static_pointer_cast<TlsSession>(shared_from_this()));
+                                                                            std::static_pointer_cast<TlsSession>(self));
         if (is_server_mode_) {
             tls_socket->set_cert_handler(server_name_handler_);
             bool ret = co_await tls_socket->do_handshake();
