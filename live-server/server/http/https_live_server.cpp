@@ -37,7 +37,7 @@ std::shared_ptr<SSL_CTX> HttpsLiveServer::on_tls_ext_servername(const std::strin
 
 bool HttpsLiveServer::register_route() {
     bool ret;
-    ret = on_get("/:app/:stream/live.flv", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_get("/:app/:stream.flv", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_flv_session = std::make_shared<HttpFlvServerSession>(req, resp);
         http_flv_session->service();
@@ -48,36 +48,33 @@ bool HttpsLiveServer::register_route() {
         return false;
     }
 
-    ret = on_get("/:app/:stream/live.m3u8", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-        (void)session;
-        auto http_m3u8_session = std::make_shared<HttpM3u8ServerSession>(req, resp);
-        http_m3u8_session->service();
-        co_return;
-    });
-    if (!ret) {
-        spdlog::error("register on_get /:app/:stream.m3u8, failed");
-        return false;
-    }
-
-    ret = on_get("/:app/:stream/live/ts/:filename", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-        (void)session;
-        auto http_ts_session = std::make_shared<HttpTsServerSession>(req, resp);
-        http_ts_session->service();
-        co_return;
-    });
-    if (!ret) {
-        spdlog::error("register on_get /:app/:stream/:id.ts, failed");
-        return false;
-    }
-
-    ret = on_get("/:app/:stream/live.ts", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+   ret = on_get("/:app/:stream.ts", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_long_ts_session = std::make_shared<HttpLongTsServerSession>(req, resp);
         http_long_ts_session->service();
         co_return;
     });
     if (!ret) {
-        spdlog::error("register on_get /:app/:stream.ts, failed");
+        return false;
+    }
+
+    ret = on_get("/:app/:stream.m3u8", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_m3u8_session = std::make_shared<HttpM3u8ServerSession>(req, resp);
+        http_m3u8_session->service();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_get("/:app/:stream/:seq.ts", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_ts_session = std::make_shared<HttpTsServerSession>(req, resp);
+        http_ts_session->service();
+        co_return;
+    });
+    if (!ret) {
         return false;
     }
 

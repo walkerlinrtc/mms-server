@@ -24,7 +24,6 @@ void TlsServer::stop_listen() {
 }
 
 void TlsServer::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {//tcp socket 的 handler处理
-    spdlog::info("TlsServer::on_socket_open");
     std::shared_ptr<TlsSession> tls_session = std::make_shared<TlsSession>(true, 
                                                                            tls_handler_, 
                                                                            server_name_handler_, 
@@ -34,13 +33,11 @@ void TlsServer::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {//t
 }
 
 void TlsServer::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
-    spdlog::info("TlsServer::on_socket_close 1");
     auto s = tcp_socket->get_session();
     tcp_socket->clear_session();
     if (!s) {
         return;
     }
-    spdlog::info("TlsServer::on_socket_close 2");
     s->close();
 }
 

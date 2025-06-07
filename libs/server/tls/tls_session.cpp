@@ -14,7 +14,7 @@ TlsSession::TlsSession(bool mode, SocketInterfaceHandler *tls_handler, TlsServer
 }
 
 TlsSession::~TlsSession() {
-    spdlog::debug("destroy tls_session");
+    spdlog::debug("destroy TlsSession");
 }
 
 std::shared_ptr<TcpSocket> TlsSession::get_tcp_socket() {
@@ -24,17 +24,16 @@ std::shared_ptr<TcpSocket> TlsSession::get_tcp_socket() {
 void TlsSession::service() {
     auto self(shared_from_this());
     boost::asio::co_spawn(get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-        std::shared_ptr<TlsSocket> tls_socket = std::make_shared<TlsSocket>(tls_socket_handler_, 
-                                                                            std::static_pointer_cast<TlsSession>(self));
+        tls_socket_ = std::make_shared<TlsSocket>(tls_socket_handler_, std::static_pointer_cast<TlsSession>(self));
         if (is_server_mode_) {
-            tls_socket->set_cert_handler(server_name_handler_);
-            bool ret = co_await tls_socket->do_handshake();
+            tls_socket_->set_cert_handler(server_name_handler_);
+            bool ret = co_await tls_socket_->do_handshake();
             if (!ret) {
                 close();
                 co_return;
             }
 
-            tls_socket->open();
+            tls_socket_->open();
         }
     }, boost::asio::detached);
 }
@@ -47,11 +46,16 @@ void TlsSession::close() {
     auto self(this->shared_from_this());
     boost::asio::co_spawn(get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         boost::system::error_code ec;
-        if (tcp_socket_) {
-            tcp_socket_->close();
+        if (tls_socket_) {
+            tls_socket_->close();
+            tls_socket_ = nullptr;
         }
 
-        tcp_socket_.reset();
+        if (tcp_socket_) {
+            tcp_socket_->close();
+            tcp_socket_ = nullptr;
+        }
+
         co_return;
     }, boost::asio::detached);
 }

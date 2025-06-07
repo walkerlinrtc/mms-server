@@ -91,7 +91,6 @@ void TlsSocket::open() {
 }
 
 void TlsSocket::close() {
-    spdlog::info("TlsSocket::close");
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
     }
@@ -102,7 +101,6 @@ void TlsSocket::close() {
     }
 
     if (handler_) {
-        spdlog::info("handler_->on_socket_close(shared_from_this());");
         handler_->on_socket_close(shared_from_this());
     }
 

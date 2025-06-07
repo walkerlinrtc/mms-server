@@ -7,6 +7,7 @@ class TcpSocket;
 class TlsSocketHandler;
 class TlsServerNameHandler;
 class SocketInterfaceHandler;
+class TlsSocket;
 
 class TlsSession : public Session {
 public:
@@ -20,6 +21,7 @@ protected:
     SocketInterfaceHandler *tls_socket_handler_ = nullptr;
     TlsServerNameHandler * server_name_handler_ = nullptr;
     std::shared_ptr<TcpSocket> tcp_socket_;
+    std::shared_ptr<TlsSocket> tls_socket_;
     bool is_server_mode_;
 };
 };
