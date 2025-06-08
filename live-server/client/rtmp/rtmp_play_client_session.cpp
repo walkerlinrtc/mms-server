@@ -37,7 +37,6 @@
 #include "protocol/rtmp/rtmp_message/data_message/rtmp_metadata_message.hpp"
 #include "service/dns/dns_service.hpp"
 
-
 using namespace mms;
 RtmpPlayClientSession::RtmpPlayClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker,
                                              const std::string &domain_name, const std::string &app_name,
@@ -363,10 +362,17 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(
         co_return false;
     }
 
-    if (code.value() == RTMP_STATUS_STREAM_NOT_FOUND) {
-        co_return false;
+    if (code.value() == RTMP_STATUS_STREAM_PLAY_START) {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_OK);
+        co_return true;
+    } else if (code.value() == RTMP_STATUS_STREAM_NOT_FOUND) {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
+    } else if (code.value() == RTMP_RESULT_CONNECT_REJECTED) {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_FORBIDDEN);
+    } else {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);  // 其他错误
     }
-    co_return true;
+    co_return false;
 }
 
 boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_result_command(
