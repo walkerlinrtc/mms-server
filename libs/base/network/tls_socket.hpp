@@ -16,7 +16,7 @@
 #include "base/network/tcp_socket.hpp"
 
 namespace mms {
-#define TLS_MAX_RECV_BUF (1024*1024)
+#define TLS_MAX_RECV_BUF (2*1024*1024)
 class TlsSocket;
 class TlsSession;
 

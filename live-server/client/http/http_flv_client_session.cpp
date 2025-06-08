@@ -121,6 +121,7 @@ void HttpFlvClientSession::service() {
             CORE_ERROR("HttpFlvClientSession:{} parse url:{} failed", get_session_name(), url_);
             co_return;
         }
+        spdlog::info("url={}", url_);
         // 解析app名称
         std::vector<std::string> vs;
         boost::split(vs, path, boost::is_any_of("/"));
@@ -139,6 +140,7 @@ void HttpFlvClientSession::service() {
         if (protocol == "http") {
             http_client_ = std::make_shared<HttpClient>(get_worker(), false);
         } else if (protocol == "https") {
+            spdlog::info("xxxxxxxxxxxxxxxx is https xxxxxxxxxxxxxxxx");
             http_client_ = std::make_shared<HttpClient>(get_worker(), true);
         } else {
             close();
@@ -170,6 +172,7 @@ void HttpFlvClientSession::service() {
             co_return;
         }
 
+        spdlog::info("recv http header ok, status:{}", resp->get_status_code());
         if (resp->get_status_code() == 302) {
             http_client_->close();
             http_client_.reset();
@@ -205,12 +208,8 @@ void HttpFlvClientSession::service() {
             resp = co_await http_client_->do_req(server_ip, port, redirect_http_req);
         }
 
+        flv_media_source_->set_status(SourceStatus(resp->get_status_code()));
         if (resp->get_status_code() != 200) {//todo: notify media event
-            if (resp->get_status_code() == 403) {
-                flv_media_source_->set_status(E_SOURCE_STATUS_FORBIDDEN);
-            } else if (resp->get_status_code() == 404) {
-                flv_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
-            }
             CORE_ERROR("http code error, code:{}", resp->get_status_code());
             co_return;
         }

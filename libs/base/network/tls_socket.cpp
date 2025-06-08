@@ -30,6 +30,7 @@ TlsSocket::TlsSocket(SocketInterfaceHandler *handler, ThreadWorker *worker) : So
                                         connect_timeout_timer_(worker->get_io_context()),     
                                         handshake_result_channel_(worker->get_io_context())
 {
+    encrypted_buf_ = new uint8_t[TLS_MAX_RECV_BUF];
     auto tcp_socket = std::make_shared<TcpSocket>(this, boost::asio::ip::tcp::socket(worker->get_io_context()), worker);
     tls_session_ = std::make_shared<TlsSession>(false, handler, nullptr, tcp_socket);//客户端模式
 }
@@ -45,10 +46,6 @@ TlsSocket::~TlsSocket() {
         ssl_ = nullptr;
     }
 
-    if (encrypted_buf_) {
-        delete[] encrypted_buf_;
-        encrypted_buf_ = nullptr;
-    }
     // bio_read_,bio_write_ 已经绑定了ssl_，所以不需要额外释放，否则内存异常
     if (ssl_ctx_) {
         SSL_CTX_free(ssl_ctx_);
@@ -107,7 +104,6 @@ void TlsSocket::close() {
 }
 
 boost::asio::awaitable<bool> TlsSocket::connect(const std::string & ip, uint16_t port, int32_t timeout_ms) {
-    ((void)timeout_ms);
     ssl_ctx_ = SSL_CTX_new(TLSv1_2_method());
     if (!ssl_ctx_) {
         co_return false;

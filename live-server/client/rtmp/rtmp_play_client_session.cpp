@@ -359,10 +359,17 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(s
         co_return false;
     }
 
-    if (code.value() == RTMP_STATUS_STREAM_NOT_FOUND) {
-        co_return false;
+    if (code.value() == RTMP_STATUS_STREAM_PLAY_START) {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_OK);
+        co_return true;
+    } else if (code.value() == RTMP_STATUS_STREAM_NOT_FOUND) {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
+    } else if (code.value() == RTMP_RESULT_CONNECT_REJECTED) {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_FORBIDDEN);
+    } else {
+        rtmp_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);//其他错误
     }
-    co_return true;
+    co_return false;
 }
 
 boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_result_command(std::shared_ptr<RtmpMessage> rtmp_msg) {

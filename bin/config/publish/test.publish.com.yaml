@@ -20,12 +20,10 @@ apps:
     #     params:
     #       time: get_time()
     #       sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
-    # origin_pull:
-    #   protocol: rtmp
-    #   url: rtmp://test.publish.com:1936/${app}/${stream}?time=${params[time]}&sign=${params[sign]}
-    #   params:
-    #     time: get_time()
-    #     sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
+    origin_pull:
+      enabled: true
+      protocol: http-flv
+      url: https://test.play.com:1443/${app}/${stream_name}.flv
     publish_auth_check: #限时鉴权sk(expiry_sk)
       enabled: false
       params:
