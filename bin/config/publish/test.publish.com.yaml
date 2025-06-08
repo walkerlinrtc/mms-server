@@ -27,7 +27,7 @@ apps:
     origin_pull:
       enabled: true
       protocol: rtmp
-      url: rtmps://test.play.com:11935/${app}/${stream_name}
+      url: rtmp://test.play.com:21935/${app}/${stream_name}
     publish_auth_check: #限时鉴权sk(expiry_sk)
       enabled: false
       params:

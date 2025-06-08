@@ -74,6 +74,7 @@ void HttpFlvClientSession::service() {
     flv_media_source_ = std::static_pointer_cast<FlvMediaSource>(media_source);
     flv_media_source_->set_source_info(get_domain_name(), get_app_name(), get_stream_name());
     flv_media_source_->set_session(self);
+    flv_media_source_->set_origin(true);
     if (!SourceManager::get_instance().add_source(get_domain_name(), 
                                                   get_app_name(),
                                                   get_stream_name(),
@@ -214,6 +215,12 @@ void HttpFlvClientSession::service() {
             co_return;
         }
 
+        auto publish_app = flv_media_source_->get_app();
+        auto err = co_await publish_app->on_publish(std::static_pointer_cast<StreamSession>(self));
+        if (err.code != 0) {
+            co_return;
+        }
+        
         co_await cycle_pull_flv_tag(resp);
         co_return;
     }, [this, self](std::exception_ptr exp) {
@@ -293,6 +300,7 @@ void HttpFlvClientSession::close() {
             auto publish_app = flv_media_source_->get_app();
             start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), flv_media_source_);
             co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+            flv_media_source_ = nullptr;
         }
 
         if (http_client_) {

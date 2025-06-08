@@ -76,6 +76,10 @@ void RtmpPlayClientSession::service() {
 
     auto publish_app = std::static_pointer_cast<PublishApp>(app_);
     rtmp_media_source_ = std::make_shared<RtmpMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
+    rtmp_media_source_->set_origin(true);
+    rtmp_media_source_->set_session(self);
+    rtmp_media_source_->set_source_info(get_domain_name(), get_app_name(), get_stream_name());
+
     if (!SourceManager::get_instance().add_source(get_domain_name(), 
                                                   get_app_name(),
                                                   get_stream_name(),
@@ -368,6 +372,13 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(s
 
     if (code.value() == RTMP_STATUS_STREAM_PLAY_START) {
         rtmp_media_source_->set_status(E_SOURCE_STATUS_OK);
+        // 通知app开始播放
+        auto publish_app = std::static_pointer_cast<PublishApp>(app_);
+        auto self(shared_from_this());
+        auto err = co_await publish_app->on_publish(std::static_pointer_cast<StreamSession>(self));
+        if (err.code != 0) {
+            co_return false;
+        }
         co_return true;
     } else if (code.value() == RTMP_STATUS_STREAM_NOT_FOUND) {
         rtmp_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
