@@ -1,0 +1,7 @@
+target("codec", function () 
+    set_kind("static")
+    add_files("**.cpp")
+    add_includedirs(".", {public = true})
+    add_deps("base")
+    add_packages("faac","faad2","opus")
+end)

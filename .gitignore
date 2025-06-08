@@ -1,5 +1,4 @@
-.vscode/
-bin/
 build/
-lib/
-.VSCodeCounter/
+.cache/
+.xmake/
+compile_commands.json
