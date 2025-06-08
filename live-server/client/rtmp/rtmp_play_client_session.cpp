@@ -251,7 +251,14 @@ void RtmpPlayClientSession::close() {
 
         co_await wg_.wait();
 
-    
+        if (rtmp_media_source_) {// 如果是推流的session
+            auto publish_app = rtmp_media_source_->get_app();
+            rtmp_media_source_->set_session(nullptr);//解除绑定
+            start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
+            co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+            rtmp_media_source_ = nullptr;
+        }
+
         if (conn_) {
             conn_.reset();
         }
@@ -364,12 +371,12 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(s
         co_return true;
     } else if (code.value() == RTMP_STATUS_STREAM_NOT_FOUND) {
         rtmp_media_source_->set_status(E_SOURCE_STATUS_NOT_FOUND);
+        co_return false;
     } else if (code.value() == RTMP_RESULT_CONNECT_REJECTED) {
         rtmp_media_source_->set_status(E_SOURCE_STATUS_FORBIDDEN);
-    } else {
-        rtmp_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);//其他错误
-    }
-    co_return false;
+        co_return false;
+    } 
+    co_return true;
 }
 
 boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_result_command(std::shared_ptr<RtmpMessage> rtmp_msg) {

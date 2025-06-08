@@ -173,6 +173,7 @@ void RtmpServerSession::close() {
             rtmp_media_source_->set_session(nullptr);//解除绑定
             start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
             co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+            rtmp_media_source_ = nullptr;
         }
 
         if (conn_) {

@@ -72,6 +72,7 @@ void StreamSession::start_delayed_source_check_and_delete(uint32_t delay_sec, st
         auto session = media_source->get_session();
         if (!session) {// session已经解除绑定，那么可以删除
             // source是由session创建的，也应该在session中进行移除
+            CORE_DEBUG("session delay delete check, remove source:{}/{}/{}", domain_name_, app_name_, stream_name_);
             SourceManager::get_instance().remove_source(domain_name_, app_name_, stream_name_);
             media_source->close();
         } else if (session != self) {
