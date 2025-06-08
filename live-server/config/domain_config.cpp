@@ -143,8 +143,8 @@ const std::string & DomainConfig::get_publish_domain_name() const {
 Json::Value DomainConfig::to_json() {
     Json::Value jdomain;
     jdomain["type"] = type_;
-    jdomain["domain_name"] = domain_name_;
-    jdomain["publish_domain_name"] = publish_domain_name_;
+    jdomain["name"] = domain_name_;
+    jdomain["publish_domain"] = publish_domain_name_;
     jdomain["key_file"] = key_file_;
     jdomain["cert_file"] = cert_file_;
 

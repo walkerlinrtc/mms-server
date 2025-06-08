@@ -24,10 +24,10 @@ apps:
     #   enabled: true
     #   protocol: http-flv
     #   url: https://test.play.com:1443/${app}/${stream_name}.flv
-    origin_pull:
-      enabled: true
-      protocol: rtmp
-      url: rtmp://test.play.com:21935/${app}/${stream_name}
+    # origin_pull:
+    #   enabled: true
+    #   protocol: rtmp
+    #   url: rtmp://test.play.com:21935/${app}/${stream_name}
     publish_auth_check: #限时鉴权sk(expiry_sk)
       enabled: false
       params:
