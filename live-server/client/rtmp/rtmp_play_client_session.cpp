@@ -70,8 +70,6 @@ void RtmpPlayClientSession::service() {
     rtmp_media_source_->set_session(self);
     rtmp_media_source_->set_source_info(get_domain_name(), get_app_name(), get_stream_name());
 
-    rtmp_media_source_ =
-        std::make_shared<RtmpMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
     if (!SourceManager::get_instance().add_source(get_domain_name(), get_app_name(), get_stream_name(),
                                                   rtmp_media_source_)) {
         return;
@@ -156,7 +154,8 @@ void RtmpPlayClientSession::service() {
                 CORE_ERROR("rtmp:connect to {}:{} failed", server_ip, port);
                 co_return;
             }
-
+            rtmp_media_source_->set_client_ip(server_ip);
+            
             // 启动握手
             if (!co_await handshake_->do_client_handshake()) {
                 CORE_ERROR("rtmp:do_client_handshake failed");

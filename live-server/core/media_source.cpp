@@ -51,6 +51,7 @@ Json::Value MediaSource::to_json() {
     v["sinks"] = sinks_count_.load();
     v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
+    v["client_ip"] = client_ip_;
     if (video_codec_) {
         v["vcodec"] = video_codec_->to_json();
     }
@@ -75,6 +76,14 @@ void MediaSource::notify_status(SourceStatus status) {
     for (auto s : sinks_) {
         s->on_source_status_changed(status);
     }
+}
+
+const std::string & MediaSource::get_client_ip() {
+    return client_ip_;
+}
+
+void MediaSource::set_client_ip(const std::string & client_ip) {
+    client_ip_ = client_ip;
 }
 
 void MediaSource::set_session(std::shared_ptr<StreamSession> s) {

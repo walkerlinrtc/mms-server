@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <mutex>
 #include <atomic>
 #include <shared_mutex>
@@ -95,6 +96,9 @@ public:
     SourceStatus get_status() const;
     void set_status(SourceStatus status);
 
+    const std::string & get_client_ip();
+    void set_client_ip(const std::string & client_ip);
+    
     virtual Json::Value to_json();
 
     void notify_status(SourceStatus status);
@@ -110,7 +114,7 @@ protected:
     ThreadWorker *worker_ = nullptr;
 
     std::recursive_mutex sinks_mtx_;
-    std::set<std::shared_ptr<MediaSink>> sinks_;//需要唤醒，才会到数据源取数据的sink
+    std::unordered_set<std::shared_ptr<MediaSink>> sinks_;//需要唤醒，才会到数据源取数据的sink
     std::shared_mutex bridges_mtx_;
     std::unordered_map<std::string, std::shared_ptr<MediaBridge>> bridges_;//桥接类型的sink，意味着这只是一个桥，没人的时候要拆掉，而且桥可以转换格式之类的   
     int64_t last_sinks_or_bridges_leave_time_ = -1; 
@@ -128,5 +132,7 @@ protected:
 
     int64_t create_at_ = time(NULL);
     std::atomic<SourceStatus> status_{E_SOURCE_STATUS_INIT};
+
+    std::string client_ip_;//创建该流的对端ip
 };
 };

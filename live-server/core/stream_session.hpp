@@ -49,6 +49,8 @@ public:
         return app_;
     }
 
+    std::string get_client_ip();
+
 public:
     void start_delayed_source_check_and_delete(uint32_t delay_sec, std::shared_ptr<MediaSource> source);//启动source延迟关闭
 protected:

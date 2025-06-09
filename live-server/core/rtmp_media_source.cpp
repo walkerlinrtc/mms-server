@@ -47,6 +47,7 @@ Json::Value RtmpMediaSource::to_json() {
     v["sinks"] = sinks_count_.load();
     v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
+    v["client_ip"] = client_ip_;
     auto vcodec = video_codec_;
     if (vcodec) {
         v["vcodec"] = vcodec->to_json();

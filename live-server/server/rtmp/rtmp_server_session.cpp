@@ -419,6 +419,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
     rtmp_media_source_->set_origin(true);
     rtmp_media_source_->set_session(self);
     rtmp_media_source_->set_source_info(domain_name_, app_name_, stream_name_);
+    rtmp_media_source_->set_client_ip(conn_->get_remote_address());
     // 通知app开始播放
     auto publish_app = std::static_pointer_cast<PublishApp>(app_);
     auto err = co_await publish_app->on_publish(std::static_pointer_cast<StreamSession>(self));
