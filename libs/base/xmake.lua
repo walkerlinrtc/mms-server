@@ -1,0 +1,5 @@
+target("base", function () 
+    set_kind("static")
+    add_files("**.cpp")
+    add_packages("boost", "jsoncpp", "openssl3", "spdlog", { public = true })
+end)

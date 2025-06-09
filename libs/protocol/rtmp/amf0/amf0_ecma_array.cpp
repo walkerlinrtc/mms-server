@@ -1,37 +1,38 @@
 #include "amf0_ecma_array.hpp"
+
 #include "amf0_object.hpp"
+
 using namespace mms;
 
 Json::Value Amf0EcmaArray::to_json() {
     Json::Value root;
-    for (auto & p : properties_) {
-        switch(p.second->get_type()) {
+    for (auto &p : properties_) {
+        switch (p.second->get_type()) {
             case NUMBER_MARKER: {
-                root[p.first] = ((Amf0Number*)p.second)->get_value();
+                root[p.first] = ((Amf0Number *)p.second)->get_value();
                 break;
             }
             case BOOLEAN_MARKER: {
-                root[p.first] = ((Amf0Boolean*)p.second)->get_value();
+                root[p.first] = ((Amf0Boolean *)p.second)->get_value();
                 break;
             }
             case STRING_MARKER: {
-                root[p.first] = ((Amf0String*)p.second)->get_value();
+                root[p.first] = ((Amf0String *)p.second)->get_value();
                 break;
             }
             case OBJECT_MARKER: {
-                root[p.first] = ((Amf0Object*)p.second)->to_json();
+                root[p.first] = ((Amf0Object *)p.second)->to_json();
                 break;
             }
             case NULL_MARKER: {
-                root[p.first] = nullptr;
+                root[p.first] = Json::Value::null;
                 break;
             }
             case UNDEFINED_MARKER: {
                 root[p.first] = "undefined";
                 break;
             }
-            default : {
-                
+            default: {
             }
         }
     }
@@ -41,7 +42,6 @@ Json::Value Amf0EcmaArray::to_json() {
 int32_t Amf0EcmaArray::decode(const uint8_t *data, size_t len) {
     auto buf_start = data;
     if (len < 1) {
-        
         return -1;
     }
     auto marker = *data;
@@ -56,7 +56,7 @@ int32_t Amf0EcmaArray::decode(const uint8_t *data, size_t len) {
     }
 
     int32_t count = 0;
-    char *p = (char*)&count;
+    char *p = (char *)&count;
     p[0] = data[3];
     p[1] = data[2];
     p[2] = data[1];
@@ -72,7 +72,7 @@ int32_t Amf0EcmaArray::decode(const uint8_t *data, size_t len) {
             return -4;
         }
         uint16_t key_len = 0;
-        char *p = (char*)&key_len;
+        char *p = (char *)&key_len;
         p[0] = data[1];
         p[1] = data[0];
 
@@ -91,35 +91,35 @@ int32_t Amf0EcmaArray::decode(const uint8_t *data, size_t len) {
         if (len < 1) {
             return -6;
         }
-    
+
         AMF0_MARKER_TYPE marker = (AMF0_MARKER_TYPE)(*data);
         Amf0Data *value = nullptr;
-        switch(marker) {
-            case NUMBER_MARKER:{
+        switch (marker) {
+            case NUMBER_MARKER: {
                 value = new Amf0Number;
                 break;
             }
-            case BOOLEAN_MARKER:{
+            case BOOLEAN_MARKER: {
                 value = new Amf0Boolean;
                 break;
             }
-            case STRING_MARKER:{
+            case STRING_MARKER: {
                 value = new Amf0String;
                 break;
             }
-            case NULL_MARKER:{
+            case NULL_MARKER: {
                 value = new Amf0Null;
                 break;
             }
-            case UNDEFINED_MARKER:{
+            case UNDEFINED_MARKER: {
                 value = new Amf0Undefined;
                 break;
             }
-            case OBJECT_MARKER:{
+            case OBJECT_MARKER: {
                 value = new Amf0Object;
                 break;
             }
-            default : {
+            default: {
                 return -7;
             }
         }
@@ -160,13 +160,13 @@ int32_t Amf0EcmaArray::encode(uint8_t *buf, size_t len) const {
     *data = OBJECT_MARKER;
     data++;
     len--;
-    
-    for (auto & p : properties_) {
+
+    for (auto &p : properties_) {
         // key
         if (len < 2) {
             return -3;
         }
-        *(uint16_t*)data = htons(p.first.size());
+        *(uint16_t *)data = htons(p.first.size());
         data += 2;
         len -= 2;
 

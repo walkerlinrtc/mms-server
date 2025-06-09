@@ -1,0 +1,6 @@
+target("protocol_http", function () 
+    set_kind("static")
+    add_files("**.cpp")
+    add_deps("base")
+    add_includedirs(".", { public = true })
+end)

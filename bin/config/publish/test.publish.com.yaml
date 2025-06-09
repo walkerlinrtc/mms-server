@@ -3,10 +3,10 @@ name: test.publish.com
 key_file: test.publish.com.key
 cert_file: test.publish.com.crt
 apps:
-  - name: app                   #接入点名称
+  - name: app #接入点名称
     record:
       enabled: false
-      types: 
+      types:
         - ts
         - flv
     # edge_push:
@@ -20,14 +20,10 @@ apps:
     #     params:
     #       time: get_time()
     #       sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
-    # origin_pull:
-    #   enabled: true
-    #   protocol: http-flv
-    #   url: https://test.play.com:1443/${app}/${stream_name}.flv
-    # origin_pull:
-    #   enabled: true
-    #   protocol: rtmp
-    #   url: rtmp://test.play.com:21935/${app}/${stream_name}
+    origin_pull:
+      enabled: true
+      protocol: http-flv
+      url: https://test.play.com:1443/${app}/${stream_name}.flv
     publish_auth_check: #限时鉴权sk(expiry_sk)
       enabled: false
       params:
@@ -43,7 +39,7 @@ apps:
         - "${url_params[token]} == ${params[Token]}"
         - "${url_params[e]} > ${params[time]}"
     # http_callbacks:             # 回调配置
-    #   on_publish: 
+    #   on_publish:
     #       - async: false
     #         url: http://mms.com:8082/api/on_publish?sign=${params[sign]}&expire=${params[time]}
     #         params:
@@ -63,34 +59,35 @@ apps:
     #             "create_at": "${params[t1]}"
     #             "expire_at": ${params[time]}
     #           }
-    hls:                        # 切片配置
-      ts_min_seg_dur: 2000      # 2000ms，默认2000ms，单位ms
-      ts_max_seg_dur: 6000      # 6000ms就必须切片，默认6000ms，单位ms
-      ts_max_bytes: 2m          # 最大2m，默认2M，单位支持k/m
-      min_ts_count_for_m3u8: 3  #3个就可以输出m3u8，默认3
-    bridge:                     #转协议配置
-      no_players_timeout_ms: 10s  #多少时间无人播放，转协议结束
+    hls: # 切片配置
+      ts_min_seg_dur: 2000 # 2000ms，默认2000ms，单位ms
+      ts_max_seg_dur: 6000 # 6000ms就必须切片，默认6000ms，单位ms
+      ts_max_bytes: 2m # 最大2m，默认2M，单位支持k/m
+      min_ts_count_for_m3u8: 3 #3个就可以输出m3u8，默认3
+    bridge: #转协议配置
+      no_players_timeout_ms: 10s #多少时间无人播放，转协议结束
       rtmp:
-        to_flv: on              #使能rtmp转flv
-        to_hls: on              #使能rtmp转hls
-        to_rtsp: on             #使能rtmp转rtsp
-        to_webrtc: on           #使能rtmp转webrtc
+        to_flv: on #使能rtmp转flv
+        to_hls: on #使能rtmp转hls
+        to_rtsp: on #使能rtmp转rtsp
+        to_webrtc: on #使能rtmp转webrtc
       flv:
-        to_rtmp: on             #使能flv转rtmp
-        to_hls: on              #使能flv转hls
-        to_rtsp: on             #使能flv转rtsp
-        to_webrtc: on           #使能flv转webrtc
+        to_rtmp: on #使能flv转rtmp
+        to_hls: on #使能flv转hls
+        to_rtsp: on #使能flv转rtsp
+        to_webrtc: on #使能flv转webrtc
       rtsp:
-        to_rtmp: on             #使能rtsp转rtmp
-        to_flv: on              #使能rtsp转flv
-        to_hls: on              #使能rtsp转hls
-        to_webrtc: on           #使能rtsp转webrtc
+        to_rtmp: on #使能rtsp转rtmp
+        to_flv: on #使能rtsp转flv
+        to_hls: on #使能rtsp转hls
+        to_webrtc: on #使能rtsp转webrtc
       webrtc:
-        to_rtmp: on             #使能webrtc转rtmp
-        to_flv: on              #使能webrtc转flv
-        to_hls: on              #使能webrtc转hls
-        to_rtsp: on             #使能webrtc转rtsp
-    
+        to_rtmp: on #使能webrtc转rtmp
+        to_flv: on #使能webrtc转flv
+        to_hls: on #使能webrtc转hls
+        to_rtsp: on #使能webrtc转rtsp
+
+
     # origin_pull:
     #   protocol: rtmp
     #   url: rtmp://test.publish.com:1936/{app}/{stream}?time={params[time]}&sign={params[sign]}
@@ -120,4 +117,3 @@ apps:
     #   checks:
     #     - {url_params[token]} == params[Token]}
     #     - <({url_params[e]},params[time])
-    

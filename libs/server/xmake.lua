@@ -1,0 +1,7 @@
+target("server", function () 
+    set_kind("static")
+    add_files("**.cpp")
+    add_includedirs(".", {public = true})
+    add_deps("base")
+    add_packages("spdlog", "openssl3")
+end)
