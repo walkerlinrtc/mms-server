@@ -1,5 +1,5 @@
-target("protocol_mp4", function () 
+target("mms-mp4", function () 
     set_kind("static")
     add_files("**.cpp")
-    add_deps("base")
+    add_deps("mms-base")
 end)
