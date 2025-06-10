@@ -108,9 +108,9 @@ mms-live-server -c ./config -d
 * `-c` specifies the configuration directory.
 * `-d` enables log output to the console (omit this flag to write logs to files instead).
 
-### Compilation with xmake
+### Compilation with XMake
 
-Please refer to [xmake_guide.md](xmake_guide.md#-use-mms-server-with-xmake) for more information.
+Please refer to [xmake_guide.md](xmake_guide.md) for more information.
 
 ---
 

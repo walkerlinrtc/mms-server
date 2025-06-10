@@ -1,5 +1,5 @@
 target("mms-base", function () 
     set_kind("static")
     add_files("**.cpp")
-    add_packages("boost", "jsoncpp", "openssl3", "spdlog", { public = true })
+    add_packages("boost", "jsoncpp", "boringssl", "spdlog", { public = true })
 end)

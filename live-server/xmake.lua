@@ -20,7 +20,7 @@ target("mms-live-server", function ()
         "boost",
         "yaml-cpp",
         "jsoncpp",
-        "openssl3",
+        "boringssl",
         "zlib",
         "libopus",
         "faac",
