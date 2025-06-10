@@ -61,7 +61,7 @@ Incorrect configuration may lead to linking errors. For more information, refer 
 git clone https://github.com/jbl19860422/mms-server
 cd mms-server
 mkdir build && cd build
-cmake .. && cmake -j4 install
+cmake .. && make -j4 install
 ```
 
 > ⚠️ Ensure a stable internet connection during the build process, as third-party libraries (e.g., Boost, FFmpeg) will be downloaded. This may take some time.
