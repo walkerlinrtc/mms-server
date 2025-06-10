@@ -12,10 +12,22 @@ sudo apt update
 sudo apt install xmake
 ```
 
+Additionally, please ensure that the `pkg-config` tool is installed. Because `xmake` needs to use `pkg-config` to obtain configuration information for dependency libraries.
+
+```bash
+sudo apt install pkg-config
+```
+
 ### 🐧 Arch Linux
 
 ```bash
 sudo pacman -S xmake
+```
+
+For Arch Linux, please ensure that the `pkgconf` tool is installed. You can install the `base-devel` package to get the `pkgconf` tool.
+
+```bash
+sudo pacman -S base-devel
 ```
 
 ## 🏗️ Build mms-server
@@ -40,10 +52,8 @@ xmake -j8 # Adjust the number of cores based on your system, large projects reco
 
 `xmake` will automatically download and install third-party dependencies, then proceed with compilation. Typical output is as follows:
 
-> ⚠️ The third-party dependency `boringssl` has been replaced with `openssl3`. Please refer to the [Note](#-note) section for details.
-
 ```bash
-~/Workspace/mms-server main !13
+~/mms-server main !4
 ❯ xmake -j8
 checking for platform ... linux
 checking for architecture ... x86_64
@@ -51,21 +61,19 @@ updating repositories .. ok
 note: install or modify (m) these packages (pass -y to skip confirm)?
 in xmake-repo:
   -> spdlog v1.15.3 [license:MIT]
-  -> boost 1.88.0 [date_time:y, regex:y, system:y, serialization:y, asio:y, thread:y, coroutine:y, program_ ..)
+  -> boost 1.88.0 [asio:y, coroutine:y, system:y, serialization:y, program_options:y, regex:y, context:y, t ..)
   -> yaml-cpp 0.8.0 [license:MIT]
   -> jsoncpp 1.9.6 [license:MIT]
   -> go 1.24.4 [host, from:boringssl, license:BSD-3-Clause]
   -> boringssl 2022.06.13
   -> libopus 1.5.2
-  -> autoconf 2.72 [host, from:faad2,automake,faac,libtool]
-  -> automake 1.17 [host, from:faac,faad2]
-  -> libtool 2.5.4 [host, from:faac,faad2]
+  -> autoconf 2.72 [host, from:automake,faac,faad2,libtool]
+  -> automake 1.17 [host, from:faad2,faac]
+  -> libtool 2.5.4 [host, from:faad2,faac]
   -> faac 1.30 [license:LGPL-2.1]
   -> faad2 2.10.0 [license:GPL-2.0]
   -> nasm 2.16.03 [host, from:ffmpeg, license:BSD-2-Clause]
-  -> pkg-config 0.29.2 [host, from:ffmpeg]
   -> libffi 3.4.8 [private, host, from:python, license:MIT]
-  -> openssl 1.1.1-w [host, from:python,srtp, license:Apache-2.0]
   -> ca-certificates 20250131 [host, from:python]
   -> python 3.13.2 [host, binary, from:ninja,meson, license:PSF]
   -> meson 1.8.1 [host, from:libdrm, license:Apache-2.0]
@@ -82,47 +90,41 @@ Enter `y` to start downloading and installing third-party dependencies. This pro
 
 ```bash
   => download https://github.com/gabime/spdlog/archive/refs/tags/v1.15.3.zip .. ok
-  => download https://github.com/open-source-parsers/jsoncpp/archive/refs/tags/1.9.6.zip .. ok
-  => download https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz .. ok
-  => install spdlog v1.15.3 .. ok
-  => install jsoncpp 1.9.6 .. ok
-  => install yaml-cpp 0.8.0 .. ok
-  => download https://mirrors.ustc.edu.cn/gnu/autoconf/autoconf-2.72.tar.gz .. ok
-  => install autoconf 2.72 .. ok
-  => download https://mirrors.ustc.edu.cn/gnu/automake/automake-1.17.tar.gz .. ok
-  => download https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-cmake.tar.gz .. ok
-  => download https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz .. ok
-  => download https://go.dev/dl/go1.24.4.linux-amd64.tar.gz .. ok
-  => install go 1.24.4 .. ok
-  => install automake 1.17 .. ok
-  => download https://mirrors.ustc.edu.cn/gnu/libtool/libtool-2.5.4.tar.gz .. ok
-  => download https://github.com/google/boringssl/archive/refs/tags/fips-20220613.tar.gz .. ok
-  => install libopus 1.5.2 .. ok
-  => download https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/nasm-2.16.03.tar.xz .. ok
-  => install libtool 2.5.4 .. ok
-  => download https://github.com/knik0/faac/archive/refs/tags/1_30.tar.gz .. ok
-  => install faac 1.30 .. ok
-  => install nasm 2.16.03 .. ok
-  => install boringssl 2022.06.13 .. ok
-  => download https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz .. ok
-  => download https://github.com/libffi/libffi/releases/download/v3.4.8/libffi-3.4.8.tar.gz .. ok
-  => install boost 1.88.0 .. ok
-  => download https://github.com/knik0/faad2/archive/refs/tags/2_10_0.tar.gz .. ok
-  => install libffi 3.4.8 .. ok
-  => download https://github.com/openssl/openssl/archive/refs/tags/OpenSSL_1_1_1w.zip .. ok
-  => download https://github.com/xmake-mirror/xmake-cacert/archive/refs/tags/20250131.zip .. ok
-  => install ca-certificates 20250131 .. ok
-  => download https://github.com/redis/hiredis/archive/refs/tags/v1.3.0.tar.gz .. ok
-  => install hiredis v1.3.0 .. ok
-  => install openssl 1.1.1-w .. ok
-  => download https://github.com/sewenew/redis-plus-plus/archive/refs/tags/1.3.14.tar.gz .. ok
-  => download https://www.python.org/ftp/python/3.13.2/Python-3.13.2.tgz .. ok
-  => install faad2 2.10.0 .. ok
-  => download https://github.com/cisco/libsrtp/archive/refs/tags/v2.7.tar.gz .. ok
+  ... 
   => install redis-plus-plus 1.3.14 .. ok
-  => install srtp v2.7 .. ok
-  => install pkg-config 0.29.2 .. ok
-  => installing python .. (1/make) ⠧
+  => install python 3.13.2 .. ok
+  => download https://github.com/ninja-build/ninja/archive/refs/tags/v1.12.1.tar.gz .. ok
+  => download https://github.com/mesonbuild/meson/releases/download/1.8.1/meson-1.8.1.tar.gz .. ok
+  => install meson 1.8.1 .. ok
+  => install ninja v1.12.1 .. ok
+  => download https://dri.freedesktop.org/libdrm/libdrm-2.4.123.tar.xz .. ok
+  => install libdrm 2.4.123 .. ok
+  => download https://ffmpeg.org/releases/ffmpeg-7.1.tar.bz2 .. ok
+  => install ffmpeg 7.1 .. ok
+```
+
+```bash
+[  5%]: cache compiling.release libs/protocol/mp4/smhd.cpp
+[  5%]: cache compiling.release libs/protocol/mp4/stbl.cpp
+[  5%]: cache compiling.release libs/protocol/mp4/mdat.cpp
+[  5%]: cache compiling.release libs/protocol/mp4/url.cpp
+[  5%]: cache compiling.release libs/protocol/mp4/visual_sample_entry.cpp
+...
+[ 93%]: archiving.release libmms-base.a
+[ 94%]: archiving.release libmms-http.a
+[ 94%]: archiving.release libmms-mp4.a
+[ 94%]: archiving.release libmms-rtmp.a
+[ 94%]: archiving.release libmms-rtp.a
+[ 95%]: archiving.release libmms-rtsp.a
+[ 95%]: archiving.release libmms-sdp.a
+[ 95%]: archiving.release libmms-ts.a
+[ 96%]: archiving.release libmms-codec.a
+[ 96%]: archiving.release libmms-server.a
+[ 99%]: archiving.release libmms-http-sdk.a
+[ 99%]: linking.release mms-live-server
+create ok!
+compile_commands.json updated!
+[100%]: build ok, spent 215.306s
 ```
 
 ## 🚀 Run mms-server (WIP)
@@ -144,44 +146,6 @@ It is recommended to use VSCode as your editor and install the following extensi
 - `clangd`
 - `CodeLLDB`
 - `XMake`
-
-## 📝 Note
-
-When using `xmake`, to avoid linking errors, the third-party dependency `boringssl` has been replaced with `openssl3`, which can be successfully compiled and linked.
-
-If you insist on using `boringssl`, you may encounter the following linking errors:
-
-```bash
-error: /usr/bin/ld: build/linux/x86_64/release/libmms-server.a(tls_server.cpp.o): in function `mms::TlsServer::init_ssl()':
-tls_server.cpp:(.text+0x5e9): undefined reference to `OpenSSL_add_all_algorithms'
-/usr/bin/ld: tls_server.cpp:(.text+0x5ee): undefined reference to `SSL_library_init'
-/usr/bin/ld: tls_server.cpp:(.text+0x5f3): undefined reference to `SSL_load_error_strings'
-/usr/bin/ld: build/linux/x86_64/release/libmms-server.a(tls_server.cpp.o): in function `mms::TlsServer::start_listen(unsigned short)':
-tls_server.cpp:(.text+0x321c): undefined reference to `OpenSSL_add_all_algorithms'
-/usr/bin/ld: tls_server.cpp:(.text+0x3221): undefined reference to `SSL_library_init'
-/usr/bin/ld: tls_server.cpp:(.text+0x3226): undefined reference to `SSL_load_error_strings'
-/usr/bin/ld: build/linux/x86_64/release/libmms-base.a(tls_socket.cpp.o): in function `mms::TlsSocket::send(mms::TlsSocket::send(unsigned char const*, unsigned long, int)::_ZN3mms9TlsSocket4sendEPKhmi.Frame*) [clone .actor]':
-tls_socket.cpp:(.text+0x4fb3): undefined reference to `BIO_get_mem_data'
-/usr/bin/ld: tls_socket.cpp:(.text+0x510c): undefined reference to `BIO_reset'
-/usr/bin/ld: build/linux/x86_64/release/libmms-base.a(tls_socket.cpp.o): in function `mms::TlsSocket::send(mms::TlsSocket::send(std::vector<boost::asio::const_buffer, std::allocator<boost::asio::const_buffer> >&, int)::_ZN3mms9TlsSocket4sendERSt6vectorIN5boost4asio12const_bufferESaIS4_EEi.Frame*) [clone .actor]':
-tls_socket.cpp:(.text+0x54de): undefined reference to `BIO_get_mem_data'
-/usr/bin/ld: tls_socket.cpp:(.text+0x566c): undefined reference to `BIO_reset'
-/usr/bin/ld: build/linux/x86_64/release/libmms-base.a(tls_socket.cpp.o): in function `mms::TlsSocket::connect(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned short, int)::{lambda()#1}::operator()(mms::TlsSocket::connect(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned short, int)::{lambda()#1}::operator()() const::_ZZN3mms9TlsSocket7connectERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEtiENKUlvE_clEv.Frame*) [clone .actor]':
-tls_socket.cpp:(.text+0x5c38): undefined reference to `BIO_reset'
-/usr/bin/ld: tls_socket.cpp:(.text+0x5d2f): undefined reference to `BIO_get_mem_data'
-/usr/bin/ld: build/linux/x86_64/release/libmms-base.a(tls_socket.cpp.o): in function `mms::TlsSocket::do_handshake(int)::{lambda()#1}::operator()(mms::TlsSocket::do_handshake(int)::{lambda()#1}::operator()() const::_ZZN3mms9TlsSocket12do_handshakeEiENKUlvE_clEv.Frame*) [clone .actor]':
-tls_socket.cpp:(.text+0x6105): undefined reference to `BIO_reset'
-/usr/bin/ld: tls_socket.cpp:(.text+0x616d): undefined reference to `BIO_reset'
-/usr/bin/ld: tls_socket.cpp:(.text+0x6419): undefined reference to `BIO_get_mem_data'
-/usr/bin/ld: tls_socket.cpp:(.text+0x6489): undefined reference to `BIO_get_mem_data'
-/usr/bin/ld: build/linux/x86_64/release/libmms-base.a(tls_socket.cpp.o): in function `mms::TlsSocket::connect(mms::TlsSocket::connect(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned short, int)::_ZN3mms9TlsSocket7connectERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEti.Frame*) [clone .actor]':
-tls_socket.cpp:(.text+0x9e62): undefined reference to `SSL_set_mode'
-/usr/bin/ld: build/linux/x86_64/release/libmms-base.a(tls_socket.cpp.o): in function `mms::TlsSocket::do_handshake(mms::TlsSocket::do_handshake(int)::_ZN3mms9TlsSocket12do_handshakeEi.Frame*) [clone .actor]':
-tls_socket.cpp:(.text+0xa60a): undefined reference to `SSL_CTX_set_tlsext_servername_arg'
-/usr/bin/ld: tls_socket.cpp:(.text+0xa621): undefined reference to `SSL_CTX_set_tlsext_servername_callback'
-/usr/bin/ld: tls_socket.cpp:(.text+0xa6ab): undefined reference to `SSL_set_mode'
-collect2: error: ld returned 1 exit status
-```
 
 ## 📋 TODO
 
