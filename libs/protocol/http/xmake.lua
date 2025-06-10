@@ -1,6 +1,6 @@
-target("protocol_http", function () 
+target("mms-http", function () 
     set_kind("static")
     add_files("**.cpp")
-    add_deps("base")
+    add_deps("mms-base")
     add_includedirs(".", { public = true })
 end)

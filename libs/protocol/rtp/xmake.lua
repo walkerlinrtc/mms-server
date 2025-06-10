@@ -1,8 +1,7 @@
-target("protocol_rtp", function () 
+target("mms-rtp", function () 
     set_kind("static")
     add_files("**.cpp")
     add_includedirs(".", { public = true })
-    add_deps("base")
-    -- add_deps("codec_h264", "codec_hevc")
+    add_deps("mms-base")
 end)
 

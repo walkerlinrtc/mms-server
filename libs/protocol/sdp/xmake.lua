@@ -1,6 +1,6 @@
-target("protocol_sdp", function () 
+target("mms-sdp", function () 
     set_kind("static")
     add_files("**.cpp")
     add_includedirs(".", {public = true})
-    add_deps("base")
+    add_deps("mms-base")
 end)
