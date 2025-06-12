@@ -9,7 +9,7 @@ SocketInterface::SocketInterface(SocketInterfaceHandler *handler) : handler_(han
 }
 
 SocketInterface::~SocketInterface() {
-    spdlog::info("destroy SocketInterface");
+    spdlog::debug("destroy SocketInterface");
 }
 
 Json::Value SocketInterface::to_json() {
