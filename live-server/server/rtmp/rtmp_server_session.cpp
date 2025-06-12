@@ -78,7 +78,7 @@ void RtmpServerSession::start_statistic_timer() {
         [this, self]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
             while (1) {
-                statistic_timer_.expires_after(std::chrono::seconds(10));
+                statistic_timer_.expires_after(std::chrono::seconds(1));
                 co_await statistic_timer_.async_wait(
                     boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
