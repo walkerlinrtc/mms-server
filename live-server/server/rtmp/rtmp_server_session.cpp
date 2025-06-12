@@ -22,6 +22,7 @@
 #include "protocol/rtmp/rtmp_message/chunk_message/rtmp_acknowledge_message.hpp"
 #include "protocol/rtmp/rtmp_message/chunk_message/rtmp_window_acknowledge_size_message.hpp"
 
+#include "base/network/bitrate_monitor.h"
 
 using namespace mms;
 RtmpServerSession::RtmpServerSession(std::shared_ptr<SocketInterface> conn)
@@ -31,6 +32,7 @@ RtmpServerSession::RtmpServerSession(std::shared_ptr<SocketInterface> conn)
       chunk_protocol_(conn),
       rtmp_msgs_channel_(get_worker()->get_io_context(), 1024),
       alive_timeout_timer_(get_worker()->get_io_context()),
+      statistic_timer_(get_worker()->get_io_context()),
       wg_(get_worker()) {
     set_session_type("rtmp");
 }
@@ -58,6 +60,32 @@ void RtmpServerSession::start_alive_checker() {
                               last_active_time_);
                     co_return;
                 }
+            }
+            co_return;
+        },
+        [this, self](std::exception_ptr exp) {
+            (void)exp;
+            close();
+            wg_.done();
+        });
+}
+
+void RtmpServerSession::start_statistic_timer() {
+    auto self(shared_from_this());
+    wg_.add(1);
+    boost::asio::co_spawn(
+        worker_->get_io_context(),
+        [this, self]() -> boost::asio::awaitable<void> {
+            boost::system::error_code ec;
+            while (1) {
+                statistic_timer_.expires_after(std::chrono::seconds(10));
+                co_await statistic_timer_.async_wait(
+                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                if (ec) {
+                    co_return;
+                }
+                video_bitrate_monitor_->tick();
+                audio_bitrate_monitor_->tick();
             }
             co_return;
         },
@@ -161,6 +189,7 @@ void RtmpServerSession::close() {
             }
 
             alive_timeout_timer_.cancel();
+            statistic_timer_.cancel();
             co_await wg_.wait();
 
             if (rtmp_media_sink_) {  // 如果是播放的session
@@ -600,6 +629,7 @@ bool RtmpServerSession::handle_video_msg(std::shared_ptr<RtmpMessage> msg) {
     if (!rtmp_media_source_) {
         return false;
     }
+    video_bitrate_monitor_->on_bytes_in(msg->get_using_data().size());
     return rtmp_media_source_->on_video_packet(msg);
 }
 
@@ -607,6 +637,7 @@ bool RtmpServerSession::handle_audio_msg(std::shared_ptr<RtmpMessage> msg) {
     if (!rtmp_media_source_) {
         return false;
     }
+    audio_bitrate_monitor_->on_bytes_in(msg->get_using_data().size());
     return rtmp_media_source_->on_audio_packet(msg);
 }
 

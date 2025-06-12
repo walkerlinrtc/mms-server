@@ -22,6 +22,8 @@
 #include "app/publish_app.h"
 #include "core/stream_session.hpp"
 
+#include "base/network/bitrate_monitor.h"
+
 using namespace mms;
 
 MediaSource::MediaSource(const std::string & media_type, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app, ThreadWorker *worker) : 

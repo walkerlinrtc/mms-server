@@ -27,6 +27,7 @@
 #include "app/publish_app.h"
 #include "core/error_code.hpp"
 #include "spdlog/spdlog.h"
+#include "base/network/bitrate_monitor.h"
 
 using namespace mms;
 

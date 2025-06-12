@@ -19,6 +19,7 @@ class StreamSession;
 class PublishApp;
 class Recorder;
 class Codec;
+class BitrateMonitor;
 
 class MediaEvent;
 

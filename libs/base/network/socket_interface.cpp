@@ -1,5 +1,5 @@
 #include "socket_interface.hpp"
-
+#include "socket_traffic_observer.h"
 #include "spdlog/spdlog.h"
 
 using namespace mms;
@@ -18,6 +18,28 @@ int64_t SocketInterface::get_in_bytes() {
 
 int64_t SocketInterface::get_out_bytes() {
     return out_bytes_;
+}
+
+void SocketInterface::add_observer(std::shared_ptr<SocketTrafficObserver> obs) {
+    observers_.push_back(obs);
+}
+
+void SocketInterface::remove_observer(std::shared_ptr<SocketTrafficObserver> obs) {
+    observers_.erase(std::remove(observers_.begin(), observers_.end(), obs), observers_.end());
+}
+
+void SocketInterface::notify_bytes_in(size_t bytes) {
+    in_bytes_ += bytes;
+    for (auto& obs : observers_) {
+        obs->on_bytes_in(bytes);
+    }
+}
+
+void SocketInterface::notify_bytes_out(size_t bytes) {
+    out_bytes_ += bytes;
+    for (auto& obs : observers_) {
+        obs->on_bytes_out(bytes);
+    }
 }
 
 std::string SocketInterface::get_local_address() {
