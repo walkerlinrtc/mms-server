@@ -7,10 +7,13 @@
 #include <mutex>
 #include <atomic>
 #include <shared_mutex>
+#include <functional>
 
 #include "base/wait_group.h"
 #include "json/json.h"
 #include "source_status.h"
+#include "base/thread/thread_worker.hpp"
+
 namespace mms {
 class MediaSink;
 class MediaBridge;
@@ -96,12 +99,29 @@ public:
 
     SourceStatus get_status() const;
     void set_status(SourceStatus status);
-
-    const std::string & get_client_ip();
-    void set_client_ip(const std::string & client_ip);
     
-    virtual Json::Value to_json();
+    virtual std::shared_ptr<Json::Value> to_json();
 
+    template <typename R> 
+    boost::asio::awaitable<std::shared_ptr<R>> sync_exec(const std::function<std::shared_ptr<R>()> & exec_func) {
+        auto self(shared_from_this());
+        WaitGroup wg(worker_);
+        std::shared_ptr<R> r;
+        wg.add(1);
+        boost::asio::co_spawn(worker_->get_io_context(), [this, self, &wg, &exec_func]()->boost::asio::awaitable<std::shared_ptr<R>> {
+            std::shared_ptr<R> r = exec_func();
+            co_return r;
+        }, [this, self, &wg, &r](std::exception_ptr exp, std::shared_ptr<R> ret) {
+            (void)exp;
+            r = ret;
+            wg.done();
+        });
+
+        co_await wg.wait();
+        co_return r;
+    }
+
+    boost::asio::awaitable<std::shared_ptr<Json::Value>> sync_to_json();
     void notify_status(SourceStatus status);
     virtual void close();
 protected:

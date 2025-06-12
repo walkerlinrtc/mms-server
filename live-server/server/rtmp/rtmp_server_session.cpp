@@ -167,6 +167,7 @@ void RtmpServerSession::start_recv_coroutine() {
 void RtmpServerSession::service() {
     CORE_DEBUG("RtmpServerSession start service");
     start_recv_coroutine();
+    start_statistic_timer();
 }
 
 void RtmpServerSession::close() {
@@ -228,6 +229,24 @@ void RtmpServerSession::close() {
             co_return;
         },
         boost::asio::detached);
+}
+
+Json::Value RtmpServerSession::to_json() {
+    Json::Value v;
+    if (conn_) {
+        v["conn"] = conn_->to_json();
+    }
+
+    if (video_bitrate_monitor_) {
+        v["vbitrate"] = video_bitrate_monitor_->to_json();
+    }
+
+    if (audio_bitrate_monitor_) {
+        v["abitrate"] = audio_bitrate_monitor_->to_json();
+    }
+
+
+    return v;
 }
 
 boost::asio::awaitable<bool> RtmpServerSession::send_acknowledge_msg_if_required() {
@@ -448,7 +467,6 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
     rtmp_media_source_->set_origin(true);
     rtmp_media_source_->set_session(self);
     rtmp_media_source_->set_source_info(domain_name_, app_name_, stream_name_);
-    rtmp_media_source_->set_client_ip(conn_->get_remote_address());
     // 通知app开始播放
     auto publish_app = std::static_pointer_cast<PublishApp>(app_);
     auto err = co_await publish_app->on_publish(std::static_pointer_cast<StreamSession>(self));

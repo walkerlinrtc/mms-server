@@ -40,25 +40,28 @@ RtspMediaSource::~RtspMediaSource() {
 
 }
 
-Json::Value RtspMediaSource::to_json() {
-    Json::Value v;
+std::shared_ptr<Json::Value> RtspMediaSource::to_json() {
+    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
+    Json::Value & v = *d;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
     v["stream"] = stream_name_;
-    v["create_at"] = create_at_;
     v["sinks"] = sinks_count_.load();
+    v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
-    if (video_codec_) {
-        v["vcodec"] = video_codec_->to_json();
+    v["client_ip"] = client_ip_;
+    auto vcodec = video_codec_;
+    if (vcodec) {
+        v["vcodec"] = vcodec->to_json();
     }
 
-    if (audio_codec_) {
-        v["acodec"] = audio_codec_->to_json();
+    auto acodec = audio_codec_;
+    if (acodec) {
+        v["acodec"] = acodec->to_json();
     }
-    return v;
+    return d;
 }
-
 #define FMT_MPA 14
 
 bool RtspMediaSource::process_announce_sdp(const std::string & sdp) {

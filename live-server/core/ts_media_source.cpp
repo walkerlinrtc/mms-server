@@ -18,6 +18,7 @@
 #include "core/stream_session.hpp"
 #include "app/publish_app.h"
 #include "recorder/recorder.h"
+#include "codec/codec.hpp"
 
 using namespace mms;
 TsMediaSource::TsMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app) : MediaSource("ts", session, app, worker), pes_pkts_(2048), keyframe_indexes_(200) {
@@ -28,15 +29,27 @@ TsMediaSource::~TsMediaSource() {
 
 }
 
-Json::Value TsMediaSource::to_json() {
-    Json::Value v;
+std::shared_ptr<Json::Value> TsMediaSource::to_json() {
+    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
+    Json::Value & v = *d;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
     v["stream"] = stream_name_;
     v["sinks"] = sinks_count_.load();
-    v["stream_time"] = 0;
-    return v;
+    v["create_at"] = create_at_;
+    v["stream_time"] = time(NULL) - create_at_;
+    v["client_ip"] = client_ip_;
+    auto vcodec = video_codec_;
+    if (vcodec) {
+        v["vcodec"] = vcodec->to_json();
+    }
+
+    auto acodec = audio_codec_;
+    if (acodec) {
+        v["acodec"] = acodec->to_json();
+    }
+    return d;
 }
 
 

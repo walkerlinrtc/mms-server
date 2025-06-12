@@ -12,6 +12,15 @@ SocketInterface::~SocketInterface() {
     spdlog::info("destroy SocketInterface");
 }
 
+Json::Value SocketInterface::to_json() {
+    Json::Value v;
+    v["in_bytes"] = in_bytes_;
+    v["out_bytes"] = out_bytes_;
+    v["remote_address"] = get_remote_address();
+    v["local_address"] = get_local_address();
+    return v;
+}
+
 int64_t SocketInterface::get_in_bytes() {
     return in_bytes_;
 }

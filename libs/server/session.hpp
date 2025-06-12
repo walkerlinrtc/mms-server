@@ -8,6 +8,8 @@
 #include <optional>
 
 #include <boost/asio/awaitable.hpp>
+
+#include "json/json.h"
 namespace mms {
 class App;
 class ThreadWorker;
@@ -47,6 +49,8 @@ public:
     }
 
     std::optional<std::reference_wrapper<const std::string>> get_header(const std::string & key);
+
+    virtual Json::Value to_json();
 protected:
     std::atomic_flag closed_ = ATOMIC_FLAG_INIT;
     uint64_t id_;

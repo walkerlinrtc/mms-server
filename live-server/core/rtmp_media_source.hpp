@@ -40,7 +40,7 @@ public:
 
     virtual bool add_media_sink(std::shared_ptr<MediaSink> media_sink);
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name);
-    Json::Value to_json();
+    std::shared_ptr<Json::Value> to_json() override;
 protected:
     SequencePktBuf<RtmpMessage> av_pkts_;
     std::shared_ptr<RtmpMetaDataMessage> metadata_;
