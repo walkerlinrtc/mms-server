@@ -144,7 +144,8 @@ boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<H
     for (auto it_app = app_streams.begin(); it_app != app_streams.end(); it_app++) {
         Json::Value japp_streams;
         for (auto & stream : it_app->second) {
-            japp_streams[stream.first] = stream.second->to_json();
+            auto v = co_await stream.second->sync_to_json();
+            japp_streams[stream.first] = *v;
         }
         root[it_app->first] = japp_streams;
     }
@@ -184,7 +185,8 @@ boost::asio::awaitable<void> HttpApiServer::get_app_streams(std::shared_ptr<Http
     try {
         Json::Value jstreams;
         for (auto it = streams.begin(); it != streams.end(); it++) {
-            jstreams.append(it->second->to_json());
+            auto v = co_await it->second->sync_to_json();
+            jstreams.append(*v);
         }
         root["data"] = jstreams;
         root["code"] = 0;

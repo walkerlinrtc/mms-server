@@ -28,3 +28,8 @@ std::optional<std::reference_wrapper<const std::string>> Session::get_header(con
     }
     return it->second;
 }
+
+Json::Value Session::to_json() {
+    Json::Value v;
+    return v;
+}

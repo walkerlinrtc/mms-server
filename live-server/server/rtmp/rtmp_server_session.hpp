@@ -54,6 +54,7 @@ public:
     virtual ~RtmpServerSession();
     void service() override;
     void close() override;
+    Json::Value to_json() override;
 protected:
     // 同步方式发送rtmp消息，发送完成后会等待
     template<typename T>
@@ -93,6 +94,7 @@ private:
     bool parse_play_cmd(RtmpPlayMessage & play_cmd);
 private:
     void start_alive_checker();
+    void start_statistic_timer();
     void update_active_timestamp();
     void start_recv_coroutine();
     void start_send_coroutine();
@@ -116,7 +118,7 @@ private:
 
     int64_t last_active_time_ = Utils::get_current_ms();
     boost::asio::steady_timer alive_timeout_timer_;//超时定时器，如果超过一段时间，没有任何数据，则关闭session 
-
+    boost::asio::steady_timer statistic_timer_;//统计定时器
     WaitGroup wg_;
 };
 

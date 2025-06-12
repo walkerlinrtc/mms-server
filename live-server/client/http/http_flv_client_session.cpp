@@ -146,7 +146,6 @@ void HttpFlvClientSession::service() {
                 close();
                 co_return;
             }
-            flv_media_source_->set_client_ip(server_ip);
 
             HttpRequest http_req;
             http_req.set_method(GET);

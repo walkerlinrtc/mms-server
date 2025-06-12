@@ -154,7 +154,6 @@ void RtmpPlayClientSession::service() {
                 CORE_ERROR("rtmp:connect to {}:{} failed", server_ip, port);
                 co_return;
             }
-            rtmp_media_source_->set_client_ip(server_ip);
             
             // 启动握手
             if (!co_await handshake_->do_client_handshake()) {

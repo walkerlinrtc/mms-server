@@ -22,6 +22,8 @@
 #include "app/publish_app.h"
 #include "core/stream_session.hpp"
 
+#include "base/network/bitrate_monitor.h"
+
 using namespace mms;
 
 MediaSource::MediaSource(const std::string & media_type, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app, ThreadWorker *worker) : 
@@ -42,8 +44,9 @@ std::shared_ptr<StreamSession> MediaSource::get_session() {
     return s;
 }
 
-Json::Value MediaSource::to_json() {
-    Json::Value v;
+std::shared_ptr<Json::Value> MediaSource::to_json() {
+    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
+    Json::Value & v = *d;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -52,14 +55,22 @@ Json::Value MediaSource::to_json() {
     v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
     v["client_ip"] = client_ip_;
-    if (video_codec_) {
-        v["vcodec"] = video_codec_->to_json();
+    auto vcodec = video_codec_;
+    if (vcodec) {
+        v["vcodec"] = vcodec->to_json();
     }
+    auto acodec = audio_codec_;
+    if (acodec) {
+        v["acodec"] = acodec->to_json();
+    }
+    return d;
+}
 
-    if (audio_codec_) {
-        v["acodec"] = audio_codec_->to_json();
-    }
-    return v;
+boost::asio::awaitable<std::shared_ptr<Json::Value>> MediaSource::sync_to_json() {
+    auto r = co_await sync_exec<Json::Value>([this]() {
+        return to_json();
+    });
+    co_return r;
 }
 
 SourceStatus MediaSource::get_status() const {
@@ -76,14 +87,6 @@ void MediaSource::notify_status(SourceStatus status) {
     for (auto s : sinks_) {
         s->on_source_status_changed(status);
     }
-}
-
-const std::string & MediaSource::get_client_ip() {
-    return client_ip_;
-}
-
-void MediaSource::set_client_ip(const std::string & client_ip) {
-    client_ip_ = client_ip;
 }
 
 void MediaSource::set_session(std::shared_ptr<StreamSession> s) {
