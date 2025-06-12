@@ -120,11 +120,11 @@ void MpdLiveMediaSource::update_mpd() {
        << "    ns1:schemaLocation=\"urn:mpeg:dash:schema:mpd:2011 DASH-MPD.xsd\" " << std::endl
        << "    xmlns=\"urn:mpeg:dash:schema:mpd:2011\" xmlns:ns1=\"http://www.w3.org/2001/XMLSchema-instance\" " << std::endl
        << "    type=\"dynamic\" " << std::endl
-       << "    minimumUpdatePeriod=\"PT" << 0.000 << "S\" " << std::endl
-       << "    timeShiftBufferDepth=\"PT" << 3*last_duration << "S\" " << std::endl
+       << "    minimumUpdatePeriod=\"PT" << 5 << "S\" " << std::endl
+       << "    timeShiftBufferDepth=\"PT" << 3*(last_duration/1000) << "S\" " << std::endl
        << "    availabilityStartTime=\"" << availabilityStartTime << "\" " << std::endl
        << "    publishTime=\"" << Utils::get_utc_time() << "\" " << std::endl
-       << "    minBufferTime=\"PT" << 2*last_duration << "S\" >" << std::endl;
+       << "    minBufferTime=\"PT" << 2*(last_duration/1000) << "S\" >" << std::endl;
 
     ss << "    <BaseURL>" << stream_name_ << "/" << "</BaseURL>" << std::endl;
     
