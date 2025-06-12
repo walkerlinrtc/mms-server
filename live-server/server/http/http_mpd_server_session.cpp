@@ -34,13 +34,16 @@ void HttpMpdServerSession::service() {
     boost::asio::co_spawn(
         worker_->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
-            auto host = http_request_->get_header("Host");
-            auto pos = host.find_first_of(":");
-            if (pos != std::string::npos) {
-                host = host.substr(0, pos);
+            std::string domain = http_request_->get_query_param("domain");
+            if (domain.empty()) {
+                domain = http_request_->get_header("Host");
+                auto pos = domain.find(":");
+                if (pos != std::string::npos) {
+                    domain = domain.substr(0, pos);
+                }
             }
 
-            set_session_info(host, http_request_->get_path_param("app"),
+            set_session_info(domain, http_request_->get_path_param("app"),
                              http_request_->get_path_param("stream"));
             if (!find_and_set_app(domain_name_, app_name_, false)) {
                 CORE_DEBUG("could not find play app for domain:{}, app:{}", domain_name_, app_name_);
@@ -66,7 +69,7 @@ void HttpMpdServerSession::service() {
             auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" +
                                http_request_->get_path_param("stream");
             // 1.本机查找
-            auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(),
+            auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(),
                                                                    get_stream_name());
             if (!source) {  // 2.本地配置查找外部回源
                 source = co_await publish_app->find_media_source(self);

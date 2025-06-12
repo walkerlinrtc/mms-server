@@ -99,25 +99,25 @@ bool HttpLiveServer::register_route() {
     //     return false;
     // }
     
-    // ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-    //     (void)session;
-    //     auto http_mpd_session = std::make_shared<HttpMpdServerSession>(req, resp);
-    //     http_mpd_session->service();
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
+    ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_mpd_session = std::make_shared<HttpMpdServerSession>(req, resp);
+        http_mpd_session->service();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
 
-    // ret = on_get("/:app/:stream/:id.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-    //     (void)session;
-    //     auto http_m4s_session = std::make_shared<HttpM4sServerSession>(req, resp);
-    //     http_m4s_session->service();
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
+    ret = on_get("/:app/:stream/:id.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_m4s_session = std::make_shared<HttpM4sServerSession>(req, resp);
+        http_m4s_session->service();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
 
     ret = on_post("/:app/:stream/whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;

@@ -68,7 +68,7 @@ void HttpLongMp4ServerSession::service() {
         auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + http_request_->get_path_param("stream");
         auto id = http_request_->get_path_param("id");
         const std::string mp4_name = stream_name_ + "/" + id + ".m4s";
-        auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+        auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
         std::shared_ptr<Mp4MediaSource> mp4_source;
         if (!source) {//todo : reply 404
             CORE_DEBUG("could not find source for domain:{}, app:{}", domain_name_, app_name_);
