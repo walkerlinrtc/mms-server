@@ -15,7 +15,7 @@ class WebRtcMediaSource : public RtpMediaSource {
 public:
     WebRtcMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
 
-    Json::Value to_json();
+    std::shared_ptr<Json::Value> to_json() override;
     std::string process_publish_sdp(const std::string & sdp);
     bool process_play_sdp(const std::string & sdp);
 

@@ -13,11 +13,15 @@
 #include "core/source_manager.hpp"
 #include "log/log.h"
 
+#include "base/network/bitrate_monitor.h"
 
 using namespace mms;
 
 StreamSession::StreamSession(ThreadWorker *worker)
-    : Session(worker), wg_(worker), cleanup_timer_(worker->get_io_context()) {}
+    : Session(worker), wg_(worker), cleanup_timer_(worker->get_io_context()) {
+    video_bitrate_monitor_ = std::make_unique<BitrateMonitor>();
+    audio_bitrate_monitor_ = std::make_unique<BitrateMonitor>();
+}
 
 StreamSession::~StreamSession() {}
 
@@ -70,7 +74,7 @@ void StreamSession::start_delayed_source_check_and_delete(uint32_t delay_sec,
             boost::system::error_code ec;
             co_await cleanup_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
             if (ec) {
-                co_return;  // 被cancel了，可能是重新绑定了，不需要检查le
+                co_return;  // 被cancel了，可能是重新绑定了，不需要检查了
             }
 
             auto session = media_source->get_session();

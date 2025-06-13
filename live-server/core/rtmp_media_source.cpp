@@ -27,6 +27,7 @@
 #include "app/publish_app.h"
 #include "core/error_code.hpp"
 #include "spdlog/spdlog.h"
+#include "base/network/bitrate_monitor.h"
 
 using namespace mms;
 
@@ -38,8 +39,9 @@ RtmpMediaSource::~RtmpMediaSource() {
     CORE_DEBUG("destroy RtmpMediaSource");
 }
 
-Json::Value RtmpMediaSource::to_json() {
-    Json::Value v;
+std::shared_ptr<Json::Value> RtmpMediaSource::to_json() {
+    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
+    Json::Value & v = *d;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -57,7 +59,12 @@ Json::Value RtmpMediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return v;
+    
+    auto session = session_.lock();
+    if (session) {
+        v["session"] = session->to_json();
+    }
+    return d;
 }
 
 bool RtmpMediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {

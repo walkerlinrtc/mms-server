@@ -1,6 +1,6 @@
-target("protocol_rtsp", function () 
+target("mms-rtsp", function () 
     set_kind("static")
     add_files("**.cpp")
     add_includedirs(".", { public = true })
-    add_deps("base")
+    add_deps("mms-base")
 end)

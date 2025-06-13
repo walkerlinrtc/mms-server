@@ -32,7 +32,7 @@ public:
     virtual ~RtspMediaSource();
     bool process_announce_sdp(const std::string & sdp);
 
-    Json::Value to_json();
+    std::shared_ptr<Json::Value> to_json() override;
     uint16_t get_video_pt() const {
         return video_pt_;
     }

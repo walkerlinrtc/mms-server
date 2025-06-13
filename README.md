@@ -1,3 +1,5 @@
+# MMS: A high-performance, multi-threaded, and multi-coroutine real-time streaming server implemented in C++20
+
 ## Introduction
 
 **MMS Server** is a high-performance, real-time streaming media server built with **C++20**, designed specifically for live streaming and low-latency communication scenarios. It supports a wide range of mainstream streaming protocols, including:
@@ -23,7 +25,7 @@ MMS is developer-friendly and recommended for development and testing on **Ubunt
 
 ---
 
-## Compilation
+## Compilation with CMake
 
 ### Requirements
 
@@ -59,7 +61,7 @@ Incorrect configuration may lead to linking errors. For more information, refer 
 git clone https://github.com/jbl19860422/mms-server
 cd mms-server
 mkdir build && cd build
-cmake .. && cmake --build . -j4 && cmake --install .
+cmake .. && make -j4 install
 ```
 
 > ⚠️ Ensure a stable internet connection during the build process, as third-party libraries (e.g., Boost, FFmpeg) will be downloaded. This may take some time.
@@ -74,7 +76,7 @@ Before running, ensure proper configuration. MMS uses **YAML** format for its co
 
 Configuration directory structure:
 
-```
+```text
 config/
 ├── mms.yaml
 ├── publish/
@@ -105,6 +107,10 @@ mms-live-server -c ./config -d
 
 * `-c` specifies the configuration directory.
 * `-d` enables log output to the console (omit this flag to write logs to files instead).
+
+### Compilation with XMake
+
+Please refer to [xmake_guide.md](xmake_guide.md) for more information.
 
 ---
 
@@ -172,15 +178,16 @@ Make sure `/data/console` matches the `path_map` configuration above.
 
 Once deployed, the console can be accessed at:
 
-```
+```text
 http://<your-ip>:8080/console/index.html
 ```
 
 Replace `<your-ip>` and `8080` with the actual IP address and port defined in your `http_api` configuration.
 
 ---
+
 ## 📦 Contact
+
 1. mms-server QQ Group: 1053583153
 2. Personal Contact: 13066836861
-3. Email: jbl19860422@gmail.com or jbl19860422@163.com
-
+3. Email: <jbl19860422@gmail.com> or <jbl19860422@163.com>

@@ -14,6 +14,8 @@
 #include "mp4_media_source.hpp"
 #include "mp4_media_sink.hpp"
 
+#include "codec/codec.hpp"
+
 #include "base/thread/thread_worker.hpp"
 #include "bridge/media_bridge.hpp"
 #include "bridge/bridge_factory.hpp"
@@ -30,15 +32,27 @@ Mp4MediaSource::~Mp4MediaSource() {
 
 }
 
-Json::Value Mp4MediaSource::to_json() {
-    Json::Value v;
+std::shared_ptr<Json::Value> Mp4MediaSource::to_json() {
+    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
+    Json::Value & v = *d;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
     v["stream"] = stream_name_;
     v["sinks"] = sinks_count_.load();
-    v["stream_time"] = 0;
-    return v;
+    v["create_at"] = create_at_;
+    v["stream_time"] = time(NULL) - create_at_;
+    v["client_ip"] = client_ip_;
+    auto vcodec = video_codec_;
+    if (vcodec) {
+        v["vcodec"] = vcodec->to_json();
+    }
+
+    auto acodec = audio_codec_;
+    if (acodec) {
+        v["acodec"] = acodec->to_json();
+    }
+    return d;
 }
 
 

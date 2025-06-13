@@ -12,6 +12,8 @@ namespace mms {
 class AppConfig;
 class App;
 class MediaSource;
+class BitrateMonitor;
+
 class StreamSession : public Session {
 public:
     StreamSession(ThreadWorker *worker);
@@ -50,7 +52,6 @@ public:
     }
 
     std::string get_client_ip();
-
 public:
     void start_delayed_source_check_and_delete(uint32_t delay_sec, std::shared_ptr<MediaSource> source);//启动source延迟关闭
 protected:
@@ -63,5 +64,8 @@ protected:
     WaitGroup wg_;
     std::atomic<bool> waiting_cleanup_{false};
     boost::asio::steady_timer cleanup_timer_;
+
+    std::unique_ptr<BitrateMonitor> video_bitrate_monitor_;
+    std::unique_ptr<BitrateMonitor> audio_bitrate_monitor_;
 };
 };

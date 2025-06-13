@@ -10,13 +10,17 @@
 #pragma once 
 #include <memory>
 #include <atomic>
+#include <vector>
 
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/awaitable.hpp>
+
+#include "json/json.h"
 namespace mms {
 class ThreadWorker;
 class Session;
 class SocketInterface;
+class SocketTrafficObserver;
 
 class SocketInterfaceHandler {
 public:
@@ -43,6 +47,13 @@ public:
     int64_t get_in_bytes();
     int64_t get_out_bytes();
 
+    void add_observer(std::shared_ptr<SocketTrafficObserver> obs);
+    void remove_observer(std::shared_ptr<SocketTrafficObserver> obs);
+    void notify_bytes_in(size_t bytes);
+    void notify_bytes_out(size_t bytes);
+
+    virtual Json::Value to_json();
+
     void set_session(std::shared_ptr<Session> session);
     std::shared_ptr<Session> get_session();
     void clear_session();
@@ -55,5 +66,7 @@ protected:
     int64_t in_bytes_ = 0;
     int64_t out_bytes_ = 0;
     uint64_t id_;
+protected:
+    std::vector<std::shared_ptr<SocketTrafficObserver>> observers_;
 };
 };
