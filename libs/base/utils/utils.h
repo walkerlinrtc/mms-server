@@ -37,6 +37,7 @@ public:
     static int64_t get_current_ms();
     static int64_t get_ntp_time();
     static std::string get_utc_time();
+    static std::string get_utc_time_with_millis();
     static std::string get_bin_path();
     static bool aes_encrypt(const std::string &plaintext, const std::string &key, std::string &ciphertext);
     static bool aes_decrypt(const std::string &ciphertext, const std::string &key, std::string &plaintext);

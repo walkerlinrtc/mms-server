@@ -22,7 +22,6 @@
 #include "core/mpd_live_media_source.hpp"
 #include "log/log.h"
 
-
 using namespace mms;
 
 Mp4ToMpd::Mp4ToMpd(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
@@ -72,6 +71,7 @@ bool Mp4ToMpd::init() {
             close();
         });
 
+    mp4_media_sink_->on_close([this, self]() { close(); });
     mp4_media_sink_->set_audio_init_segment_cb(
         [this, self](std::shared_ptr<Mp4Segment> seg) -> boost::asio::awaitable<bool> {
             mpd_media_source_->on_audio_init_segment(seg);
@@ -117,6 +117,11 @@ void Mp4ToMpd::close() {
 
             auto origin_source = origin_source_.lock();
             if (mp4_media_sink_) {
+                mp4_media_sink_->on_close({});
+                mp4_media_sink_->set_audio_init_segment_cb({});
+                mp4_media_sink_->set_video_init_segment_cb({});
+                mp4_media_sink_->set_audio_mp4_segment_cb({});
+                mp4_media_sink_->set_video_mp4_segment_cb({});
                 mp4_media_sink_->close();
                 if (origin_source) {
                     origin_source->remove_media_sink(mp4_media_sink_);

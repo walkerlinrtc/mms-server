@@ -19,10 +19,7 @@ bool Mp4MediaSink::init() {
 }
 
 void Mp4MediaSink::close() {
-    video_seg_cb_ = {};
-    audio_seg_cb_ = {};
-    audio_init_seg_cb_ = {};
-    audio_init_seg_cb_ = {};
+    MediaSink::close();
     return;
 }
 

@@ -63,6 +63,7 @@ bool Mp4MediaSource::init() {
 bool Mp4MediaSource::on_audio_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
     audio_init_seg_.store(mp4_seg);
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    CORE_DEBUG("Mp4MediaSource::on_audio_init_segment sinks_count:{}", sinks_.size());
     for (auto sink : sinks_) {
         auto s = std::static_pointer_cast<Mp4MediaSink>(sink);
         s->recv_audio_init_segment(mp4_seg);

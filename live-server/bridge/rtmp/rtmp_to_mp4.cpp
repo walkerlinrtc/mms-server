@@ -86,7 +86,9 @@ RtmpToMp4::RtmpToMp4(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
     type_ = "rtmp-to-mp4";
 }
 
-RtmpToMp4::~RtmpToMp4() {}
+RtmpToMp4::~RtmpToMp4() {
+    CORE_DEBUG("destroy RtmpToMp4");
+}
 
 bool RtmpToMp4::init() {
     auto self(shared_from_this());
@@ -620,7 +622,7 @@ bool RtmpToMp4::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
     auto used_buf = init_audio_mp4_seg_->get_used_buf();
     of.write(used_buf.data(), used_buf.size());
     of.close();
-    init_video_mp4_seg_->set_filename("audio-init.m4s");
+    init_audio_mp4_seg_->set_filename("audio-init.m4s");
     mp4_media_source_->on_audio_init_segment(init_audio_mp4_seg_);
     return true;
 }
@@ -876,6 +878,7 @@ void RtmpToMp4::close() {
         return;
     }
 
+    CORE_DEBUG("close RtmpToMp4");
     auto self(shared_from_this());
     boost::asio::co_spawn(
         worker_->get_io_context(),

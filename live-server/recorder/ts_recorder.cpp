@@ -146,6 +146,7 @@ void TsRecorder::gen_m3u8() {
         return;
     }
 
+    CORE_DEBUG("generate ts record m3u8");
     std::stringstream ss;
     ss << "#EXTM3U\r\n";
     ss << "#EXT-X-VERSION:3\r\n";

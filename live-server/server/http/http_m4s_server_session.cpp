@@ -34,7 +34,7 @@ HttpM4sServerSession::~HttpM4sServerSession() {
 void HttpM4sServerSession::service() {
     auto self(std::static_pointer_cast<HttpM4sServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-        // spdlog::debug("http request ts, id:{}", http_request_->get_path_param("id"));
+        spdlog::info("http request m4s, id:{}", http_request_->get_path_param("id"));
         auto host = http_request_->get_header("Host");
         auto pos = host.find_first_of(":");
         if (pos != std::string::npos) {

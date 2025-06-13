@@ -224,12 +224,14 @@ void MediaSource::close() {
         if (session) {
             session->close(); 
         }
-
+        CORE_DEBUG("close source:{}/{}/{}, type:{}", domain_name_, app_name_, stream_name_, get_media_type());
         {// 关闭所有的播放
             std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+            CORE_DEBUG("sinks count:{}", sinks_.size());
             for (auto sink : sinks_) {
-                boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink]()->boost::asio::awaitable<void> {
-                    sink->close();
+                auto sink_copy = sink;
+                boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink_copy]()->boost::asio::awaitable<void> {
+                    sink_copy->close();
                     co_return;
                 }, boost::asio::detached);
             }

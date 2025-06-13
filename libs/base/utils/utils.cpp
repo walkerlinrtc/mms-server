@@ -702,6 +702,26 @@ std::string Utils::get_utc_time() {
     return std::string(buffer);
 }
 
+std::string Utils::get_utc_time_with_millis() {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    auto now_time_t = system_clock::to_time_t(now);
+
+    std::tm tm_struct;
+    gmtime_r(&now_time_t, &tm_struct);
+
+    // 计算毫秒部分
+    auto duration_since_epoch = now.time_since_epoch();
+    auto millis = duration_cast<milliseconds>(duration_since_epoch).count() % 1000;
+    // 格式化时间（不含毫秒）
+    char time_buffer[64];
+    strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%dT%H:%M:%S", &tm_struct);
+    // 拼接毫秒和 'Z'
+    char final_buffer[80];
+    snprintf(final_buffer, sizeof(final_buffer), "%s.%03lldZ", time_buffer, static_cast<long long>(millis));
+    return std::string(final_buffer);
+}
+
 const unsigned long EPOCH = 2208988800UL; // delta between epoch time and ntp time
 const double NTP_SCALE_FRAC = 4294967295.0; // maximum value of the ntp fractional part
 int64_t Utils::get_ntp_time() {
