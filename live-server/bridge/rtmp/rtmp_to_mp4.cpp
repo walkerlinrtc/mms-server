@@ -247,7 +247,7 @@ bool RtmpToMp4::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     if (video_pkts_.size() >= 2) {
-        int64_t duration = video_pkts_[video_pkts_.size() - 1]->timestamp_ - video_pkts_[0]->timestamp_;
+        int64_t duration = video_pkt->timestamp_ - video_pkts_[0]->timestamp_;
         if (publish_app_->can_reap_mp4(is_key, duration, video_bytes_)) {
             reap_video_seg(video_pkt->timestamp_);
             video_reaped_ = true;
@@ -371,8 +371,7 @@ void RtmpToMp4::reap_video_seg(int64_t dts) {
             memcpy((char *)n.get_curr_buf().data(), payload.data() + header_consumed, frame_bytes);
         }
     }
-    video_data_mp4_seg_->update_timestamp(video_pkts_[0]->timestamp_,
-                                          video_pkts_[video_pkts_.size() - 1]->timestamp_);
+    video_data_mp4_seg_->update_timestamp(video_pkts_[0]->timestamp_, dts);
     video_data_mp4_seg_->set_seqno(video_seq_no_);
     video_data_mp4_seg_->set_filename("video-" + std::to_string(video_seq_no_++) + ".m4s");
     auto used_buf = video_data_mp4_seg_->get_used_buf();
@@ -735,7 +734,7 @@ bool RtmpToMp4::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     }
 
     if (audio_pkts_.size() >= 2) {
-        int64_t duration = audio_pkts_[audio_pkts_.size() - 1]->timestamp_ - audio_pkts_[0]->timestamp_;
+        int64_t duration = audio_pkt->timestamp_ - audio_pkts_[0]->timestamp_;
         if (publish_app_->can_reap_mp4(false, duration, audio_bytes_) || video_reaped_) {
             video_reaped_ = false;
             reap_audio_seg(audio_pkt->timestamp_);
@@ -770,7 +769,7 @@ void RtmpToMp4::reap_audio_seg(int64_t dts) {
     sidx->reference_id_ = 1;
     sidx->timescale_ = 1000;
     sidx->earliest_presentation_time_ = audio_pkts_[0]->timestamp_;
-    auto duration = audio_pkts_[audio_pkts_.size() - 1]->timestamp_ - sidx->earliest_presentation_time_;
+    auto duration = dts - sidx->earliest_presentation_time_;
 
     SegmentIndexEntry entry;
     memset(&entry, 0, sizeof(entry));
@@ -860,8 +859,7 @@ void RtmpToMp4::reap_audio_seg(int64_t dts) {
         }
     }
     audio_data_mp4_seg_->set_seqno(audio_seq_no_);
-    audio_data_mp4_seg_->update_timestamp(audio_pkts_[0]->timestamp_,
-                                          audio_pkts_[audio_pkts_.size() - 1]->timestamp_);
+    audio_data_mp4_seg_->update_timestamp(audio_pkts_[0]->timestamp_, dts);
     audio_data_mp4_seg_->set_filename("audio-" + std::to_string(audio_seq_no_++) + ".m4s");
     auto used_buf = audio_data_mp4_seg_->get_used_buf();
     of.write(used_buf.data(), used_buf.size());
