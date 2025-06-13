@@ -19,6 +19,7 @@
 using namespace mms;
 
 RtmpMediaSink::RtmpMediaSink(ThreadWorker *worker) : LazyMediaSink(worker) {
+    CORE_DEBUG("create RtmpMediaSink");
 }
 
 bool RtmpMediaSink::init() {
@@ -26,7 +27,7 @@ bool RtmpMediaSink::init() {
 }
 
 RtmpMediaSink::~RtmpMediaSink() {
-    CORE_DEBUG("destroy rtmp media sink");
+    CORE_DEBUG("destroy RtmpMediaSink");
 }
 
 bool RtmpMediaSink::on_audio_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
@@ -88,5 +89,5 @@ void RtmpMediaSink::on_rtmp_message(const std::function<boost::asio::awaitable<b
 
 void RtmpMediaSink::close() {
     rtmp_msg_cb_ = {};
-    MediaSink::close();
+    LazyMediaSink::close();
 }

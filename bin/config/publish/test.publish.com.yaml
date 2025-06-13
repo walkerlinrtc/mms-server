@@ -5,10 +5,10 @@ cert_file: test.publish.com.crt
 apps:
   - name: app #接入点名称
     record:
-      enabled: false
+      enabled: true
       types:
         - ts
-        - flv
+        # - flv
     # edge_push:
     #   - protocol: rtmp
     #     url: rtmp://test.publish.com:1936/${app}/${stream_name}_a?sign=${params[sign]}

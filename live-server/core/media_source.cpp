@@ -116,6 +116,8 @@ bool MediaSource::remove_media_sink(std::shared_ptr<MediaSink> media_sink) {
         if (*it == media_sink) {
             sinks_count_--;
             sinks_.erase(it);
+            media_sink->set_source(nullptr);
+            CORE_DEBUG("remove sink from:{}/{}/{} type:{}, count:{}", domain_name_, app_name_, stream_name_, media_type_, sinks_.size());
             last_sinks_or_bridges_leave_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
             break;
         }
@@ -225,8 +227,9 @@ void MediaSource::close() {
         {// 关闭所有的播放
             std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
             for (auto sink : sinks_) {
-                boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink]()->boost::asio::awaitable<void> {
-                    sink->close();
+                auto sink_copy = sink;
+                boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink_copy]()->boost::asio::awaitable<void> {
+                    sink_copy->close();
                     co_return;
                 }, boost::asio::detached);
             }

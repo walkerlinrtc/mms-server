@@ -114,7 +114,7 @@ protected:
     ThreadWorker *worker_ = nullptr;
 
     std::recursive_mutex sinks_mtx_;
-    std::unordered_set<std::shared_ptr<MediaSink>> sinks_;//需要唤醒，才会到数据源取数据的sink
+    std::set<std::shared_ptr<MediaSink>> sinks_;//需要唤醒，才会到数据源取数据的sink
     std::shared_mutex bridges_mtx_;
     std::unordered_map<std::string, std::shared_ptr<MediaBridge>> bridges_;//桥接类型的sink，意味着这只是一个桥，没人的时候要拆掉，而且桥可以转换格式之类的   
     int64_t last_sinks_or_bridges_leave_time_ = -1; 

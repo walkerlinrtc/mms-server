@@ -41,6 +41,7 @@ TsRecorder::TsRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
                       const std::string & app_name, const std::string & stream_name) : Recorder(worker, app, source, domain_name, app_name, stream_name) {
     sink_ = std::make_shared<TsMediaSink>(worker);
     ts_media_sink_ = std::static_pointer_cast<TsMediaSink>(sink_);
+    CORE_DEBUG("create TsRecorder");
 }
 
 TsRecorder::~TsRecorder() {
@@ -124,6 +125,7 @@ void TsRecorder::close() {
         return;
     }
 
+    CORE_DEBUG("close TsRecorder");
     auto self(shared_from_this());
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         auto s = source_.lock();
