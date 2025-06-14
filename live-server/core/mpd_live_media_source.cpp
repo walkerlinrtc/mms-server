@@ -103,6 +103,10 @@ void MpdLiveMediaSource::update_mpd() {
         return;
     }
 
+    if (!audio_init_seg_ || !video_init_seg_) {
+        return;
+    }
+
     if (audio_init_seg_ && audio_segments_.size() <= 1) {
         return;
     }
