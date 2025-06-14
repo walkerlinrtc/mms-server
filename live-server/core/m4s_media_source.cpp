@@ -10,9 +10,9 @@
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/use_awaitable.hpp>
-#include "protocol/mp4/mp4_segment.h"
-#include "mp4_media_source.hpp"
-#include "mp4_media_sink.hpp"
+#include "protocol/mp4/m4s_segment.h"
+#include "m4s_media_source.hpp"
+#include "m4s_media_sink.hpp"
 
 #include "codec/codec.hpp"
 
@@ -23,16 +23,16 @@
 #include "app/publish_app.h"
 
 using namespace mms;
-Mp4MediaSource::Mp4MediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app) : 
-                        MediaSource("mp4", session, app, worker) {
+M4sMediaSource::M4sMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app) : 
+                        MediaSource("m4s", session, app, worker) {
 
 }
 
-Mp4MediaSource::~Mp4MediaSource() {
+M4sMediaSource::~M4sMediaSource() {
 
 }
 
-std::shared_ptr<Json::Value> Mp4MediaSource::to_json() {
+std::shared_ptr<Json::Value> M4sMediaSource::to_json() {
     std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
     Json::Value & v = *d;
     v["type"] = media_type_;
@@ -56,50 +56,49 @@ std::shared_ptr<Json::Value> Mp4MediaSource::to_json() {
 }
 
 
-bool Mp4MediaSource::init() {
+bool M4sMediaSource::init() {
     return true;
 }
 
-bool Mp4MediaSource::on_audio_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
+bool M4sMediaSource::on_audio_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
     audio_init_seg_.store(mp4_seg);
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
-    CORE_DEBUG("Mp4MediaSource::on_audio_init_segment sinks_count:{}", sinks_.size());
     for (auto sink : sinks_) {
-        auto s = std::static_pointer_cast<Mp4MediaSink>(sink);
+        auto s = std::static_pointer_cast<M4sMediaSink>(sink);
         s->recv_audio_init_segment(mp4_seg);
     }
     return true;
 }
 
-bool Mp4MediaSource::on_video_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
+bool M4sMediaSource::on_video_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
     video_init_seg_.store(mp4_seg);
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
     for (auto sink : sinks_) {
-        auto s = std::static_pointer_cast<Mp4MediaSink>(sink);
+        auto s = std::static_pointer_cast<M4sMediaSink>(sink);
         s->recv_video_init_segment(mp4_seg);
     }
     return true;
 }
 
-bool Mp4MediaSource::on_audio_mp4_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
+bool M4sMediaSource::on_audio_mp4_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
     for (auto sink : sinks_) {
-        auto s = std::static_pointer_cast<Mp4MediaSink>(sink);
+        auto s = std::static_pointer_cast<M4sMediaSink>(sink);
         s->recv_audio_mp4_segment(mp4_seg);
     }
     return true;
 }
 
-bool Mp4MediaSource::on_video_mp4_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
+bool M4sMediaSource::on_video_mp4_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
     for (auto sink : sinks_) {
-        auto s = std::static_pointer_cast<Mp4MediaSink>(sink);
+        auto s = std::static_pointer_cast<M4sMediaSink>(sink);
         s->recv_video_mp4_segment(mp4_seg);
     }
     return true;
 }
 
-bool Mp4MediaSource::has_no_sinks_for_time(uint32_t milli_secs) {
+bool M4sMediaSource::has_no_sinks_for_time(uint32_t milli_secs) {
     std::lock_guard<std::recursive_mutex> lck1(sinks_mtx_);
     std::shared_lock<std::shared_mutex> lck2(bridges_mtx_);
     if (sinks_.size() > 0 || bridges_.size() > 0) {
@@ -113,7 +112,7 @@ bool Mp4MediaSource::has_no_sinks_for_time(uint32_t milli_secs) {
     return true;
 }
 
-std::shared_ptr<MediaBridge> Mp4MediaSource::get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name) {
+std::shared_ptr<MediaBridge> M4sMediaSource::get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name) {
     std::unique_lock<std::shared_mutex> lck(bridges_mtx_);
     std::shared_ptr<MediaBridge> bridge;
     auto it = bridges_.find(id);
@@ -142,8 +141,8 @@ std::shared_ptr<MediaBridge> Mp4MediaSource::get_or_create_bridge(const std::str
     return bridge;
 }
 
-bool Mp4MediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {
-    auto mp4_sink = std::static_pointer_cast<Mp4MediaSink>(media_sink);
+bool M4sMediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {
+    auto mp4_sink = std::static_pointer_cast<M4sMediaSink>(media_sink);
     auto audio_init_seg = audio_init_seg_.load();
     if (audio_init_seg) {
         mp4_sink->recv_audio_init_segment(audio_init_seg);

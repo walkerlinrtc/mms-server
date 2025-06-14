@@ -22,7 +22,7 @@
 #include "base/utils/utils.h"
 #include "config/app_config.h"
 #include "core/stream_session.hpp"
-#include "protocol/mp4/mp4_segment.h"
+#include "protocol/mp4/m4s_segment.h"
 #include "spdlog/spdlog.h"
 
 using namespace mms;
@@ -103,11 +103,11 @@ void MpdLiveMediaSource::update_mpd() {
         return;
     }
 
-    if (audio_segments_.size() < 3 || video_segments_.size() < 3) {
+    if (audio_init_seg_ && audio_segments_.size() <= 1) {
         return;
     }
 
-    if (!audio_init_seg_ || !video_init_seg_) {
+    if (video_init_seg_ && video_segments_.size() <= 1) {
         return;
     }
 
@@ -128,7 +128,7 @@ void MpdLiveMediaSource::update_mpd() {
        << std::endl
        << "    ns1:schemaLocation=\"urn:mpeg:dash:schema:mpd:2011 DASH-MPD.xsd\" " << std::endl
        << "    xmlns=\"urn:mpeg:dash:schema:mpd:2011\" "
-          "xmlns:ns1=\"http://www.w3.org/2001/XMLSchema-instance\" "
+          "    xmlns:ns1=\"http://www.w3.org/2001/XMLSchema-instance\" "
        << std::endl
        << "    type=\"dynamic\" " << std::endl
        << "    maxSegmentDuration=\"PT5.0S\"" << std::endl
@@ -138,9 +138,7 @@ void MpdLiveMediaSource::update_mpd() {
        << "    availabilityStartTime=\"" << availabilityStartTime << "\" " << std::endl
        << "    publishTime=\"" << Utils::get_utc_time_with_millis() << "\" " << std::endl
        << "    minBufferTime=\"PT" << 4 * (last_duration / 1000) << "S\" >" << std::endl;
-
     ss << "    <BaseURL>" << stream_name_ << "/" << "</BaseURL>" << std::endl;
-
     ss << "    <Period start=\"PT0S\">" << std::endl;
 
     if (audio_init_seg_ && !audio_segments_.empty()) {
@@ -187,7 +185,7 @@ void MpdLiveMediaSource::update_mpd() {
     ss << "    </Period>" << std::endl;
     ss << "</MPD>" << std::endl;
     mpd_ = ss.str();
-    spdlog::info("update mpd:{}", mpd_);
+    // spdlog::info("update mpd:{}", mpd_);
 }
 
 std::shared_ptr<Mp4Segment> MpdLiveMediaSource::get_mp4_segment(const std::string &name) {

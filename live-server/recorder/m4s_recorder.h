@@ -6,7 +6,7 @@
 
 namespace mms {
 class ThreadWorker;
-class Mp4MediaSink;
+class M4sMediaSink;
 class Mp4Segment;
 class PublishApp;
 
@@ -25,11 +25,11 @@ public:
     int64_t update_at_;
 };
 
-class DashRecorder : public Recorder {
+class M4sRecorder : public Recorder {
 public:
-    DashRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> source,
+    M4sRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> source,
                  const std::string &domain_name, const std::string &app_name, const std::string &stream_name);
-    virtual ~DashRecorder();
+    virtual ~M4sRecorder();
 
     bool init() override;
     void close() override;
@@ -42,7 +42,7 @@ public:
 
 private:
     void gen_mpd();
-    std::shared_ptr<Mp4MediaSink> mp4_media_sink_;
+    std::shared_ptr<M4sMediaSink> mp4_media_sink_;
     int64_t audio_seq_no_ = 1;
     int64_t video_seq_no_ = 1;
     int64_t record_audio_seg_count_ = 0;

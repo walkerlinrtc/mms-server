@@ -11,13 +11,13 @@
 
 #include "protocol/http/http_request.hpp"
 #include "protocol/http/http_response.hpp"
-#include "protocol/mp4/mp4_segment.h"
+#include "protocol/mp4/m4s_segment.h"
 
 #include "base/thread/thread_worker.hpp"
 #include "core/stream_session.hpp"
 
-#include "core/mp4_media_source.hpp"
-#include "core/mp4_media_sink.hpp"
+#include "core/m4s_media_source.hpp"
+#include "core/m4s_media_sink.hpp"
 
 #include "bridge/media_bridge.hpp"
 #include "core/source_manager.hpp"
@@ -69,7 +69,7 @@ void HttpLongMp4ServerSession::service() {
         auto id = http_request_->get_path_param("id");
         const std::string mp4_name = stream_name_ + "/" + id + ".m4s";
         auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
-        std::shared_ptr<Mp4MediaSource> mp4_source;
+        std::shared_ptr<M4sMediaSource> mp4_source;
         if (!source) {//todo : reply 404
             CORE_DEBUG("could not find source for domain:{}, app:{}", domain_name_, app_name_);
             http_response_->add_header("Connection", "close");
@@ -81,7 +81,7 @@ void HttpLongMp4ServerSession::service() {
         }
 
         if (source->get_media_type() != "mp4") {
-            auto mp4_bridge = source->get_or_create_bridge(source->get_media_type() + "-mp4", publish_app, stream_name_);
+            auto mp4_bridge = source->get_or_create_bridge(source->get_media_type() + "-m4s", publish_app, stream_name_);
             if (!mp4_bridge) {
                 http_response_->add_header("Connection", "close");
                 http_response_->add_header("Content-Length", "0");
@@ -91,10 +91,10 @@ void HttpLongMp4ServerSession::service() {
                 co_return;
             }
 
-            mp4_source = std::static_pointer_cast<Mp4MediaSource>(mp4_bridge->get_media_source());
+            mp4_source = std::static_pointer_cast<M4sMediaSource>(mp4_bridge->get_media_source());
         } 
 
-        mp4_media_sink_ = std::make_shared<Mp4MediaSink>(worker_);
+        mp4_media_sink_ = std::make_shared<M4sMediaSink>(worker_);
 
         // 创建发送协程
         boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {

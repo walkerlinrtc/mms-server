@@ -9,8 +9,8 @@ class MdatBox : public Box {
 public:
     MdatBox();
     virtual ~MdatBox();
-    // int64_t size();
-    // int64_t encode(NetBuffer & buf);
+    int64_t size();
+    int64_t encode(NetBuffer & buf);
 public:
     std::vector<std::string_view> datas_;
 };

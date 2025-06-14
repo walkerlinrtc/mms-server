@@ -8,7 +8,7 @@
 namespace mms {
 class HttpRequest;
 class HttpResponse;
-class Mp4MediaSink;
+class M4sMediaSink;
 class ThreadWorker;
 class Mp4Segment;
 
@@ -21,7 +21,7 @@ public:
 private:
     boost::asio::awaitable<bool> send_fmp4_seg(std::shared_ptr<Mp4Segment> seg);
     boost::asio::experimental::channel<void(boost::system::error_code, std::function<boost::asio::awaitable<bool>()>)> send_funcs_channel_;
-    std::shared_ptr<Mp4MediaSink> mp4_media_sink_;
+    std::shared_ptr<M4sMediaSink> mp4_media_sink_;
     std::shared_ptr<HttpRequest> http_request_;
     std::shared_ptr<HttpResponse> http_response_;
     WaitGroup wg_;

@@ -8,6 +8,8 @@
 #include "http_ts_server_session.hpp"
 #include "http_long_ts_server_session.hpp"
 #include "http_flv_server_session.hpp"
+#include "http_mpd_server_session.hpp"
+#include "http_m4s_server_session.hpp"
 
 #include "server/webrtc/webrtc_server.hpp"
 #include "config/config.h"
@@ -72,6 +74,26 @@ bool HttpsLiveServer::register_route() {
         (void)session;
         auto http_ts_session = std::make_shared<HttpTsServerSession>(req, resp);
         http_ts_session->service();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_mpd_session = std::make_shared<HttpMpdServerSession>(req, resp);
+        http_mpd_session->service();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_get("/:app/:stream/:id.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_m4s_session = std::make_shared<HttpM4sServerSession>(req, resp);
+        http_m4s_session->service();
         co_return;
     });
     if (!ret) {

@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "mp4_segment.h"
+#include "m4s_segment.h"
 using namespace mms;
 
 Mp4Segment::Mp4Segment() {

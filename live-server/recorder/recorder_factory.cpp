@@ -4,7 +4,7 @@
 
 #include "ts_recorder.h"
 #include "flv_recorder.h"
-#include "dash_recorder.h"
+#include "m4s_recorder.h"
 
 using namespace mms;
 std::shared_ptr<Recorder> RecorderFactory::create_recorder(ThreadWorker *worker, 
@@ -19,8 +19,8 @@ std::shared_ptr<Recorder> RecorderFactory::create_recorder(ThreadWorker *worker,
         return std::make_shared<TsRecorder>(worker, app, origin_source, domain_name, app_name, stream_name);
     } else if (id == "flv") {
         return std::make_shared<FlvRecorder>(worker, app, origin_source, domain_name, app_name, stream_name);
-    } else if (id == "mp4") {
-        return std::make_shared<DashRecorder>(worker, app, origin_source, domain_name, app_name, stream_name);
+    } else if (id == "m4s") {
+        return std::make_shared<M4sRecorder>(worker, app, origin_source, domain_name, app_name, stream_name);
     }
     return nullptr;
 }

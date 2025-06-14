@@ -18,11 +18,11 @@
 #include "rtmp_define.hpp"
 #include "../media_bridge.hpp"
 #include "core/rtmp_media_sink.hpp"
-#include "core/mp4_media_source.hpp"
+#include "core/m4s_media_source.hpp"
 #include "protocol/ts/ts_pat_pmt.hpp"
 #include "base/wait_group.h"
-#include "mp4/mp4_builder.h"
-#include "mp4/mp4_segment.h"
+// #include "mp4/mp4_builder.h"
+#include "mp4/m4s_segment.h"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -30,12 +30,12 @@ class Codec;
 class PublishApp;
 class Mp4Segment;
 class MoovBox;
-class Mp4MediaSource;
+class M4sMediaSource;
 
-class RtmpToMp4 : public MediaBridge {
+class RtmpToM4s : public MediaBridge {
 public:
-    RtmpToMp4(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
-    virtual ~RtmpToMp4();
+    RtmpToM4s(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
+    virtual ~RtmpToM4s();
 public:
     bool init() override;
     bool on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt);
@@ -56,7 +56,7 @@ private:
     int32_t get_nalus(uint8_t *data, int32_t len, std::list<std::string_view> & nalus);
 
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
-    std::shared_ptr<Mp4MediaSource> mp4_media_source_;
+    std::shared_ptr<M4sMediaSource> mp4_media_source_;
     
     std::shared_ptr<RtmpMetaDataMessage> metadata_;
     std::shared_ptr<RtmpMessage> video_header_;

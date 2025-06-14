@@ -11,7 +11,7 @@
 #include "base/thread/thread_worker.hpp"
 #include "bridge/media_bridge.hpp"
 #include "config/app_config.h"
-#include "core/mp4_media_source.hpp"
+#include "core/m4s_media_source.hpp"
 #include "core/mpd_live_media_source.hpp"
 #include "core/source_manager.hpp"
 #include "protocol/http/http_request.hpp"
@@ -90,7 +90,7 @@ void HttpMpdServerSession::service() {
                 co_return;
             } else {
                 if (source->get_media_type() != "mpd") {
-                    auto mp4_bridge = source->get_or_create_bridge(source->get_media_type() + "-mp4",
+                    auto mp4_bridge = source->get_or_create_bridge(source->get_media_type() + "-m4s",
                                                                    publish_app, stream_name_);
                     if (!mp4_bridge) {
                         http_response_->add_header("Connection", "close");
@@ -101,13 +101,13 @@ void HttpMpdServerSession::service() {
                         co_return;
                     }
 
-                    auto mp4_source =
-                        std::static_pointer_cast<Mp4MediaSource>(mp4_bridge->get_media_source());
-                    if (!mp4_source) {
+                    auto m4s_source =
+                        std::static_pointer_cast<M4sMediaSource>(mp4_bridge->get_media_source());
+                    if (!m4s_source) {
                         close();
                         co_return;
                     }
-                    auto mpd_bridge = mp4_source->get_or_create_bridge(mp4_source->get_media_type() + "-mpd",
+                    auto mpd_bridge = m4s_source->get_or_create_bridge(m4s_source->get_media_type() + "-mpd",
                                                                        publish_app, stream_name_);
                     if (!mpd_bridge) {
                         http_response_->add_header("Connection", "close");

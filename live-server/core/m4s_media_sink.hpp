@@ -10,10 +10,10 @@ namespace mms {
 class Mp4Segment;
 class ThreadWorker;
 
-class Mp4MediaSink : public MediaSink {
+class M4sMediaSink : public MediaSink {
 public:
-    Mp4MediaSink(ThreadWorker *worker);
-    virtual ~Mp4MediaSink();
+    M4sMediaSink(ThreadWorker *worker);
+    virtual ~M4sMediaSink();
     bool init();
     bool recv_video_init_segment(std::shared_ptr<Mp4Segment> mp4_seg);
     bool recv_audio_init_segment(std::shared_ptr<Mp4Segment> mp4_seg);

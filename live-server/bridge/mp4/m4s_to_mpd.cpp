@@ -7,7 +7,7 @@
  * @FilePath: \mms\mms\server\transcode\ts_to_hls.cpp
  * Copyright (c) 2023 by jbl19860422@gitee.com, All Rights Reserved.
  */
-#include "mp4_to_mpd.hpp"
+#include "m4s_to_mpd.hpp"
 
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
@@ -18,28 +18,28 @@
 #include "app/publish_app.h"
 #include "base/thread/thread_worker.hpp"
 #include "config/app_config.h"
-#include "core/mp4_media_sink.hpp"
+#include "core/m4s_media_sink.hpp"
 #include "core/mpd_live_media_source.hpp"
 #include "log/log.h"
 
 using namespace mms;
 
-Mp4ToMpd::Mp4ToMpd(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
+M4sToMpd::M4sToMpd(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
                    std::weak_ptr<MediaSource> origin_source, const std::string &domain_name,
                    const std::string &app_name, const std::string &stream_name)
     : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name),
       check_closable_timer_(worker->get_io_context()),
       wg_(worker) {
-    sink_ = std::make_shared<Mp4MediaSink>(worker);
-    mp4_media_sink_ = std::static_pointer_cast<Mp4MediaSink>(sink_);
+    sink_ = std::make_shared<M4sMediaSink>(worker);
+    mp4_media_sink_ = std::static_pointer_cast<M4sMediaSink>(sink_);
     source_ = std::make_shared<MpdLiveMediaSource>(
         worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
     mpd_media_source_ = std::static_pointer_cast<MpdLiveMediaSource>(source_);
 }
 
-Mp4ToMpd::~Mp4ToMpd() {}
+M4sToMpd::~M4sToMpd() {}
 
-bool Mp4ToMpd::init() {
+bool M4sToMpd::init() {
     auto self(shared_from_this());
     wg_.add(1);
     boost::asio::co_spawn(
@@ -58,7 +58,7 @@ bool Mp4ToMpd::init() {
 
                 if (mpd_media_source_->has_no_sinks_for_time(
                         app_conf->bridge_config().no_players_timeout_ms())) {  // 已经30秒没人播放了
-                    CORE_DEBUG("close Mp4ToMpd because no players for {}s",
+                    CORE_DEBUG("close M4sToMpd because no players for {}s",
                                app_conf->bridge_config().no_players_timeout_ms() / 1000);
                     break;
                 }
@@ -98,7 +98,7 @@ bool Mp4ToMpd::init() {
     return true;
 }
 
-void Mp4ToMpd::close() {
+void M4sToMpd::close() {
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
     }

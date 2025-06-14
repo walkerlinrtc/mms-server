@@ -1,4 +1,4 @@
-#include "dash_recorder.h"
+#include "m4s_recorder.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/awaitable.hpp>
@@ -12,10 +12,10 @@
 #include "base/thread/thread_pool.hpp"
 #include "config/config.h"
 #include "core/media_source.hpp"
-#include "core/mp4_media_sink.hpp"
+#include "core/m4s_media_sink.hpp"
 #include "json/json.h"
 #include "log/log.h"
-#include "protocol/mp4/mp4_segment.h"
+#include "protocol/mp4/m4s_segment.h"
 
 using namespace mms;
 
@@ -32,18 +32,18 @@ bool M4sRecordSeg::load(const Json::Value &v) {
     return true;
 }
 
-DashRecorder::DashRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
+M4sRecorder::M4sRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
                            std::weak_ptr<MediaSource> source, const std::string &domain_name,
                            const std::string &app_name, const std::string &stream_name)
     : Recorder(worker, app, source, domain_name, app_name, stream_name) {
-    sink_ = std::make_shared<Mp4MediaSink>(worker);
-    mp4_media_sink_ = std::static_pointer_cast<Mp4MediaSink>(sink_);
-    CORE_DEBUG("create DashRecorder");
+    sink_ = std::make_shared<M4sMediaSink>(worker);
+    mp4_media_sink_ = std::static_pointer_cast<M4sMediaSink>(sink_);
+    CORE_DEBUG("create M4sRecorder");
 }
 
-DashRecorder::~DashRecorder() { CORE_DEBUG("destroy DashRecorder"); }
+M4sRecorder::~M4sRecorder() { CORE_DEBUG("destroy M4sRecorder"); }
 
-bool DashRecorder::init() {
+bool M4sRecorder::init() {
     auto s = source_.lock();
     if (!s) {
         return false;
@@ -51,7 +51,7 @@ bool DashRecorder::init() {
 
     auto self = shared_from_this();
     mp4_media_sink_->on_close([this, self]() { 
-        CORE_DEBUG("DashRecorder::mp4_media_sink::on_close");
+        CORE_DEBUG("M4sRecorder::mp4_media_sink::on_close");
         close(); 
     });
 
@@ -86,7 +86,7 @@ bool DashRecorder::init() {
     return true;
 }
 
-bool DashRecorder::on_audio_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
+bool M4sRecorder::on_audio_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     audio_init_seg_ = m4s_seg;
     std::filesystem::create_directories(file_dir_);
     std::ofstream m4s_file(file_dir_ + "/" + m4s_seg->get_filename(),
@@ -101,7 +101,7 @@ bool DashRecorder::on_audio_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     return true;
 }
 
-bool DashRecorder::on_video_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
+bool M4sRecorder::on_video_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     video_init_seg_ = m4s_seg;
     std::filesystem::create_directories(file_dir_);
     std::ofstream m4s_file(file_dir_ + "/" + m4s_seg->get_filename(),
@@ -116,7 +116,7 @@ bool DashRecorder::on_video_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     return true;
 }
 
-bool DashRecorder::on_audio_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
+bool M4sRecorder::on_audio_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     std::filesystem::create_directories(file_dir_);
     std::ofstream m4s_file(file_dir_ + "/" + m4s_seg->get_filename(),
                            std::ios::out | std::ios::binary | std::ios::trunc);
@@ -141,7 +141,7 @@ bool DashRecorder::on_audio_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     return true;
 }
 
-bool DashRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
+bool M4sRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     std::filesystem::create_directories(file_dir_);
     std::ofstream m4s_file(file_dir_ + "/" + m4s_seg->get_filename(),
                            std::ios::out | std::ios::binary | std::ios::trunc);
@@ -166,8 +166,8 @@ bool DashRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     return true;
 }
 
-void DashRecorder::close() {
-    CORE_DEBUG("close DashRecorder");
+void M4sRecorder::close() {
+    CORE_DEBUG("close M4sRecorder");
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
     }
@@ -229,7 +229,7 @@ std::string format_max_segment_duration(int64_t duration_ms) {
     return ss.str();
 }
 
-void DashRecorder::gen_mpd() {
+void M4sRecorder::gen_mpd() {
     if (audio_m4s_segs_.empty() && video_m4s_segs_.empty()) {
         return;
     }

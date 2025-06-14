@@ -7,7 +7,8 @@ apps:
     record:
       enabled: true
       types:
-        - ts
+        # - ts
+        - m4s
         # - flv
     # edge_push:
     #   - protocol: rtmp

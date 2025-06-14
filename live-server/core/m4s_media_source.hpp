@@ -28,10 +28,10 @@ class StreamSession;
 class Mp4Segment;
 class PublishApp;
 
-class Mp4MediaSource : public MediaSource {
+class M4sMediaSource : public MediaSource {
 public:
-    Mp4MediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
-    virtual ~Mp4MediaSource();
+    M4sMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
+    virtual ~M4sMediaSource();
 
     std::shared_ptr<Json::Value> to_json() override;
     bool init();
