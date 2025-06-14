@@ -18,10 +18,10 @@ MoofBox::~MoofBox() {
 
 int64_t MoofBox::size() {
     int64_t total_bytes = Box::size();
-    if (mdhd_) {
-        int64_t s = mdhd_->size();
-        total_bytes += s;
-    }
+    // if (mdhd_) {
+    //     int64_t s = mdhd_->size();
+    //     total_bytes += s;
+    // }
 
     if (mfhd_) {
         int64_t s = mfhd_->size();
@@ -40,9 +40,9 @@ int64_t MoofBox::encode(NetBuffer & buf) {
     auto start = buf.pos();
     Box::encode(buf);
 
-    if (mdhd_) {
-        mdhd_->encode(buf);
-    }
+    // if (mdhd_) {
+    //     mdhd_->encode(buf);
+    // }
 
     if (mfhd_) {
         mfhd_->encode(buf);
@@ -65,9 +65,10 @@ int64_t MoofBox::decode(NetBuffer & buf) {
             return 0;
         }
 
-        if (child->type() == BOX_TYPE_MDHD) {
-            mdhd_ = std::static_pointer_cast<MdhdBox>(child);
-        } else if (child->type() == BOX_TYPE_MFHD) {
+        // if (child->type() == BOX_TYPE_MDHD) {
+        //     mdhd_ = std::static_pointer_cast<MdhdBox>(child);
+        // } else 
+        if (child->type() == BOX_TYPE_MFHD) {
             mfhd_ = std::static_pointer_cast<MfhdBox>(child);
         } else if (child->type() == BOX_TYPE_TRAF) {
             traf_ = std::static_pointer_cast<TrafBox>(child);

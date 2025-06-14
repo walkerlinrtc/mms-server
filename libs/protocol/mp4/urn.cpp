@@ -23,7 +23,9 @@ int64_t UrnBox::encode(NetBuffer & buf) {
     auto start = buf.pos();
     FullBox::encode(buf);
     buf.write_string(name_);
+    buf.write_1bytes(0);
     buf.write_string(location_);
+    buf.write_1bytes(0);
     return buf.pos() - start;
 }
 

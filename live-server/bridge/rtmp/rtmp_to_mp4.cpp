@@ -273,6 +273,7 @@ void RtmpToMp4::reap_video_seg(int64_t dts) {
     StypBox styp;
     styp.major_brand_ = Mp4BoxBrandMSDH;
     styp.minor_version_ = 0;
+    styp.compatible_brands_.push_back(Mp4BoxBrandDASH);
     styp.compatible_brands_.push_back(Mp4BoxBrandMSDH);
     styp.compatible_brands_.push_back(Mp4BoxBrandMSIX);
     size_t s = styp.size();
@@ -760,6 +761,7 @@ void RtmpToMp4::reap_audio_seg(int64_t dts) {
     StypBox styp;
     styp.major_brand_ = Mp4BoxBrandMSDH;
     styp.minor_version_ = 0;
+    styp.compatible_brands_.push_back(Mp4BoxBrandDASH);
     styp.compatible_brands_.push_back(Mp4BoxBrandMSDH);
     styp.compatible_brands_.push_back(Mp4BoxBrandMSIX);
     size_t s = styp.size();

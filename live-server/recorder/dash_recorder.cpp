@@ -87,7 +87,6 @@ bool DashRecorder::init() {
 }
 
 bool DashRecorder::on_audio_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
-    CORE_DEBUG("DashRecorder::on_audio_init_segment file_name:{}", m4s_seg->get_filename());
     audio_init_seg_ = m4s_seg;
     std::filesystem::create_directories(file_dir_);
     std::ofstream m4s_file(file_dir_ + "/" + m4s_seg->get_filename(),
@@ -275,9 +274,6 @@ void DashRecorder::gen_mpd() {
        << "maxSegmentDuration=\"" << maxSegmentDuration << "\"" << std::endl
        << "minBufferTime=\"PT4.0S\"" << std::endl
        << ">" << std::endl;
-
-    ss << "    <BaseURL>" << stream_name_ << "/dash/" << record_start_time_ << "/" << "</BaseURL>"
-       << std::endl;
     ss << "    <Period start=\"PT0S\">" << std::endl;
 
     // -------- AUDIO ----------

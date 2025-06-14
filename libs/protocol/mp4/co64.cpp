@@ -19,9 +19,9 @@ int64_t Co64Box::encode(NetBuffer & buf) {
     update_size();
     auto start = buf.pos();
     FullBox::encode(buf);
-    uint32_t entry_count = buf.read_4bytes();
-    for (size_t i = 0; i < entry_count; i++) {
-        entries_[i] = buf.read_8bytes();
+    buf.write_4bytes(entries_.size());
+    for (size_t i = 0; i < entries_.size(); i++) {
+        buf.write_8bytes(entries_[i]);
     }
     return buf.pos() - start;
 }

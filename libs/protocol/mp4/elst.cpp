@@ -14,14 +14,14 @@ int64_t ElstEntry::size(uint8_t version) {
 int64_t ElstEntry::encode(NetBuffer & buf, uint8_t version) {
     auto start = buf.pos();
     if (version == 1) {
-        segment_duration_ = buf.read_8bytes();
-        media_time_ = buf.read_8bytes();
+        buf.write_8bytes(segment_duration_);
+        buf.write_8bytes(media_time_);
     } else {
-        segment_duration_ = buf.read_4bytes();
-        media_time_ = buf.read_4bytes();
+        buf.write_4bytes(segment_duration_);
+        buf.write_4bytes(media_time_);
     }
-    media_rate_integer_ = buf.read_2bytes();
-    media_rate_fraction_ = buf.read_2bytes();
+    buf.write_2bytes(media_rate_integer_);
+    buf.write_2bytes(media_rate_fraction_);
     return buf.pos() - start;
 }
 
@@ -56,6 +56,7 @@ int64_t ElstBox::size() {
 }
 
 int64_t ElstBox::encode(NetBuffer & buf) {
+    update_size();
     auto start = buf.pos();
     FullBox::encode(buf);
 
