@@ -52,8 +52,8 @@ class RtmpServerSession : public StreamSession {
 public:
     RtmpServerSession(std::shared_ptr<SocketInterface> conn);
     virtual ~RtmpServerSession();
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
     Json::Value to_json() override;
 protected:
     // 同步方式发送rtmp消息，发送完成后会等待

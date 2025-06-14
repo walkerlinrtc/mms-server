@@ -12,8 +12,8 @@ class WebSocketServerSession : public Session {
 public:
     WebSocketServerSession(std::shared_ptr<SocketInterface> sock);
     virtual ~WebSocketServerSession();
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 private:
     boost::asio::awaitable<int32_t> process_recv_buffer();
 private:

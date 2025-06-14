@@ -26,7 +26,7 @@ std::shared_ptr<SocketInterface> HttpServerSession::get_sock() {
     return sock_;
 }
 
-void HttpServerSession::service() {
+void HttpServerSession::start() {
     auto self(this->shared_from_this());
     // todo:consider to wrap the conn as a bufio, and move parser to HttpRequest class.
     wg_.add(1);
@@ -37,11 +37,11 @@ void HttpServerSession::service() {
     }, [this, self](std::exception_ptr exp) {
         (void)exp;
         wg_.done();
-        close();
+        stop();
     });
 }
 
-void HttpServerSession::close() {
+void HttpServerSession::stop() {
     if (closed_.test_and_set()) {
         return;
     }
@@ -66,7 +66,7 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
         do {
             std::tie(cont, consumed) = co_await parse_recv_buf((const char*)buf_.get(), buf_size_);
             if (consumed < 0) {
-                close();
+                stop();
                 co_return;
             }
 
@@ -90,7 +90,7 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
         buf_size_ += recv_size;   
         std::tie(cont, consumed) = co_await parse_recv_buf((const char*)buf_.get(), buf_size_);
         if (consumed < 0) {
-            close();
+            stop();
             co_return;
         }
 

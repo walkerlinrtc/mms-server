@@ -87,7 +87,7 @@ void WebRtcServerSession::start_alive_checker() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 }
 
@@ -170,7 +170,7 @@ void WebRtcServerSession::start_process_recv_udp_msg() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 }
 
@@ -212,7 +212,7 @@ void WebRtcServerSession::start_pli_sender() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 }
 
@@ -263,7 +263,7 @@ void WebRtcServerSession::start_rtp_sender() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
@@ -314,7 +314,7 @@ void WebRtcServerSession::start_rtcp_fb_sender() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 }
 
@@ -363,7 +363,7 @@ void WebRtcServerSession::start_rtcp_sender() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 }
 
@@ -396,7 +396,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whip_req(std::shared_p
         CORE_ERROR("could not find config for domain:{}, app:{}", domain_name_, app_name_);
         resp->add_header("Connection", "Close");
         co_await resp->write_header(403, "Forbidden");
-        close();
+        stop();
         co_return false;
     }
     auto sdp = req->get_body();
@@ -404,7 +404,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whip_req(std::shared_p
     if (!play_app) {
         resp->add_header("Connection", "Close");
         co_await resp->write_header(403, "Forbidden");
-        close();
+        stop();
         co_return false;
     }
 
@@ -412,7 +412,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whip_req(std::shared_p
     if (!publish_app) {
         resp->add_header("Connection", "Close");
         co_await resp->write_header(403, "Forbidden");
-        close();
+        stop();
         co_return false;
     }
 
@@ -471,7 +471,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         CORE_ERROR("could not find config for domain:{}, app:{}", domain_name_, app_name_);
         resp->add_header("Connection", "Close");
         co_await resp->write_header(403, "Forbidden");
-        close();
+        stop();
         co_return false;
     }
 
@@ -565,7 +565,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         spdlog::info("could not get play sdp");
         resp->add_header("Connection", "Close");
         co_await resp->write_header(404, "Not Found");
-        close();
+        stop();
         co_return false;
     }
 
@@ -942,12 +942,12 @@ bool WebRtcServerSession::find_key_frame(uint32_t timestamp, std::shared_ptr<Rtp
     return is_key;
 }
 
-void WebRtcServerSession::service() {
+void WebRtcServerSession::start() {
     start_alive_checker();
     return;
 }
 
-void WebRtcServerSession::close() {
+void WebRtcServerSession::stop() {
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
     }

@@ -31,7 +31,7 @@ HttpM4sServerSession::~HttpM4sServerSession() {
 
 }
 
-void HttpM4sServerSession::service() {
+void HttpM4sServerSession::start() {
     auto self(std::static_pointer_cast<HttpM4sServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         spdlog::info("http request m4s, id:{}", http_request_->get_path_param("id"));
@@ -48,7 +48,7 @@ void HttpM4sServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -60,7 +60,7 @@ void HttpM4sServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -75,7 +75,7 @@ void HttpM4sServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(404, "Not Found");
-            close();
+            stop();
             co_return;
         } else {
             if (source->get_media_type() != "mpd") {
@@ -85,7 +85,7 @@ void HttpM4sServerSession::service() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    close();
+                    stop();
                     co_return;
                 }
 
@@ -96,7 +96,7 @@ void HttpM4sServerSession::service() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    close();
+                    stop();
                     co_return;
                 }
                 mpd_source = std::static_pointer_cast<MpdLiveMediaSource>(mpd_bridge->get_media_source());
@@ -112,7 +112,7 @@ void HttpM4sServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
                 co_return;
             }
             
@@ -127,7 +127,7 @@ void HttpM4sServerSession::service() {
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             http_response_->add_header("Content-Length", std::to_string(mp4_data.size()));
             if (!co_await http_response_->write_header(200, "Ok")) {
-                close();
+                stop();
                 co_return;
             }
 
@@ -138,7 +138,7 @@ void HttpM4sServerSession::service() {
     }, boost::asio::detached);
 }
 
-void HttpM4sServerSession::close() {
+void HttpM4sServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;

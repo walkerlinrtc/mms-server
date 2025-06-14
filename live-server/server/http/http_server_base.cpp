@@ -47,14 +47,14 @@ void HttpServerBase::stop() {
 void HttpServerBase::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<HttpServerSession> s = std::make_shared<HttpServerSession>(this, tcp_socket);
     tcp_socket->set_session(s);
-    s->service();
+    s->start();
 }
 
 void HttpServerBase::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<HttpServerSession> s = std::static_pointer_cast<HttpServerSession>(tcp_socket->get_session());
     tcp_socket->clear_session();
     if (s) {
-        s->close();
+        s->stop();
     }
 }
 

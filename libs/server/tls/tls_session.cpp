@@ -21,7 +21,7 @@ std::shared_ptr<TcpSocket> TlsSession::get_tcp_socket() {
     return tcp_socket_;
 }
 
-void TlsSession::service() {
+void TlsSession::start() {
     auto self(shared_from_this());
     boost::asio::co_spawn(get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         tls_socket_ = std::make_shared<TlsSocket>(tls_socket_handler_, std::static_pointer_cast<TlsSession>(self));
@@ -29,7 +29,7 @@ void TlsSession::service() {
             tls_socket_->set_cert_handler(server_name_handler_);
             bool ret = co_await tls_socket_->do_handshake();
             if (!ret) {
-                close();
+                stop();
                 co_return;
             }
 
@@ -38,7 +38,7 @@ void TlsSession::service() {
     }, boost::asio::detached);
 }
 
-void TlsSession::close() {
+void TlsSession::stop() {
     if (closed_.test_and_set()) {
         return;
     }

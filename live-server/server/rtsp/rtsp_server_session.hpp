@@ -35,8 +35,8 @@ public:
     RtspServerSession(std::shared_ptr<SocketInterface> sock);
     virtual ~RtspServerSession();
     // session interface
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 
     boost::asio::awaitable<bool> on_rtsp_request(std::shared_ptr<RtspRequest> req);
     boost::asio::awaitable<bool> on_rtsp_response(std::shared_ptr<RtspResponse> req);

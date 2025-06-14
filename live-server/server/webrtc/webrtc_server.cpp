@@ -177,7 +177,7 @@ boost::asio::awaitable<void> WebRtcServer::on_whip(std::shared_ptr<HttpRequest> 
     if (!co_await webrtc_session->process_whip_req(req, resp)) {
         co_return;
     }
-    webrtc_session->service();
+    webrtc_session->start();
     co_return;
 }
 
@@ -198,7 +198,7 @@ boost::asio::awaitable<void> WebRtcServer::on_whep(std::shared_ptr<HttpRequest> 
     if (!co_await webrtc_session->process_whep_req(req, resp)) {
         co_return;
     }
-    webrtc_session->service();
+    webrtc_session->start();
     co_return;
 }
 

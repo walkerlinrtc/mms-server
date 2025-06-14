@@ -48,8 +48,8 @@ public:
         close_handler_ = close_handler;
     }
 
-    void service();
-    void close() override;
+    void start() override;
+    void stop() override;
     
     ThreadWorker *get_worker() {
         return worker_;

@@ -37,8 +37,8 @@ public:
     virtual ~HttpFlvClientSession();
     void set_url(const std::string & url);
     std::shared_ptr<FlvMediaSource> get_flv_media_source();
-    void service();
-    void close();
+    void start();
+    void stop();
     void set_pull_config(std::shared_ptr<OriginPullConfig> pull_config);
 private:
     boost::asio::awaitable<void> cycle_pull_flv_tag(std::shared_ptr<HttpResponse> resp);

@@ -48,7 +48,7 @@ void HttpFlvClientSession::set_pull_config(std::shared_ptr<OriginPullConfig> pul
 
 std::shared_ptr<FlvMediaSource> HttpFlvClientSession::get_flv_media_source() { return flv_media_source_; }
 
-void HttpFlvClientSession::service() {
+void HttpFlvClientSession::start() {
     auto self(std::static_pointer_cast<HttpFlvClientSession>(shared_from_this()));
     auto publish_app = std::static_pointer_cast<PublishApp>(app_);
     auto media_source =
@@ -103,7 +103,7 @@ void HttpFlvClientSession::service() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 
     wg_.add(1);
@@ -143,7 +143,7 @@ void HttpFlvClientSession::service() {
             } else if (protocol == "https") {
                 http_client_ = std::make_shared<HttpClient>(get_worker(), true);
             } else {
-                close();
+                stop();
                 co_return;
             }
 
@@ -220,7 +220,7 @@ void HttpFlvClientSession::service() {
         [this, self](std::exception_ptr exp) {
             ((void)exp);
             wg_.done();
-            close();
+            stop();
         });
     return;
 }
@@ -254,7 +254,7 @@ boost::asio::awaitable<void> HttpFlvClientSession::cycle_pull_flv_tag(std::share
         });
     co_return;
 }
-void HttpFlvClientSession::close() {
+void HttpFlvClientSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;

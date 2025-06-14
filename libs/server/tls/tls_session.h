@@ -15,8 +15,8 @@ public:
     virtual ~TlsSession();
     std::shared_ptr<TcpSocket> get_tcp_socket();
 
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 protected:
     SocketInterfaceHandler *tls_socket_handler_ = nullptr;
     TlsServerNameHandler * server_name_handler_ = nullptr;

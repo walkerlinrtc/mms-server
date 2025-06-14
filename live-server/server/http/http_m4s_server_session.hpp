@@ -13,8 +13,8 @@ class HttpM4sServerSession : public StreamSession {
 public:
     HttpM4sServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpM4sServerSession();
-    void service();
-    void close();
+    void start();
+    void stop();
 private:
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
     std::shared_ptr<HttpRequest> http_request_;

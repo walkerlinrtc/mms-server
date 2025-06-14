@@ -17,8 +17,8 @@ class HttpM3u8ServerSession : public StreamSession {
 public:
     HttpM3u8ServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpM3u8ServerSession();
-    void service();
-    void close();
+    void start();
+    void stop();
 private:
     boost::asio::awaitable<bool> process_source_status(SourceStatus status);
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;

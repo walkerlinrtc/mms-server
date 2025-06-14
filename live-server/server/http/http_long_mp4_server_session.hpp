@@ -16,8 +16,8 @@ class HttpLongMp4ServerSession : public StreamSession {
 public:
     HttpLongMp4ServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpLongMp4ServerSession();
-    void service();
-    void close();
+    void start();
+    void stop();
 private:
     boost::asio::awaitable<bool> send_fmp4_seg(std::shared_ptr<Mp4Segment> seg);
     boost::asio::experimental::channel<void(boost::system::error_code, std::function<boost::asio::awaitable<bool>()>)> send_funcs_channel_;

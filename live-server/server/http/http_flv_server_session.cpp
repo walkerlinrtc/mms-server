@@ -84,14 +84,14 @@ void HttpFlvServerSession::start_alive_checker() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
 
 void HttpFlvServerSession::update_active_timestamp() { last_active_time_ = Utils::get_current_ms(); }
 
-void HttpFlvServerSession::service() {
+void HttpFlvServerSession::start() {
     CORE_INFO("start service HttpFlvServerSession");
     auto self(std::static_pointer_cast<HttpFlvServerSession>(shared_from_this()));
     boost::asio::co_spawn(
@@ -189,7 +189,7 @@ void HttpFlvServerSession::service() {
 
             flv_media_sink_ = std::make_shared<FlvMediaSink>(get_worker());
             // 关闭flv
-            flv_media_sink_->on_close([this, self]() { close(); });
+            flv_media_sink_->on_close([this, self]() { stop(); });
             // 事件处理
             flv_media_sink_->set_on_source_status_changed_cb(
                 [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
@@ -324,10 +324,10 @@ void HttpFlvServerSession::close(bool close_connection) {  // 如果是长连接
     if (close_connection) {
         http_response_->close();
     }
-    close();
+    stop();
 }
 
-void HttpFlvServerSession::close() {
+void HttpFlvServerSession::stop() {
     auto self(this->shared_from_this());
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {

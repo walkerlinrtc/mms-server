@@ -19,8 +19,8 @@ class Session : public std::enable_shared_from_this<Session> {
 public:
     Session(ThreadWorker *worker);
     virtual ~Session();
-    virtual void service() = 0;
-    virtual void close() = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
     
     ThreadWorker *get_worker() const {
         return worker_;

@@ -65,7 +65,7 @@ void RtmpServerSession::start_alive_checker() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
@@ -91,7 +91,7 @@ void RtmpServerSession::start_statistic_timer() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
@@ -129,7 +129,7 @@ void RtmpServerSession::start_send_coroutine() {
         },
         [this](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
@@ -159,18 +159,18 @@ void RtmpServerSession::start_recv_coroutine() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
 
-void RtmpServerSession::service() {
+void RtmpServerSession::start() {
     CORE_DEBUG("RtmpServerSession start service");
     start_recv_coroutine();
     start_statistic_timer();
 }
 
-void RtmpServerSession::close() {
+void RtmpServerSession::stop() {
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
     }
@@ -454,7 +454,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
         auto old_session = std::static_pointer_cast<RtmpServerSession>(rtmp_media_source->get_session());
         if (old_session) {
             old_session->detach_source();
-            old_session->close();  // 关闭老的推流端
+            old_session->stop();  // 关闭老的推流端
         }
         rtmp_media_source_ = std::static_pointer_cast<RtmpMediaSource>(rtmp_media_source);
     }
@@ -599,7 +599,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(
     is_publisher_ = false;
     is_player_ = true;
     rtmp_media_sink_ = std::make_shared<RtmpMediaSink>(get_worker());
-    rtmp_media_sink_->on_close([this, self]() { close(); });
+    rtmp_media_sink_->on_close([this, self]() { stop(); });
 
     rtmp_media_sink_->set_on_source_status_changed_cb(
         [this, self, source](SourceStatus status) -> boost::asio::awaitable<void> {

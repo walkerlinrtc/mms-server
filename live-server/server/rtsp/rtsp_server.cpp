@@ -31,14 +31,14 @@ void RtspServer::stop() {
 void RtspServer::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<RtspServerSession> s = std::make_shared<RtspServerSession>(tcp_socket);
     tcp_socket->set_session(s);
-    s->service();
+    s->start();
 }
 
 void RtspServer::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<RtspServerSession> s = std::static_pointer_cast<RtspServerSession>(tcp_socket->get_session());
     tcp_socket->clear_session();
     if (s) {
-        s->close();
+        s->stop();
     }
 }
 

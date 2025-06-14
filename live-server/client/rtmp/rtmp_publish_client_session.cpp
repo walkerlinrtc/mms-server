@@ -60,7 +60,7 @@ void RtmpPublishClientSession::on_socket_close(std::shared_ptr<SocketInterface> 
 
 std::shared_ptr<RtmpMediaSink> RtmpPublishClientSession::get_rtmp_media_sink() { return rtmp_media_sink_; }
 
-void RtmpPublishClientSession::service() {
+void RtmpPublishClientSession::start() {
     auto self(this->shared_from_this());
     // 根据url获取信息
     std::string protocol;
@@ -144,7 +144,7 @@ void RtmpPublishClientSession::service() {
                 [this, self](std::exception_ptr exp) {
                     (void)exp;
                     wg_.done();
-                    close();
+                    stop();
                     spdlog::debug("RtmpPublishClientSession send coroutine exited");
                 });
 
@@ -160,7 +160,7 @@ void RtmpPublishClientSession::service() {
                 [this, self](std::exception_ptr exp) {
                     (void)exp;
                     wg_.done();
-                    close();
+                    stop();
                 });
             start_alive_checker();
 
@@ -212,7 +212,7 @@ void RtmpPublishClientSession::service() {
         boost::asio::detached);
 }
 
-void RtmpPublishClientSession::close() {
+void RtmpPublishClientSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
@@ -299,7 +299,7 @@ void RtmpPublishClientSession::start_alive_checker() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
@@ -388,7 +388,7 @@ boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_status_comman
 
     auto source = rtmp_source_.lock();
     if (!source) {
-        close();
+        stop();
         co_return false;
     }
 

@@ -35,9 +35,9 @@ class HttpFlvServerSession : public StreamSession {
 public:
     HttpFlvServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpFlvServerSession();
-    void service();
+    void start() override;
     void close(bool close_connection);
-    void close();
+    void stop() override;
 private:
     boost::asio::awaitable<bool> send_flv_tags(std::vector<std::shared_ptr<FlvTag>> tags);
     boost::asio::awaitable<void> process_source_status(SourceStatus status);

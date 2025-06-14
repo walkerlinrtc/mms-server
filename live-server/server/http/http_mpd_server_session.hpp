@@ -16,8 +16,8 @@ class HttpMpdServerSession : public StreamSession {
 public:
     HttpMpdServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpMpdServerSession();
-    void service();
-    void close();
+    void start();
+    void stop();
 private:
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
     std::shared_ptr<HttpRequest> http_request_;

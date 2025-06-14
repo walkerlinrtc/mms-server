@@ -33,7 +33,7 @@ HttpLongMp4ServerSession::~HttpLongMp4ServerSession() {
 
 }
 
-void HttpLongMp4ServerSession::service() {
+void HttpLongMp4ServerSession::start() {
     auto self(std::static_pointer_cast<HttpLongMp4ServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         auto host = http_request_->get_header("Host");
@@ -49,7 +49,7 @@ void HttpLongMp4ServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -61,7 +61,7 @@ void HttpLongMp4ServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -76,7 +76,7 @@ void HttpLongMp4ServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(404, "Not Found");
-            close();
+            stop();
             co_return;
         }
 
@@ -87,7 +87,7 @@ void HttpLongMp4ServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(415, "Unsupported Media Type");
-                close();
+                stop();
                 co_return;
             }
 
@@ -115,7 +115,7 @@ void HttpLongMp4ServerSession::service() {
         }, [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
         
         mp4_media_sink_->set_audio_init_segment_cb([this, self](std::shared_ptr<Mp4Segment> seg)->boost::asio::awaitable<bool> {
@@ -154,7 +154,7 @@ void HttpLongMp4ServerSession::service() {
         http_response_->add_header("Connection", "close");
         http_response_->add_header("Access-Control-Allow-Origin", "*");
         if (!co_await http_response_->write_header(200, "Ok")) {
-            close();
+            stop();
             co_return;
         }
 
@@ -166,13 +166,13 @@ void HttpLongMp4ServerSession::service() {
 boost::asio::awaitable<bool> HttpLongMp4ServerSession::send_fmp4_seg(std::shared_ptr<Mp4Segment> seg) {
     auto data = seg->get_used_buf();
     if (!co_await http_response_->write_data(data)) {
-        close();
+        stop();
         co_return false;
     }
     co_return true;
 }
 
-void HttpLongMp4ServerSession::close() {
+void HttpLongMp4ServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;

@@ -58,7 +58,7 @@ boost::asio::awaitable<std::shared_ptr<MediaSource>> PublishApp::find_media_sour
                                                                               session->get_stream_name());
         http_flv_client_session->set_pull_config(origin_pull_config);
         http_flv_client_session->set_url(url);
-        http_flv_client_session->service();
+        http_flv_client_session->start();
         co_return http_flv_client_session->get_flv_media_source();
     } else if (origin_pull_config->get_protocol() == "rtmp") {
         auto url = origin_pull_config->gen_url(session);
@@ -69,7 +69,7 @@ boost::asio::awaitable<std::shared_ptr<MediaSource>> PublishApp::find_media_sour
                                                                                                                   session->get_stream_name());
         rtmp_play_client_session->set_pull_config(origin_pull_config);
         rtmp_play_client_session->set_url(url);
-        rtmp_play_client_session->service();
+        rtmp_play_client_session->start();
         co_return rtmp_play_client_session->get_rtmp_media_source();
     }
     co_return nullptr;
@@ -120,7 +120,7 @@ std::vector<std::shared_ptr<MediaSink>> PublishApp::create_push_streams(std::sha
             rtmp_publish_client_session->set_push_config(config);
             auto sink = rtmp_publish_client_session->get_rtmp_media_sink();
             sinks.push_back(sink);
-            rtmp_publish_client_session->service();
+            rtmp_publish_client_session->start();
         }
     }
     return sinks;

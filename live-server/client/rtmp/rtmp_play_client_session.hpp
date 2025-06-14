@@ -31,8 +31,8 @@ public:
     void on_socket_open(std::shared_ptr<SocketInterface> sock) override;
     void on_socket_close(std::shared_ptr<SocketInterface> sock) override;
 
-    void service();
-    void close();
+    void start();
+    void stop();
     void set_url(const std::string & url);
     void set_pull_config(std::shared_ptr<OriginPullConfig> pull_config) {
         pull_config_ = pull_config;

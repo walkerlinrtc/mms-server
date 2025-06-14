@@ -70,7 +70,7 @@ void TlsSocket::on_socket_open(std::shared_ptr<SocketInterface> tcp_sock) {
 void TlsSocket::on_socket_close(std::shared_ptr<SocketInterface> tcp_sock) {
     auto s = tcp_sock->get_session();
     if (s) {
-        s->close();
+        s->stop();
     }
     close();
 }
@@ -88,7 +88,7 @@ void TlsSocket::close() {
     }
 
     if (tls_session_) {
-        tls_session_->close();
+        tls_session_->stop();
     }
 
     if (handler_) {

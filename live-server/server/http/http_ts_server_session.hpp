@@ -13,8 +13,8 @@ class HttpTsServerSession : public StreamSession {
 public:
     HttpTsServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpTsServerSession();
-    void service();
-    void close();
+    void start();
+    void stop();
 private:
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
     std::shared_ptr<HttpRequest> http_request_;

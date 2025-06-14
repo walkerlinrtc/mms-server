@@ -30,14 +30,14 @@ void RtmpsServer::stop() {
 void RtmpsServer::on_socket_open(std::shared_ptr<SocketInterface> tls_socket) {
     std::shared_ptr<RtmpServerSession> s = std::make_shared<RtmpServerSession>(tls_socket);
     tls_socket->set_session(s);
-    s->service();
+    s->start();
 }
 
 void RtmpsServer::on_socket_close(std::shared_ptr<SocketInterface> tls_socket) {
     std::shared_ptr<RtmpServerSession> s = std::static_pointer_cast<RtmpServerSession>(tls_socket->get_session());
     tls_socket->clear_session();
     if (s) {
-        s->close();
+        s->stop();
     }
 }
 

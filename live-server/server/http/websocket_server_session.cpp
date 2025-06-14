@@ -26,7 +26,7 @@ WebSocketServerSession::WebSocketServerSession(std::shared_ptr<SocketInterface> 
 WebSocketServerSession::~WebSocketServerSession() {
 }
 
-void WebSocketServerSession::service() {
+void WebSocketServerSession::start() {
     auto self(shared_from_this());
     wg_.add(1);
     boost::asio::co_spawn(sock_->get_worker()->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
@@ -78,7 +78,7 @@ boost::asio::awaitable<int32_t> WebSocketServerSession::process_recv_buffer() {
     co_return total_consumed;
 }
 
-void WebSocketServerSession::close() {
+void WebSocketServerSession::stop() {
     auto self(shared_from_this());
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         if (sock_) {

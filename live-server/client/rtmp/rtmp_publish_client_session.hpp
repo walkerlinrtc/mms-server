@@ -27,8 +27,8 @@ public:
     virtual ~RtmpPublishClientSession();
     void on_socket_open(std::shared_ptr<SocketInterface> sock) override;
     void on_socket_close(std::shared_ptr<SocketInterface> sock) override;
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
     void set_url(const std::string &url);
     void set_push_config(std::shared_ptr<EdgePushConfig> push_config) { push_config_ = push_config; }
     std::shared_ptr<RtmpMediaSink> get_rtmp_media_sink();

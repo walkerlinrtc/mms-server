@@ -45,8 +45,8 @@ public:
     virtual ~HttpServerSession();
     std::shared_ptr<SocketInterface> get_sock();
 
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 
     boost::asio::awaitable<void> on_http_request(std::shared_ptr<HttpRequest> req);
     boost::asio::awaitable<void> process_one_req(std::shared_ptr<HttpRequest> req);

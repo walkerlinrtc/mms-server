@@ -29,7 +29,7 @@ HttpMpdServerSession::HttpMpdServerSession(std::shared_ptr<HttpRequest> http_req
 
 HttpMpdServerSession::~HttpMpdServerSession() {}
 
-void HttpMpdServerSession::service() {
+void HttpMpdServerSession::start() {
     auto self(std::static_pointer_cast<HttpMpdServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(
         worker_->get_io_context(),
@@ -51,7 +51,7 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                close();
+                stop();
                 co_return;
             }
 
@@ -63,7 +63,7 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                close();
+                stop();
                 co_return;
             }
             auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" +
@@ -86,7 +86,7 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
                 co_return;
             } else {
                 if (source->get_media_type() != "mpd") {
@@ -97,14 +97,14 @@ void HttpMpdServerSession::service() {
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        close();
+                        stop();
                         co_return;
                     }
 
                     auto m4s_source =
                         std::static_pointer_cast<M4sMediaSource>(mp4_bridge->get_media_source());
                     if (!m4s_source) {
-                        close();
+                        stop();
                         co_return;
                     }
                     auto mpd_bridge = m4s_source->get_or_create_bridge(m4s_source->get_media_type() + "-mpd",
@@ -114,7 +114,7 @@ void HttpMpdServerSession::service() {
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        close();
+                        stop();
                         co_return;
                     }
                     mpd_source = std::static_pointer_cast<MpdLiveMediaSource>(mpd_bridge->get_media_source());
@@ -142,7 +142,7 @@ void HttpMpdServerSession::service() {
                     http_response_->add_header("Content-Length", std::to_string(mpd.size()));
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     if (!(co_await http_response_->write_header(200, "OK"))) {
-                        close();
+                        stop();
                         co_return;
                     }
                     co_await http_response_->write_data((uint8_t*)mpd.data(), mpd.size());
@@ -153,7 +153,7 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
             }
 
             co_return;
@@ -161,7 +161,7 @@ void HttpMpdServerSession::service() {
         boost::asio::detached);
 }
 
-void HttpMpdServerSession::close() {
+void HttpMpdServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;
