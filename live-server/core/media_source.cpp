@@ -119,6 +119,8 @@ bool MediaSource::remove_media_sink(std::shared_ptr<MediaSink> media_sink) {
         if (*it == media_sink) {
             sinks_count_--;
             sinks_.erase(it);
+            media_sink->set_source(nullptr);
+            CORE_DEBUG("remove sink from:{}/{}/{} type:{}, count:{}", domain_name_, app_name_, stream_name_, media_type_, sinks_.size());
             last_sinks_or_bridges_leave_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
             break;
         }

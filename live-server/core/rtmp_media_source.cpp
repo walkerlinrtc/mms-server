@@ -32,7 +32,7 @@
 using namespace mms;
 
 RtmpMediaSource::RtmpMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> s, std::shared_ptr<PublishApp> app) : MediaSource("rtmp", s, app, worker), av_pkts_(2048), keyframe_indexes_(200) {
-
+    CORE_DEBUG("create RtmpMediaSource");
 }
 
 RtmpMediaSource::~RtmpMediaSource() {

@@ -343,9 +343,7 @@ void HttpFlvServerSession::close() {
             co_await wg_.wait();
 
             if (flv_media_sink_) {
-                auto source =
-                    flv_media_sink_
-                        ->get_source();  // SourceManager::get_instance().get_source(get_session_name());
+                auto source = flv_media_sink_->get_source();
                 if (source) {
                     source->remove_media_sink(flv_media_sink_);
                 }

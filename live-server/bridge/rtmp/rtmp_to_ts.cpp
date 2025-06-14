@@ -47,10 +47,12 @@ RtmpToTs::RtmpToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
     ts_media_source_ = std::static_pointer_cast<TsMediaSource>(source_);
     video_pes_segs_.reserve(1024);
     type_ = "rtmp-to-ts";
-    CORE_DEBUG("create rtmp to ts");
+    CORE_DEBUG("create RtmpToTs");
 }
 
-RtmpToTs::~RtmpToTs() {}
+RtmpToTs::~RtmpToTs() {
+    CORE_DEBUG("destroy RtmpToTs");
+}
 
 bool RtmpToTs::init() {
     auto self(shared_from_this());
@@ -1463,6 +1465,7 @@ void RtmpToTs::close() {
         return;
     }
 
+    CORE_DEBUG("close RtmpToTs");
     auto self(shared_from_this());
     boost::asio::co_spawn(
         worker_->get_io_context(),
@@ -1476,6 +1479,7 @@ void RtmpToTs::close() {
 
             auto origin_source = origin_source_.lock();
             if (rtmp_media_sink_) {
+                rtmp_media_sink_->on_close({});
                 rtmp_media_sink_->on_rtmp_message({});
                 rtmp_media_sink_->on_close({});
                 rtmp_media_sink_->close();
