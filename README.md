@@ -1,3 +1,5 @@
+[🇨🇳 中文文档](README_zh.md) | [🇺🇸 English](README.md)
+
 # MMS: A high-performance, multi-threaded, and multi-coroutine real-time streaming server implemented in C++20
 
 ## Introduction
