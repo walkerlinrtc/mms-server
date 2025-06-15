@@ -70,6 +70,10 @@ bool TsToHls::init() {
             wg_.done();
             close();
         });
+    
+    ts_media_sink_->on_close([this, self]() {
+        close();
+    });
 
     ts_media_sink_->set_on_source_status_changed_cb(
         [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
@@ -105,6 +109,8 @@ void TsToHls::close() {
 
             auto origin_source = origin_source_.lock();
             if (ts_media_sink_) {
+                ts_media_sink_->on_close({});
+                ts_media_sink_->set_on_source_status_changed_cb({});
                 ts_media_sink_->on_ts_segment({});
                 ts_media_sink_->close();
                 if (origin_source) {

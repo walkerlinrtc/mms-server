@@ -902,6 +902,7 @@ void RtmpToM4s::close() {
             if (rtmp_media_sink_) {
                 rtmp_media_sink_->on_rtmp_message({});
                 rtmp_media_sink_->on_close({});
+                rtmp_media_sink_->set_on_source_status_changed_cb({});
                 rtmp_media_sink_->close();
                 if (origin_source) {
                     origin_source->remove_media_sink(rtmp_media_sink_);

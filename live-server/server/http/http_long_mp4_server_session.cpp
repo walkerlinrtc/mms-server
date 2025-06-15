@@ -118,6 +118,10 @@ void HttpLongMp4ServerSession::start() {
             stop();
         });
         
+        mp4_media_sink_->on_close([this, self]() {
+            stop();
+        });
+
         mp4_media_sink_->set_audio_init_segment_cb([this, self](std::shared_ptr<Mp4Segment> seg)->boost::asio::awaitable<bool> {
             boost::system::error_code ec;
             co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&HttpLongMp4ServerSession::send_fmp4_seg, this, seg), boost::asio::redirect_error(boost::asio::use_awaitable, ec));
@@ -189,6 +193,11 @@ void HttpLongMp4ServerSession::stop() {
             auto source = mp4_media_sink_->get_source();
             if (source) {
                 source->remove_media_sink(mp4_media_sink_);
+                mp4_media_sink_->on_close({});
+                mp4_media_sink_->set_audio_init_segment_cb({});
+                mp4_media_sink_->set_video_init_segment_cb({});
+                mp4_media_sink_->set_audio_mp4_segment_cb({});
+                mp4_media_sink_->set_video_mp4_segment_cb({});
                 mp4_media_sink_->close();
             }
 

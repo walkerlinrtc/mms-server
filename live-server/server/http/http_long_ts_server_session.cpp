@@ -132,6 +132,10 @@ void HttpLongTsServerSession::start() {
 
             ts_media_sink_ = std::make_shared<TsMediaSink>(worker_);
             // 事件处理
+            ts_media_sink_->on_close([this, self]() {
+                stop();
+            });
+
             ts_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
                 co_return co_await process_source_status(status);
             });
@@ -298,6 +302,9 @@ void HttpLongTsServerSession::stop() {
             auto source = ts_media_sink_->get_source();//SourceManager::get_instance().get_source(get_session_name());
             if (source) {
                 source->remove_media_sink(ts_media_sink_);
+                ts_media_sink_->on_close({});
+                ts_media_sink_->set_on_source_status_changed_cb({});
+                ts_media_sink_->on_pes_pkts({});
                 ts_media_sink_->close();
             }
 

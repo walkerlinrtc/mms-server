@@ -82,6 +82,10 @@ bool FlvToTs::init() {
             wg_.done();
             close();
         });
+    
+    flv_media_sink_->on_close([this, self]() {
+        close();
+    });
 
     flv_media_sink_->set_on_source_status_changed_cb(
         [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
@@ -1480,6 +1484,8 @@ void FlvToTs::close() {
 
             auto origin_source = origin_source_.lock();
             if (flv_media_sink_) {
+                flv_media_sink_->on_close({});
+                flv_media_sink_->set_on_source_status_changed_cb({});
                 flv_media_sink_->on_flv_tag({});
                 flv_media_sink_->close();
                 if (origin_source) {
