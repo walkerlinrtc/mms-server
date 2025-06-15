@@ -122,11 +122,8 @@ void WebRtcServerSession::start_process_recv_udp_msg() {
     boost::asio::co_spawn(
         worker_->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
-            dtls_boringssl_session_->on_handshake_done(
-                std::bind(&WebRtcServerSession::on_dtls_handshake_done, this, std::placeholders::_1,
-                          std::placeholders::_2, std::placeholders::_3));
-            auto ret =
-                co_await dtls_boringssl_session_->do_handshake(DtlsBoringSSLSession::mode_server, dtls_cert_);
+            dtls_boringssl_session_->on_handshake_done(std::bind(&WebRtcServerSession::on_dtls_handshake_done, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+            auto ret = co_await dtls_boringssl_session_->do_handshake(DtlsBoringSSLSession::mode_server, dtls_cert_);
             if (0 != ret) {  // handshake failed
                 co_return;
             }
@@ -157,7 +154,7 @@ void WebRtcServerSession::start_process_recv_udp_msg() {
                 UDP_MSG_TYPE msg_type = detect_msg_type(udp_msg.get(), len);
                 if (UDP_MSG_DTLS == msg_type) {
                     if (!co_await process_dtls_packet(std::move(udp_msg), len, sock, remote_ep)) {
-                        continue;
+                        co_return;
                     }
                 } else if (UDP_MSG_RTP == msg_type) {
                     if (!co_await process_srtp_packet(std::move(udp_msg), len, sock, remote_ep)) {
@@ -228,7 +225,6 @@ void WebRtcServerSession::start_rtp_sender() {
         worker_->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
-            spdlog::info("rtp sender running");
             while (1) {
                 auto rtp_pkts = co_await send_rtp_pkts_channel_.async_receive(
                     boost::asio::redirect_error(boost::asio::use_awaitable, ec));
@@ -503,6 +499,9 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
 
     if (!source) {
         // 真找不到源流了，应该是没在播
+        resp->add_header("Connection", "Close");
+        co_await resp->write_header(404, "Not Found");
+        stop();
         co_return false;
     }
     CORE_DEBUG("find media source for whep");
@@ -582,7 +581,6 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         media.set_ice_pwd(IcePwd(local_ice_pwd_));
     }
 
-    // CORE_DEBUG("send play offer sdp:{}", play_sdp->to_string());
     auto body = play_sdp->to_string();
     resp->add_header("Access-Control-Allow-Origin", "*");
     resp->add_header("Content-Type", "application/sdp");
@@ -851,12 +849,10 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_srtp_packet(
                 first_rtp_video_ts_ = rtp_pkt->get_timestamp();
             }
 
-            // RtpMediaSource::on_video_packet(rtp_pkt);
             auto h264_nalu = rtp_h264_depacketizer_.on_packet(rtp_pkt);
             if (h264_nalu) {
                 uint32_t this_timestamp = h264_nalu->get_timestamp();
-                bool key = find_key_frame((this_timestamp - first_rtp_video_ts_) / 90,
-                                          h264_nalu);  // todo 除90这个要根据sdp来计算，目前固定
+                bool key = find_key_frame((this_timestamp - first_rtp_video_ts_) / 90, h264_nalu);  // todo 除90这个要根据sdp来计算，目前固定
                 if (key) {
                     CORE_DEBUG("WebRtcServerSession find key frame");
                 }
@@ -977,9 +973,9 @@ void WebRtcServerSession::stop() {
                 auto play_app = std::static_pointer_cast<PlayApp>(get_app());
                 if (play_app) {
                     auto publish_app = play_app->get_publish_app();
-                    auto webrtc_media_source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
-                    if (webrtc_media_source) {
-                        webrtc_media_source->remove_media_sink(rtp_media_sink_);
+                    auto s = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
+                    if (s) {
+                        s->remove_media_sink(rtp_media_sink_);
                     }
                 }
                 rtp_media_sink_ = nullptr;

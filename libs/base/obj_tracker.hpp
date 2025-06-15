@@ -10,7 +10,7 @@ public:
         use_count_.fetch_add(1, std::memory_order_relaxed);
     }
 
-    ~ObjTracker() {
+    virtual ~ObjTracker() {
         use_count_.fetch_sub(1, std::memory_order_relaxed);
     }
 
@@ -31,7 +31,7 @@ template <typename T>
 class ObjTracker {
 public:
     ObjTracker() {}
-    ~ObjTracker() {}
+    virtual ~ObjTracker() {}
     static uint64_t get_use_count() { return 0; }
 };
 

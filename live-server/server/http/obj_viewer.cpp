@@ -64,7 +64,7 @@ Json::Value ObjViewer::to_json() {
     
     // webttc
     v["WebRtcMediaSource"] = ObjTracker<WebRtcMediaSource>::get_use_count();
-    v["WebRtcServerSession"] = ObjTracker<WebRtcMediaSource>::get_use_count();
+    v["WebRtcServerSession"] = ObjTracker<WebRtcServerSession>::get_use_count();
     // recorder
     v["FlvRecorder"] = ObjTracker<FlvRecorder>::get_use_count();
     v["TsRecorder"] = ObjTracker<TsRecorder>::get_use_count();

@@ -212,10 +212,8 @@ void RtmpServerSession::stop() {
             if (rtmp_media_source_) {  // 如果是推流的session
                 auto publish_app = rtmp_media_source_->get_app();
                 rtmp_media_source_->set_session(nullptr);  // 解除绑定
-                start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(),
-                                                      rtmp_media_source_);
-                co_await publish_app->on_unpublish(
-                    std::static_pointer_cast<StreamSession>(shared_from_this()));
+                start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
+                co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
             }
 
             if (conn_) {
