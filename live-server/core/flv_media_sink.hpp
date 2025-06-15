@@ -17,13 +17,14 @@
 #include <boost/asio/awaitable.hpp>
 
 #include "media_sink.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class Codec;
 class ThreadWorker;
 class FlvTag;
 
-class FlvMediaSink : public LazyMediaSink {
+class FlvMediaSink : public LazyMediaSink, public ObjTracker<FlvMediaSink> {
 public:
     FlvMediaSink(ThreadWorker *worker);
     virtual ~FlvMediaSink();

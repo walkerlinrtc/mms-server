@@ -15,10 +15,12 @@
 
 #include "base/wait_group.h"
 #include "../media_bridge.hpp"
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class FlvMediaSource;
 class PublishApp;
-class RtmpToFlv : public MediaBridge {
+class RtmpToFlv : public MediaBridge, public ObjTracker<RtmpToFlv> {
 public:
     RtmpToFlv(ThreadWorker *worker, std::shared_ptr<PublishApp>, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~RtmpToFlv();

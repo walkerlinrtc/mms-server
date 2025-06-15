@@ -28,6 +28,7 @@
 #include "protocol/rtp/rtp_aac_nalu.h"
 
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -48,7 +49,7 @@ class RtpH265NALU;
 class RtpAACNALU;
 class AACEncoder;
 
-class RtspToTs : public MediaBridge {
+class RtspToTs : public MediaBridge, public ObjTracker<RtspToTs> {
 public:
     RtspToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~RtspToTs();

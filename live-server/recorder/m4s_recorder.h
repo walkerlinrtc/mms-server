@@ -4,6 +4,8 @@
 #include "json/json.h"
 #include "recorder.h"
 
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class ThreadWorker;
 class M4sMediaSink;
@@ -25,7 +27,7 @@ public:
     int64_t update_at_;
 };
 
-class M4sRecorder : public Recorder {
+class M4sRecorder : public Recorder, public ObjTracker<M4sRecorder> {
 public:
     M4sRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> source,
                  const std::string &domain_name, const std::string &app_name, const std::string &stream_name);

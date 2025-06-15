@@ -23,6 +23,7 @@
 #include "base/wait_group.h"
 // #include "mp4/mp4_builder.h"
 #include "mp4/m4s_segment.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -32,7 +33,7 @@ class Mp4Segment;
 class MoovBox;
 class M4sMediaSource;
 
-class RtmpToM4s : public MediaBridge {
+class RtmpToM4s : public MediaBridge, public ObjTracker<RtmpToM4s> {
 public:
     RtmpToM4s(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~RtmpToM4s();

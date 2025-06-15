@@ -6,6 +6,8 @@
 #include <shared_mutex>
 
 #include "core/media_source.hpp"
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class Mp4Segment;
 class PublishApp;
@@ -13,7 +15,7 @@ class MediaBridge;
 class ThreadWorker;
 class StreamSession;
 
-class MpdLiveMediaSource : public MediaSource {
+class MpdLiveMediaSource : public MediaSource, public ObjTracker<MpdLiveMediaSource> {
 public:
     MpdLiveMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
     virtual ~MpdLiveMediaSource();

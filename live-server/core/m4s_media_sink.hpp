@@ -5,12 +5,13 @@
 #include <boost/asio/awaitable.hpp>
 
 #include "media_sink.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class Mp4Segment;
 class ThreadWorker;
 
-class M4sMediaSink : public MediaSink {
+class M4sMediaSink : public MediaSink, public ObjTracker<M4sMediaSink> {
 public:
     M4sMediaSink(ThreadWorker *worker);
     virtual ~M4sMediaSink();

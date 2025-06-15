@@ -3,13 +3,15 @@
 #include <string>
 #include <atomic>
 
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class MediaSink;
 class ThreadWorker;
 class PublishApp;
 class MediaSource;
 
-class Recorder : public std::enable_shared_from_this<Recorder> {
+class Recorder : public std::enable_shared_from_this<Recorder>, public ObjTracker<Recorder> {
 public:
     Recorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~Recorder();

@@ -18,6 +18,10 @@ private:
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);
     
+    boost::asio::awaitable<void> get_obj_count(std::shared_ptr<HttpServerSession> session, 
+                                               std::shared_ptr<HttpRequest> req, 
+                                               std::shared_ptr<HttpResponse> resp);
+
     boost::asio::awaitable<void> get_domain_apps(std::shared_ptr<HttpServerSession> session, 
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);

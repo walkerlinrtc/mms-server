@@ -22,6 +22,7 @@
 #include "protocol/rtp/rtp_h265_depacketizer.h"
 #include "protocol/rtp/rtp_aac_depacketizer.h"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -36,7 +37,7 @@ class RtpAACNALU;
 class RtpH265NALU;
 class RtmpMessage;
 
-class RtspToRtmp : public MediaBridge {
+class RtspToRtmp : public MediaBridge, public ObjTracker<RtspToRtmp> {
 public:
     RtspToRtmp(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~RtspToRtmp();

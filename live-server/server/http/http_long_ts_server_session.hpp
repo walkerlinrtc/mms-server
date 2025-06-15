@@ -7,6 +7,7 @@
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
 #include "core/source_status.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class HttpRequest;
@@ -16,7 +17,7 @@ class TsSegment;
 class TsMediaSink;
 class PESPacket;
 
-class HttpLongTsServerSession : public StreamSession {
+class HttpLongTsServerSession : public StreamSession, public ObjTracker<HttpLongTsServerSession> {
 public:
     HttpLongTsServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpLongTsServerSession();

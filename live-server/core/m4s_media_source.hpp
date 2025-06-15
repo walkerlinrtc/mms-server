@@ -19,6 +19,7 @@
 #include "media_source.hpp"
 #include "protocol/ts/ts_pes.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -28,7 +29,7 @@ class StreamSession;
 class Mp4Segment;
 class PublishApp;
 
-class M4sMediaSource : public MediaSource {
+class M4sMediaSource : public MediaSource, public ObjTracker<M4sMediaSource> {
 public:
     M4sMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
     virtual ~M4sMediaSource();

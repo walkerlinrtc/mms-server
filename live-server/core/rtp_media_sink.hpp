@@ -6,10 +6,11 @@
 
 #include "media_sink.hpp"
 #include "protocol/rtp/rtp_packet.h"
+#include "base/obj_tracker.hpp"
 namespace mms {
 class Codec;
 
-class RtpMediaSink : public MediaSink {
+class RtpMediaSink : public MediaSink, public ObjTracker<RtpMediaSink> {
 public:
     RtpMediaSink(ThreadWorker *worker);
     virtual ~RtpMediaSink();

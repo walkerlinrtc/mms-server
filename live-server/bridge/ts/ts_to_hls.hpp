@@ -6,6 +6,7 @@
 
 #include "../media_bridge.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class PublishApp;
@@ -13,7 +14,7 @@ class TsMediaSink;
 class ThreadWorker;
 class HlsLiveMediaSource;
 
-class TsToHls : public MediaBridge {
+class TsToHls : public MediaBridge, public ObjTracker<TsToHls> {
 public:
     TsToHls(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~TsToHls();

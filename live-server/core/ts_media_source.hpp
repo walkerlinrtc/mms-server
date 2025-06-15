@@ -18,6 +18,7 @@
 #include "media_source.hpp"
 #include "protocol/ts/ts_pes.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -27,7 +28,7 @@ class StreamSession;
 class TsSegment;
 class PublishApp;
 
-class TsMediaSource : public MediaSource {
+class TsMediaSource : public MediaSource, public ObjTracker<TsMediaSource> {
 public:
     TsMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
     virtual ~TsMediaSource();

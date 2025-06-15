@@ -20,7 +20,7 @@ class RtmpMediaSource;
 class RtmpMediaSink;
 class PublishApp;
 
-class RtmpPublishClientSession : public StreamSession, public SocketInterfaceHandler {
+class RtmpPublishClientSession : public StreamSession, public SocketInterfaceHandler, public ObjTracker<RtmpPublishClientSession> {
 public:
     RtmpPublishClientSession(std::weak_ptr<RtmpMediaSource> source, std::shared_ptr<PublishApp> app,
                              ThreadWorker *worker);

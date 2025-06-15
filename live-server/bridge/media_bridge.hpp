@@ -10,14 +10,14 @@
 #pragma once
 #include <memory>
 #include <string>
-
+#include "base/obj_tracker.hpp"
 namespace mms {
 class MediaSource;
 class MediaSink;
 class ThreadWorker;
 class PublishApp;
 
-class MediaBridge : public std::enable_shared_from_this<MediaBridge> {
+class MediaBridge : public std::enable_shared_from_this<MediaBridge>, public ObjTracker<MediaBridge> {
 public:
     MediaBridge(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~MediaBridge();

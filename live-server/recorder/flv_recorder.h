@@ -6,13 +6,14 @@
 
 #include "recorder.h"
 #include "json/json.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
 class FlvMediaSink;
 class PublishApp;
 
-class FlvRecorder : public Recorder {
+class FlvRecorder : public Recorder, public ObjTracker<FlvRecorder> {
 public:
     FlvRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, 
                std::weak_ptr<MediaSource> source, const std::string & domain_name, const std::string & app_name, 

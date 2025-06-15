@@ -16,6 +16,7 @@
 
 #include "media_source.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -27,7 +28,7 @@ class MediaSink;
 class RtmpMetaDataMessage;
 class MediaBridge;
 
-class RtmpMediaSource : public MediaSource {
+class RtmpMediaSource : public MediaSource, public ObjTracker<RtmpMediaSource> {
 public:
     RtmpMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> s, std::shared_ptr<PublishApp> app);
     virtual ~RtmpMediaSource();

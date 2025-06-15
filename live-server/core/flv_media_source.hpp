@@ -15,6 +15,7 @@
 
 #include "media_source.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -26,7 +27,7 @@ class FlvTag;
 class MediaSink;
 class RtmpMetaDataMessage;
 
-class FlvMediaSource : public MediaSource {
+class FlvMediaSource : public MediaSource, public ObjTracker<FlvMediaSource> {
 public:
     FlvMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
 

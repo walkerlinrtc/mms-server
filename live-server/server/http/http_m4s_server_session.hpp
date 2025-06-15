@@ -4,12 +4,14 @@
 
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class HttpRequest;
 class HttpResponse;
 class RtmpMediaSink;
 class ThreadWorker;
-class HttpM4sServerSession : public StreamSession {
+class HttpM4sServerSession : public StreamSession, public ObjTracker<HttpM4sServerSession> {
 public:
     HttpM4sServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpM4sServerSession();

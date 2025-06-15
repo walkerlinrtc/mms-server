@@ -21,6 +21,8 @@
 #include "base/utils/utils.h"
 #include "base/wait_group.h"
 
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class WebRtcServerSession;
 class WebRtcServerSessionCloseHandler;
@@ -40,7 +42,7 @@ class DtlsCert;
 class HttpRequest;
 class HttpResponse;
 
-class WebRtcServerSession  : public StreamSession {
+class WebRtcServerSession  : public StreamSession, public ObjTracker<WebRtcServerSession> {
 public:
     WebRtcServerSession(ThreadWorker *worker);
     virtual ~WebRtcServerSession();

@@ -22,6 +22,7 @@
 #include "protocol/rtp/rtp_h265_depacketizer.h"
 #include "protocol/rtp/rtp_aac_depacketizer.h"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -35,7 +36,7 @@ class RtpH264NALU;
 class RtpAACNALU;
 class RtpH265NALU;
 
-class RtspToFlv : public MediaBridge {
+class RtspToFlv : public MediaBridge, public ObjTracker<RtspToFlv> {
 public:
     RtspToFlv(ThreadWorker *worker, 
              std::shared_ptr<PublishApp> app, 

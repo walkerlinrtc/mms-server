@@ -16,6 +16,7 @@ extern "C" {
 }
 
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -30,7 +31,7 @@ class RtpAACNALU;
 class AACEncoder;
 class PublishApp;
 
-class WebRtcToFlv : public MediaBridge {
+class WebRtcToFlv : public MediaBridge, public ObjTracker<WebRtcToFlv> {
 public:
     WebRtcToFlv(ThreadWorker *worker, std::shared_ptr<PublishApp>, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~WebRtcToFlv();

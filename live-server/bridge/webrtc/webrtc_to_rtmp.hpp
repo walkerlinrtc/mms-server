@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -39,7 +40,7 @@ class RtpH264NALU;
 class RtpAACNALU;
 class AACEncoder;
 
-class WebRtcToRtmp : public MediaBridge {
+class WebRtcToRtmp : public MediaBridge, public ObjTracker<WebRtcToRtmp> {
 public:
     WebRtcToRtmp(ThreadWorker *worker, std::shared_ptr<PublishApp>, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~WebRtcToRtmp();

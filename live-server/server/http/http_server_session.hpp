@@ -27,6 +27,7 @@
 #include "websocket_server_session.hpp"
 #include "log/log.h"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class HttpServerSession;
@@ -39,7 +40,7 @@ public:
                                                         std::shared_ptr<HttpResponse> resp) = 0;
 };
 
-class HttpServerSession : public Session {
+class HttpServerSession : public Session, public ObjTracker<HttpServerSession> {
 public:
     HttpServerSession(HttpRequestHandler *request_handler, std::shared_ptr<SocketInterface> sock);
     virtual ~HttpServerSession();

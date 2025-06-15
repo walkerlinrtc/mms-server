@@ -22,11 +22,12 @@
 
 #include "protocol/rtp/rtp_packet.h"
 #include "protocol/rtp/rtp_h264_depacketizer.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class Session;
 class PublishApp;
-class RtpMediaSource : public MediaSource {
+class RtpMediaSource : public MediaSource, public ObjTracker<RtpMediaSource> {
 public:
     RtpMediaSource(const std::string & media_type, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app, ThreadWorker *worker);
     virtual ~RtpMediaSource();

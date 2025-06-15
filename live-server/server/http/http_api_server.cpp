@@ -23,6 +23,7 @@
 #include "app/app_manager.h"
 #include "app/app.h"
 #include "../../version.h"
+#include "obj_viewer.h"
 
 using namespace mms;
 HttpApiServer::~HttpApiServer() {
@@ -32,6 +33,11 @@ HttpApiServer::~HttpApiServer() {
 bool HttpApiServer::register_route() {
     bool ret;
     ret = on_get("/api/version", std::bind(&HttpApiServer::get_api_version, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_get("/api/obj_count", std::bind(&HttpApiServer::get_obj_count, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
     }
@@ -83,6 +89,29 @@ boost::asio::awaitable<void> HttpApiServer::get_api_version(std::shared_ptr<Http
         co_return;
     }
 
+    bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
+    if (!ret) {
+        resp->close();
+        co_return;
+    }
+
+    resp->close();
+    co_return;
+}
+
+boost::asio::awaitable<void> HttpApiServer::get_obj_count(std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
+    (void)session;
+    (void)req;
+    resp->add_header("Access-Control-Allow-Origin", "*");
+    resp->add_header("Content-type", "application/json");
+    if (!(co_await resp->write_header(200, "OK"))) {
+        resp->close();
+        co_return;
+    }
+
+    ObjViewer obj_viewer;
+    Json::Value v = obj_viewer.to_json();
+    std::string body = v.toStyledString();
     bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
     if (!ret) {
         resp->close();

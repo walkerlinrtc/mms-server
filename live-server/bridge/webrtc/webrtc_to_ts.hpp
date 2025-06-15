@@ -28,6 +28,7 @@ extern "C" {
 }
 #include "opus/opus.h"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -46,7 +47,7 @@ class RtpH264NALU;
 class RtpAACNALU;
 class AACEncoder;
 
-class WebRtcToTs : public MediaBridge {
+class WebRtcToTs : public MediaBridge, public ObjTracker<WebRtcToTs> {
 public:
     WebRtcToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~WebRtcToTs();

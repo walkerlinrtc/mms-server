@@ -5,6 +5,8 @@
 
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class HttpRequest;
 class HttpResponse;
@@ -12,7 +14,7 @@ class M4sMediaSink;
 class ThreadWorker;
 class Mp4Segment;
 
-class HttpLongMp4ServerSession : public StreamSession {
+class HttpLongMp4ServerSession : public StreamSession, public ObjTracker<HttpLongMp4ServerSession> {
 public:
     HttpLongMp4ServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpLongMp4ServerSession();

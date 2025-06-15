@@ -19,6 +19,7 @@
 #include "base/sequence_pkt_buf.hpp"
 #include "base/wait_group.h"
 #include "base/network/tcp_socket.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class App;
@@ -30,7 +31,7 @@ class HttpClient;
 class FlvTag;
 class OriginPullConfig;
 
-class HttpFlvClientSession : public StreamSession {
+class HttpFlvClientSession : public StreamSession, public ObjTracker<HttpFlvClientSession> {
 public:
     HttpFlvClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker, 
                          const std::string & org_domain, const std::string & org_app_name , const std::string & org_stream_name);

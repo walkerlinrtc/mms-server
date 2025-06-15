@@ -13,9 +13,10 @@
 
 #include "base/thread/thread_worker.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
-class RtmpMediaSink : public LazyMediaSink {
+class RtmpMediaSink : public LazyMediaSink, public ObjTracker<RtmpMediaSink> {
 public:
     RtmpMediaSink(ThreadWorker *worker);
     virtual bool init();

@@ -4,11 +4,13 @@
 
 #include "server/session.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class WebSocketPacket;
 class SocketInterface;
 
-class WebSocketServerSession : public Session {
+class WebSocketServerSession : public Session, public ObjTracker<WebSocketServerSession> {
 public:
     WebSocketServerSession(std::shared_ptr<SocketInterface> sock);
     virtual ~WebSocketServerSession();
