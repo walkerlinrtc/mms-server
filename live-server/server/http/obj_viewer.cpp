@@ -4,6 +4,8 @@ using namespace mms;
 #include "core/rtmp_media_sink.hpp"
 #include "core/flv_media_source.hpp"
 #include "core/flv_media_sink.hpp"
+#include "core/ts_media_source.hpp"
+#include "core/ts_media_sink.hpp"
 
 #include "server/http/http_server_session.hpp"
 #include "server/rtmp/rtmp_server_session.hpp"
@@ -17,6 +19,8 @@ using namespace mms;
 #include "bridge/flv/flv_to_rtmp.hpp"
 #include "bridge/flv/flv_to_rtsp.hpp"
 #include "bridge/flv/flv_to_ts.hpp"
+
+#include "bridge/ts/ts_to_hls.hpp"
 
 #include "recorder/flv_recorder.h"
 #include "recorder/ts_recorder.h"
@@ -47,7 +51,12 @@ Json::Value ObjViewer::to_json() {
     v["FlvToTs"] = ObjTracker<FlvToTs>::get_use_count();
     v["FlvToRtsp"] = ObjTracker<FlvToRtsp>::get_use_count();
 
-
+    // ts
+    v["TsMediaSource"] = ObjTracker<TsMediaSource>::get_use_count();
+    v["TsMediaSink"] = ObjTracker<TsMediaSink>::get_use_count();
+    // ts-bridge
+    v["TsToHls"] = ObjTracker<TsToHls>::get_use_count();
+    
     // recorder
     v["FlvRecorder"] = ObjTracker<FlvRecorder>::get_use_count();
     v["TsRecorder"] = ObjTracker<TsRecorder>::get_use_count();
