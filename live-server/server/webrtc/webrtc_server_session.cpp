@@ -70,8 +70,7 @@ void WebRtcServerSession::start_alive_checker() {
             boost::system::error_code ec;
             while (1) {
                 alive_timeout_timer_.expires_after(std::chrono::seconds(5));
-                co_await alive_timeout_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                co_await alive_timeout_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
                     co_return;
                 }
@@ -150,6 +149,7 @@ void WebRtcServerSession::start_process_recv_udp_msg() {
                 if (ec) {
                     break;
                 }
+
                 update_active_timestamp();
                 UDP_MSG_TYPE msg_type = detect_msg_type(udp_msg.get(), len);
                 if (UDP_MSG_DTLS == msg_type) {
@@ -158,7 +158,7 @@ void WebRtcServerSession::start_process_recv_udp_msg() {
                     }
                 } else if (UDP_MSG_RTP == msg_type) {
                     if (!co_await process_srtp_packet(std::move(udp_msg), len, sock, remote_ep)) {
-                        continue;
+                        co_return;
                     }
                 }
             }
@@ -877,7 +877,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_srtp_packet(
             co_return co_await webrtc_media_source_->on_video_packets(pkts);
         }
     }
-    co_return false;
+    co_return true;
 }
 
 bool WebRtcServerSession::find_key_frame(uint32_t timestamp, std::shared_ptr<RtpH264NALU> &nalu) {
