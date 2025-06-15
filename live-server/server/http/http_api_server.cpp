@@ -110,8 +110,11 @@ boost::asio::awaitable<void> HttpApiServer::get_obj_count(std::shared_ptr<HttpSe
     }
 
     ObjViewer obj_viewer;
+    Json::Value root;
     Json::Value v = obj_viewer.to_json();
-    std::string body = v.toStyledString();
+    root["code"] = 0;
+    root["data"] = v;
+    std::string body = root.toStyledString();
     bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
     if (!ret) {
         resp->close();
