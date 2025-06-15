@@ -111,6 +111,7 @@ namespace mms
     struct StunMsg
     {
         StunMsg() = default;
+        virtual ~StunMsg() = default;
         static bool isStunMsg(const uint8_t *data, size_t len);
         StunMsgHeader header;
         std::vector<std::unique_ptr<StunMsgAttr>> attrs;
@@ -147,7 +148,7 @@ namespace mms
         bool check_msg_integrity(uint8_t *data, size_t len, const std::string &pwd);
         bool check_finger_print(uint8_t *data, size_t len);
 
-        const std::optional<StunUsernameAttr> &get_username_attr() const
+        const std::optional<StunUsernameAttr> get_username_attr() const
         {
             return username_attr;
         }

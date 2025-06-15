@@ -6,6 +6,8 @@
 
 #include "server/udp/udp_server.hpp"
 #include "srtp/srtp_session.h"
+#include "server/webrtc/webrtc_server.hpp"
+#include "server/webrtc/dtls/dtls_cert.h"
 
 
 namespace mms {
@@ -42,6 +44,8 @@ public:
                                          std::shared_ptr<HttpResponse> resp);
     boost::asio::awaitable<void> on_whep(std::shared_ptr<HttpRequest> req,
                                          std::shared_ptr<HttpResponse> resp);
+    boost::asio::awaitable<void> on_whep_patch(std::shared_ptr<HttpRequest> req,
+                                               std::shared_ptr<HttpResponse> resp);
     static std::shared_ptr<DtlsCert> get_default_dtls_cert();
 
 private:
@@ -75,6 +79,7 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<WebRtcServerSession>> endpoint_session_map_;
     std::multimap<WebRtcServerSession *, uint64_t> session_endpoint_map_;
     std::unordered_map<std::string, std::shared_ptr<WebRtcServerSession>> ufrag_session_map_;
+    std::unordered_map<std::string, std::shared_ptr<WebRtcServerSession>> etag_session_map_;
 
     static std::shared_ptr<DtlsCert> default_dtls_cert_;
 };

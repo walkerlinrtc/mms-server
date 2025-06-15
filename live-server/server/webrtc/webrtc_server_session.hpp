@@ -57,6 +57,10 @@ public:
         return worker_;
     }
 
+    void set_etag(const std::string & etag) {
+        etag_ = etag;
+    }
+
     const std::string & get_local_ice_ufrag() const {
         return local_ice_ufrag_;
     }
@@ -107,6 +111,7 @@ public:
 public:
     boost::asio::awaitable<bool> process_whip_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
     boost::asio::awaitable<bool> process_whep_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
+    boost::asio::awaitable<bool> process_whep_patch_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
     void update_active_timestamp();
 private:
     void start_alive_checker();
@@ -122,11 +127,12 @@ private:
     void start_rtcp_sender();
     boost::asio::awaitable<void> stop_rtcp_sender();
 
-    boost::asio::awaitable<bool> process_stun_binding_req(std::shared_ptr<StunMsg> stun_msg, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
+    boost::asio::awaitable<int32_t> process_stun_binding_req(std::shared_ptr<StunMsg> stun_msg, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
     void on_dtls_handshake_done(SRTPProtectionProfile profile, const std::string & srtp_recv_key, const std::string & srtp_send_key);
     bool find_key_frame(uint32_t timestamp, std::shared_ptr<RtpH264NALU> & nalu);
 private:
     ThreadWorker *worker_;
+    std::string etag_;
     std::string local_ip_;
     uint16_t udp_port_;
 

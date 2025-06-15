@@ -12,6 +12,8 @@ namespace mms
         {
         }
 
+        virtual ~StunMsgAttr() = default;
+        
         virtual size_t size()
         {
             return 4;

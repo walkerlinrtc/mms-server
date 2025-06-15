@@ -119,7 +119,7 @@ bool HttpLiveServer::register_route() {
         return false;
     }
 
-    ret = on_post("/:app/:stream/whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_post("/:app/:stream.whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
             co_await webrtc_server_->on_whip(req, resp);
@@ -132,13 +132,53 @@ bool HttpLiveServer::register_route() {
         return false;
     }
 
-    ret = on_post("/:app/:stream/whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_post("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
             co_await webrtc_server_->on_whep(req, resp);
         } else {
             resp->close();
         }
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_patch("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        if (webrtc_server_) {
+            co_await webrtc_server_->on_whep_patch(req, resp);
+        } else {
+            resp->close();
+        }
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_options("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)req;
+        (void)session;
+        resp->add_header("Access-Control-Allow-Origin", "*");
+        resp->add_header("Access-Control-Allow-Methods", "POST, PATCH, OPTIONS, GET, DELETE, HEAD");
+        resp->add_header("Access-Control-Max-Age", "86400");
+        std::vector<std::string> vheaders;
+        auto & headers = req->get_headers();
+        for (auto & p : headers) {
+            vheaders.push_back(p.first);
+        }
+        vheaders.push_back("Content-Type");
+        vheaders.push_back("If-Match");
+        
+        std::string allow_headers = boost::join(vheaders, ",");
+        resp->add_header("Access-Control-Allow-Headers", allow_headers);
+        if (!(co_await resp->write_header(204, "No Content"))) {
+            resp->close();
+            co_return;
+        }
+        resp->close();
         co_return;
     });
     if (!ret) {

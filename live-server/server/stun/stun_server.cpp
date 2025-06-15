@@ -25,6 +25,7 @@ boost::asio::awaitable<void> StunServer::on_udp_socket_recv(UdpSocket *sock, std
     }
 
     switch(stun_msg.type()) {
+        // 这里处理，只是为了让客户端可以获取到它的外网ip地址和端口
         case STUN_BINDING_REQUEST : {
             spdlog::debug("process stun binding request");
             co_await process_bind_msg(stun_msg, sock, remote_ep);
@@ -63,6 +64,8 @@ boost::asio::awaitable<void> StunServer::process_bind_msg(StunMsg &msg, UdpSocke
     if (!(co_await sock->send_to(data.get(), size, remote_ep)))
     { // todo log error
         spdlog::error("send bind response failed");
+    } else {
+        spdlog::info("process_bind_msg ok");
     }
     co_return;
 }

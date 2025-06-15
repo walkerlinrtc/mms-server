@@ -195,12 +195,9 @@ void RtmpServerSession::stop() {
 
             if (rtmp_media_sink_) {  // 如果是播放的session
                 auto play_app = std::static_pointer_cast<PlayApp>(get_app());
-                std::string source_name;
                 if (play_app) {
                     auto publish_app = play_app->get_publish_app();
-                    source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + stream_name_;
-                    auto s = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(),
-                                                                      get_stream_name());
+                    auto s = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
                     if (s) {
                         s->remove_media_sink(rtmp_media_sink_);
                     }

@@ -101,7 +101,7 @@ namespace mms
 
         int32_t decode(uint8_t *data, size_t len);
 
-        const std::string &get_local_user_name() const
+        const std::string & get_local_user_name() const
         {
             return local_user_name_;
         }

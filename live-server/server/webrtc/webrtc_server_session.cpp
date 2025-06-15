@@ -36,7 +36,7 @@ using namespace boost::asio::experimental::awaitable_operators;
 #include "server/stun/protocol/stun_mapped_address_attr.h"
 #include "server/stun/protocol/stun_msg.h"
 #include "spdlog/spdlog.h"
-#include "webrtc_media_source.hpp"
+#include "core/webrtc_media_source.hpp"
 #include "webrtc_server.hpp"
 #include "webrtc_server_session.hpp"
 
@@ -418,8 +418,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whip_req(std::shared_p
 
     auto self(std::static_pointer_cast<StreamSession>(shared_from_this()));
     is_publisher_ = true;
-    webrtc_media_source_ =
-        std::make_shared<WebRtcMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
+    webrtc_media_source_ = std::make_shared<WebRtcMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
     std::string answer_sdp = webrtc_media_source_->process_publish_sdp(sdp);
     if (answer_sdp.empty()) {
         CORE_ERROR("process publish sdp failed");
@@ -464,6 +463,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
             domain = domain.substr(0, pos);
         }
     }
+
     auto app_name = req->get_path_param("app");
     auto stream_name = req->get_path_param("stream");
     set_session_info(domain, app_name, stream_name);
@@ -487,8 +487,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
 
     auto self(std::static_pointer_cast<WebRtcServerSession>(shared_from_this()));
     // 1.本机查找
-    auto source =
-        SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+    auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
     if (source) {
         spdlog::info("find source from local");
     }
@@ -496,6 +495,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
     if (!source) {  // 2.本地配置查找外部回源
         source = co_await publish_app->find_media_source(self);
     }
+
     // 3.到media center中心查找
     // if (!source) {
     //     source = co_await MediaCenterManager::get_instance().find_and_create_pull_media_source(self);
@@ -505,12 +505,13 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         // 真找不到源流了，应该是没在播
         co_return false;
     }
+    CORE_DEBUG("find media source for whep");
 
     std::shared_ptr<MediaBridge> bridge;
     if (source->get_media_type() != "webrtc{rtp[es]}") {
-        bridge = source->get_or_create_bridge(source->get_media_type() + "-webrtc{rtp[es]}", publish_app,
-                                              stream_name_);
+        bridge = source->get_or_create_bridge(source->get_media_type() + "-webrtc{rtp[es]}", publish_app, stream_name_);
         if (!bridge) {
+            CORE_DEBUG("create for {}-to-webrtc failed", source->get_media_type());
             co_return false;
         }
         source = bridge->get_media_source();
@@ -518,8 +519,16 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         spdlog::info("source is webrtc{rtp[es]}");
     }
 
+    if (!source) {
+        co_return false;
+    }
+
+    auto webrtc_media_source = std::static_pointer_cast<WebRtcMediaSource>(source);
     is_player_ = true;
     rtp_media_sink_ = std::make_shared<RtpMediaSink>(get_worker());
+    rtp_media_sink_->on_close([this, self]() {
+        stop();
+    });
 
     rtp_media_sink_->set_video_pkts_cb(
         [this](std::vector<std::shared_ptr<RtpPacket>> rtp_pkts) -> boost::asio::awaitable<bool> {
@@ -536,13 +545,12 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         });
 
     start_process_recv_udp_msg();
-    source->add_media_sink(rtp_media_sink_);
+    webrtc_media_source->add_media_sink(rtp_media_sink_);
     // todo: 处理桥接的问题
-    auto webrtc_source = std::static_pointer_cast<WebRtcMediaSource>(source);
     int32_t try_get_play_sdp_count = 0;
     std::shared_ptr<Sdp> play_sdp;
     while (1) {
-        play_sdp = webrtc_source->get_play_offer_sdp();
+        play_sdp = webrtc_media_source->get_play_offer_sdp();
         if (play_sdp) {
             break;
         }
@@ -554,8 +562,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
 
         boost::system::error_code ec;
         play_sdp_timeout_timer_.expires_after(std::chrono::milliseconds(10));
-        co_await play_sdp_timeout_timer_.async_wait(
-            boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+        co_await play_sdp_timeout_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
         if (ec) {
             break;
         }
@@ -575,82 +582,66 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whep_req(std::shared_p
         media.set_ice_pwd(IcePwd(local_ice_pwd_));
     }
 
-    CORE_DEBUG("send play offer sdp:{}", play_sdp->to_string());
+    // CORE_DEBUG("send play offer sdp:{}", play_sdp->to_string());
+    auto body = play_sdp->to_string();
+    resp->add_header("Access-Control-Allow-Origin", "*");
     resp->add_header("Content-Type", "application/sdp");
+    resp->add_header("Access-Control-Expose-Headers", "ETag");
+    resp->add_header("ETag", "\"" + get_local_ice_ufrag() + "\"");
+    resp->add_header("Content-Length", std::to_string(body.size()));
     if (!co_await resp->write_header(201, "Created")) {
         co_return false;
     }
 
-    if (!co_await resp->write_data(play_sdp->to_string())) {
+    if (!co_await resp->write_data(body)) {
+        resp->close();
         co_return false;
     }
+    resp->close();
     co_return true;
 }
 
-// boost::asio::awaitable<bool> WebRtcServerSession::process_play_answer(const Json::Value & root)
-// {
-//     if (!root.isMember("app") || !root["app"].isString())
-//     {
-//         co_return false;
-//     }
+boost::asio::awaitable<bool> WebRtcServerSession::process_whep_patch_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)
+{
+    std::string domain = req->get_query_param("domain");
+    if (domain.empty()) {
+        domain = req->get_header("Host");
+        auto pos = domain.find(":");
+        if (pos != std::string::npos) {
+            domain = domain.substr(0, pos);
+        }
+    }
+    auto app_name = req->get_path_param("app");
+    auto stream_name = req->get_path_param("stream");
 
-//     if (!root.isMember("stream") || !root["stream"].isString())
-//     {
-//         co_return false;
-//     }
+    auto ret = remote_sdp_.parse(req->get_body());
+    if (0 != ret) {
+        co_return false;
+    }
 
-//     const Json::Value &msg = root["message"];
-//     if (!msg.isMember("type") || !msg["type"].isString())
-//     {
-//         spdlog::error("msg type is not string, close session");
-//         co_return false;
-//     }
+    auto remote_ice_ufrag = remote_sdp_.get_ice_ufrag();
+    if (!remote_ice_ufrag)
+    {
+        co_return false;
+    }
+    remote_ice_ufrag_ = remote_ice_ufrag.value().getUfrag();
 
-//     const std::string &type = msg["type"].asString();
-//     if ("answer" != type)
-//     {
-//         co_return false;
-//     }
+    auto remote_ice_pwd = remote_sdp_.get_ice_pwd();
+    if (!remote_ice_pwd)
+    {
+        co_return false;
+    }
+    
+    remote_ice_pwd_ = remote_ice_pwd.value().getPwd();
+    resp->add_header("Access-Control-Allow-Origin", "*");
+    if (!co_await resp->write_header(204, "No Content")) {
+        resp->close();
+        co_return false;
+    }
 
-//     if (!msg.isMember("sdp") || !msg["sdp"].isString())
-//     {
-//         spdlog::error("no sdp info, close session");
-//         co_return false;
-//     }
-
-//     if (!req_) {
-//         co_return false;
-//     }
-
-//     std::string domain = req->get_header("Host");
-//     const std::string &app = root["app"].asString();
-//     const std::string &stream = root["stream"].asString();
-
-//     auto ret = remote_sdp_.parse(msg["sdp"].asString());
-//     if (0 != ret)
-//     {
-//         co_return false;
-//     }
-
-//     auto remote_ice_ufrag = remote_sdp_.get_ice_ufrag();
-//     if (!remote_ice_ufrag)
-//     {
-//         co_return false;
-//     }
-//     remote_ice_ufrag_ = remote_ice_ufrag.value().getUfrag();
-
-//     auto remote_ice_pwd = remote_sdp_.get_ice_pwd();
-//     if (!remote_ice_pwd)
-//     {
-//         co_return false;
-//     }
-//     remote_ice_pwd_ = remote_ice_pwd.value().getPwd();
-
-//     set_session_info(domain, app, stream);
-//     auto source = SourceManager::get_instance().get_source(get_session_name());
-//     CORE_DEBUG("get play answer:{}", root.toStyledString());
-//     co_return true;
-// }
+    resp->close();
+    co_return true;
+}
 
 boost::asio::awaitable<bool> WebRtcServerSession::process_stun_packet(
     std::shared_ptr<StunMsg> stun_msg, std::unique_ptr<uint8_t[]> data, size_t len, UdpSocket *sock,
@@ -666,17 +657,22 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_stun_packet(
         co_return false;
     }
 
+
     switch (stun_msg->type()) {
         case STUN_BINDING_REQUEST: {
             // 返回响应
             auto ret = co_await process_stun_binding_req(stun_msg, sock, remote_ep);
-            co_return ret;
+            if (ret != 0) {
+                co_return false;
+            }
+            spdlog::info("process_stun_binding_req ok");
+            co_return true;
         }
     }
     co_return false;
 }
 
-boost::asio::awaitable<bool> WebRtcServerSession::process_stun_binding_req(
+boost::asio::awaitable<int32_t> WebRtcServerSession::process_stun_binding_req(
     std::shared_ptr<StunMsg> stun_msg, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep) {
     StunBindingResponseMsg binding_resp(*stun_msg);
 
@@ -687,22 +683,21 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_stun_binding_req(
     // 校验完整性
     auto req_username_attr = stun_msg->get_username_attr();
     if (!req_username_attr) {
-        co_return false;
+        co_return -1;
     }
 
     const std::string &local_user_name = req_username_attr.value().get_local_user_name();
     if (local_user_name.empty()) {
-        co_return false;
+        co_return -2;
     }
 
     const std::string &remote_user_name = req_username_attr.value().get_remote_user_name();
     if (remote_user_name.empty()) {
-        co_return false;
+        co_return -3;
     }
 
-    if (remote_user_name != remote_ice_ufrag_)  // 用户名与sdp中给的不一致
-    {
-        co_return false;
+    if (remote_user_name != remote_ice_ufrag_) {
+        co_return -4;
     }
 
     StunUsernameAttr resp_username_attr(local_user_name, remote_user_name);
@@ -711,19 +706,21 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_stun_binding_req(
     std::unique_ptr<uint8_t[]> data = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
     int32_t consumed = binding_resp.encode(data.get(), size, true, local_ice_pwd_, true);
     if (consumed < 0) {  // todo:add log
-        co_return false;
+        co_return -5;
     }
 
     if (!(co_await sock->send_to(data.get(), size, remote_ep))) {  // todo log error
-        co_return false;
+        co_return -6;
     }
+    
     peer_ep = remote_ep;
-    co_return true;
+    co_return 0;
 }
 
-boost::asio::awaitable<bool> WebRtcServerSession::process_dtls_packet(
-    std::unique_ptr<uint8_t[]> recv_data, size_t len, UdpSocket *sock,
-    const boost::asio::ip::udp::endpoint &remote_ep) {
+boost::asio::awaitable<bool> WebRtcServerSession::process_dtls_packet(std::unique_ptr<uint8_t[]> recv_data, 
+                                                                      size_t len, 
+                                                                      UdpSocket *sock,
+                                                                      const boost::asio::ip::udp::endpoint &remote_ep) {
     co_return co_await dtls_boringssl_session_->process_dtls_packet(recv_data.get(), len, sock, remote_ep);
 }
 
@@ -973,25 +970,29 @@ void WebRtcServerSession::stop() {
             play_sdp_timeout_timer_.cancel();
 
             if (rtp_media_sink_) {
-                auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(),
-                                                                       get_stream_name());
-                if (source) {
-                    source->remove_media_sink(rtp_media_sink_);
-                    rtp_media_sink_->close();
-                    rtp_media_sink_.reset();
+                rtp_media_sink_->on_close({});
+                rtp_media_sink_->set_video_pkts_cb({});
+                rtp_media_sink_->set_audio_pkts_cb({});     
+                rtp_media_sink_->close();
+                auto play_app = std::static_pointer_cast<PlayApp>(get_app());
+                if (play_app) {
+                    auto publish_app = play_app->get_publish_app();
+                    auto webrtc_media_source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
+                    if (webrtc_media_source) {
+                        webrtc_media_source->remove_media_sink(rtp_media_sink_);
+                    }
                 }
+                rtp_media_sink_ = nullptr;
             }
 
             if (webrtc_media_source_) {
-                SourceManager::get_instance().remove_source(get_domain_name(), get_app_name(),
-                                                            get_stream_name());
+                SourceManager::get_instance().remove_source(get_domain_name(), get_app_name(), get_stream_name());
                 webrtc_media_source_->close();
-                webrtc_media_source_.reset();
+                webrtc_media_source_ = nullptr;
             }
 
             if (close_handler_) {
-                close_handler_->on_webrtc_session_close(
-                    std::static_pointer_cast<WebRtcServerSession>(shared_from_this()));
+                close_handler_->on_webrtc_session_close(std::static_pointer_cast<WebRtcServerSession>(shared_from_this()));
             }
 
             CORE_DEBUG("close webrtc sever session done");

@@ -130,7 +130,6 @@ boost::asio::awaitable<void> HttpServerSession::on_http_request(std::shared_ptr<
         reqs_.push_back(req);
         co_return;
     }
-    
     curr_req_ = req;
     co_await process_one_req(curr_req_);
     co_return;

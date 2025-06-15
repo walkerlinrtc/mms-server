@@ -15,6 +15,7 @@
 #include "rtmp/rtmp_to_ts.hpp"
 #include "rtmp/rtmp_to_rtsp.hpp"
 #include "rtmp/rtmp_to_m4s.hpp"
+#include "rtmp/rtmp_to_webrtc.hpp"
 
 #include "rtsp/rtsp_to_flv.hpp"
 #include "rtsp/rtsp_to_rtmp.hpp"
@@ -51,6 +52,8 @@ std::shared_ptr<MediaBridge> BridgeFactory::create_bridge(ThreadWorker *worker,
         return std::make_shared<RtmpToTs>(worker, app, origin_source, domain_name, app_name, stream_name);
     } else if (id == "rtmp-m4s") {
         return std::make_shared<RtmpToM4s>(worker, app, origin_source, domain_name, app_name, stream_name);
+    } else if (id == "rtmp-webrtc{rtp[es]}") {
+        return std::make_shared<RtmpToWebRtc>(worker, app, origin_source, domain_name, app_name, stream_name);
     } else if (id == "m4s-mpd") {
         return std::make_shared<M4sToMpd>(worker, app, origin_source, domain_name, app_name, stream_name);
     } else if (id == "ts-hls" && app->get_conf()->bridge_config().rtmp_to_hls()) {

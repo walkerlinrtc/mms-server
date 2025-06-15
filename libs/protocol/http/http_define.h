@@ -12,6 +12,7 @@ namespace mms {
 #define HTTP_METHOD_DELETE      "DELETE"
 #define HTTP_METHOD_TRACE       "TRACE"
 #define HTTP_METHOD_CONNECT     "CONNECT"
+#define HTTP_METHOD_PATCH       "PATCH"
 
 enum HTTP_METHOD {
     CONNECT     = 0,
@@ -22,6 +23,7 @@ enum HTTP_METHOD {
     DELETE      = 5,
     TRACE       = 6,
     OPTIONS     = 7,
+    PATCH       = 8,
 };
 
 #define HTTP_CRLF               "\r\n"

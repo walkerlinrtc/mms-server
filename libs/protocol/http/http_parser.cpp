@@ -1,5 +1,6 @@
 #include <boost/asio/awaitable.hpp>
 #include "http_parser.hpp"
+#include "spdlog/spdlog.h"
 
 using namespace mms;
 
@@ -30,7 +31,12 @@ boost::asio::awaitable<int32_t> HttpParser::read(const std::string_view & buf) {
                         state_ = HTTP_STATE_WAIT_REQUEST_LINE;
                         co_await req_cb_(http_req_);
                         co_return pos + 2;
-                    } else if (http_req_->get_method() == POST) {
+                    } else {
+                        if (http_req_->get_header("Content-Length") == "") {
+                            co_await req_cb_(http_req_);
+                            co_return pos + 2;
+                        } 
+
                         state_ = HTTP_STATE_REQUEST_BODY;
                         co_return pos + 2;
                     }
@@ -48,13 +54,15 @@ boost::asio::awaitable<int32_t> HttpParser::read(const std::string_view & buf) {
         }
         case HTTP_STATE_REQUEST_BODY: {
             try {
-                if (!http_req_->parse_body(buf.data(), buf.size())) {
+                //todo 这里要考虑多些
+                auto consumed = http_req_->parse_body(buf.data(), buf.size());
+                if (consumed < 0) {
                     state_ = HTTP_STATE_REQUEST_ERROR;
                     co_return -5;
                 }
-                co_await req_cb_(std::move(http_req_));//todo 这里要考虑多些
+                co_await req_cb_(std::move(http_req_));
                 state_ = HTTP_STATE_WAIT_REQUEST_LINE;
-                co_return buf.size();
+                co_return consumed;
             } catch(std::exception & e) {
                 co_return -4;
             }

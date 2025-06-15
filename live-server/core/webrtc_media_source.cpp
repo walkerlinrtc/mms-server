@@ -8,8 +8,8 @@
 #include "bridge/bridge_factory.hpp"
 #include "bridge/media_bridge.hpp"
 #include "base/utils/utils.h"
-#include "dtls/dtls_cert.h"
-#include "webrtc_server_session.hpp"
+#include "server/webrtc/dtls/dtls_cert.h"
+#include "server/webrtc/webrtc_server_session.hpp"
 #include "webrtc_media_source.hpp"
 #include "codec/opus/opus_codec.hpp"
 

@@ -218,7 +218,9 @@ boost::asio::awaitable<void> HttpApiServer::get_app_streams(std::shared_ptr<Http
         Json::Value jstreams;
         for (auto it = streams.begin(); it != streams.end(); it++) {
             auto v = co_await it->second->sync_to_json();
-            jstreams.append(*v);
+            if (v) {
+                jstreams.append(*v);
+            }
         }
         root["data"] = jstreams;
         root["code"] = 0;

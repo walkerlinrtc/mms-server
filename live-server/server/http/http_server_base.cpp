@@ -70,6 +70,10 @@ bool HttpServerBase::on_options(const std::string & path, const HTTP_HANDLER & h
     return options_route_tree_.add_route(path, handler);
 }
 
+bool HttpServerBase::on_patch(const std::string & path, const HTTP_HANDLER & handler) {
+    return patch_route_tree_.add_route(path, handler);
+}
+
 bool HttpServerBase::on_static_fs(const std::string & path, const std::string & root_path) {
     if (!boost::ends_with(path, "/*")) {
         CORE_ERROR("create static fs failed, path:{} is not end with *", path);
@@ -140,8 +144,7 @@ boost::asio::awaitable<void> HttpServerBase::static_fs_handler(std::string root_
     co_return;
 }
 
-boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<HttpServerSession> session,                 std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
-    CORE_DEBUG("get new http request, path:{}", req->get_path());
+boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
     switch(req->get_method()) {
         case GET : {
             if (is_websocket_req(req)) {
@@ -188,6 +191,17 @@ boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<Http
         }
         case POST : {
             auto handler = post_route_tree_.get_route(req->get_path(), req->path_params());
+            if (!handler.has_value()) {//404
+                resp->add_header("Connection", "close");
+                co_await resp->write_header(404, "Not Found");
+                resp->close();
+            } else {
+                co_await handler.value()(session, req, resp);
+            }
+            break;
+        }
+        case PATCH : {
+            auto handler = patch_route_tree_.get_route(req->get_path(), req->path_params());
             if (!handler.has_value()) {//404
                 resp->add_header("Connection", "close");
                 co_await resp->write_header(404, "Not Found");

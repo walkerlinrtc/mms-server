@@ -16,6 +16,7 @@ public:
     const std::string & get_path() const;
     void set_path(const std::string & path);
     const std::string & get_header(const std::string & k) const;
+    const std::unordered_map<std::string, std::string> & get_headers() const;
     void add_header(const std::string & k, const std::string & v);
     const std::string & get_query_param(const std::string & k) const;
     const std::unordered_map<std::string, std::string> & get_query_params() const;
@@ -35,12 +36,13 @@ public:
     std::string to_req_string() const;
     bool parse_request_line(const char *buf, size_t len);
     bool parse_header(const char *buf, size_t len);
-    bool parse_body(const char *buf, size_t len);
+    int32_t parse_body(const char *buf, size_t len);
 protected:
     std::unordered_map<HTTP_METHOD, std::string> method_map_ = {
         {GET, "GET"},
         {POST, "POST"},
         {HEAD, "HEAD"},
+        {PATCH, "PATCH"},
         {OPTIONS, "OPTIONS"},
         {PUT, "PUT"},
         {DELETE, "DELETE"}
