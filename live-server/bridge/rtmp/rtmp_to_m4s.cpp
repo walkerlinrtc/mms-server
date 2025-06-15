@@ -13,7 +13,6 @@
 #include <boost/asio/detached.hpp>
 #include <boost/asio/redirect_error.hpp>
 #include <boost/asio/use_awaitable.hpp>
-#include <fstream>
 #include <string_view>
 
 #include "app/publish_app.h"
@@ -505,7 +504,6 @@ void RtmpToM4s::reap_audio_seg(int64_t dts) {
 
 bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) {
     (void)video_pkt;
-    std::ofstream of("./video-init.mp4", std::ios::out | std::ios::binary);
     H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
 
     init_video_mp4_seg_ = std::make_shared<Mp4Segment>();
@@ -616,17 +614,13 @@ bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
     video_moov_->size();
     n = NetBuffer(init_video_mp4_seg_->alloc_buffer(video_moov_->size()));
     video_moov_->encode(n);
-    auto used_buf = init_video_mp4_seg_->get_used_buf();
-    of.write(used_buf.data(), used_buf.size());
-    of.close();
+
     init_video_mp4_seg_->set_filename("video-init.m4s");
     mp4_media_source_->on_video_init_segment(init_video_mp4_seg_);
     return true;
 }
 
 bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) {
-    std::ofstream of("./audio-init.mp4", std::ios::out | std::ios::binary);
-
     init_audio_mp4_seg_ = std::make_shared<Mp4Segment>();
     FtypBox ftyp;
     ftyp.major_brand_ = Mp4BoxBrandISO5;
@@ -741,9 +735,7 @@ bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
     video_moov_->size();
     n = NetBuffer(init_audio_mp4_seg_->alloc_buffer(video_moov_->size()));
     video_moov_->encode(n);
-    auto used_buf = init_audio_mp4_seg_->get_used_buf();
-    of.write(used_buf.data(), used_buf.size());
-    of.close();
+
     init_audio_mp4_seg_->set_filename("audio-init.m4s");
     mp4_media_source_->on_audio_init_segment(init_audio_mp4_seg_);
     return true;
