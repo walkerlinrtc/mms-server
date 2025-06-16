@@ -26,13 +26,13 @@ DnsService::~DnsService() {}
 
 void DnsService::start() {
     worker_.start();
-    refresh_timer_ = std::make_unique<boost::asio::deadline_timer>(worker_.get_io_context());
+    refresh_timer_ = std::make_unique<boost::asio::steady_timer>(worker_.get_io_context());
     boost::asio::co_spawn(
         worker_.get_io_context(),
         [this]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
             while (1) {
-                refresh_timer_->expires_from_now(boost::posix_time::milliseconds(resolve_interval_ms_));
+                refresh_timer_->expires_after(std::chrono::milliseconds(resolve_interval_ms_));
                 co_await refresh_timer_->async_wait(
                     boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (boost::asio::error::operation_aborted == ec) {
