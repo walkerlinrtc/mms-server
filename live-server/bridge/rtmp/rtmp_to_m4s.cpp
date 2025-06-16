@@ -527,6 +527,20 @@ void RtmpToM4s::reap_audio_seg(int64_t dts) {
 
 bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) {
     (void)video_pkt;
+    if (!video_codec_) {
+        return false;
+    }
+
+    if (video_codec_->get_codec_type() == CODEC_H264) {
+        return generate_h264_video_init_seg();
+    } else if (video_codec_->get_codec_type() == CODEC_HEVC) {
+        return generate_h265_video_init_seg();
+    }
+
+    return false;
+}
+
+bool RtmpToM4s::generate_h264_video_init_seg() {
     H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
 
     init_video_mp4_seg_ = std::make_shared<Mp4Segment>();
@@ -644,7 +658,133 @@ bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
     return true;
 }
 
+bool RtmpToM4s::generate_h265_video_init_seg() {
+    // HevcCodec *h265_codec = ((HevcCodec *)video_codec_.get());
+
+    // init_video_mp4_seg_ = std::make_shared<Mp4Segment>();
+    // FtypBox ftyp;
+    // ftyp.major_brand_ = Mp4BoxBrandISO5;
+    // ftyp.minor_version_ = 512;
+    // ftyp.compatible_brands_.push_back(Mp4BoxBrandDASH);
+    // ftyp.compatible_brands_.push_back(Mp4BoxBrandISO6);
+    // ftyp.compatible_brands_.push_back(Mp4BoxBrandMP41);
+    // size_t s = ftyp.size();
+    // NetBuffer n(init_video_mp4_seg_->alloc_buffer(s));
+    // ftyp.encode(n);
+
+    // video_moov_ = std::make_shared<MoovBox>();
+    // std::shared_ptr<MvhdBox> mvhd = std::make_shared<MvhdBox>();
+    // mvhd->creation_time_ = time(NULL) + 2082844800;
+    // mvhd->timescale_ = 1000;
+    // mvhd->duration_ = 0;
+    // mvhd->next_track_ID_ = video_track_ID_ + 1;
+    // video_moov_->add_box(mvhd);
+    // {
+    //     // trak
+    //     auto trak = std::make_shared<TrakBox>();
+    //     video_moov_->add_box(trak);
+    //     // tkhd
+    //     auto tkhd = std::make_shared<TkhdBox>(0, 0x03);
+    //     tkhd->track_ID_ = video_track_ID_;
+    //     tkhd->duration_ = 0;
+    //     uint32_t w, h;
+    //     h265_codec->get_wh(w, h);
+    //     tkhd->width_ = (w << 16);
+    //     tkhd->height_ = (h << 16);
+    //     trak->set_tkhd(tkhd);
+    //     // mdia
+    //     auto mdia = std::make_shared<MdiaBox>();
+    //     trak->set_mdia(mdia);
+    //     {
+    //         // mdhd
+    //         auto mdhd = std::make_shared<MdhdBox>();
+    //         mdhd->timescale_ = 1000;
+    //         mdhd->duration_ = 0;
+    //         mdhd->set_language0('u');
+    //         mdhd->set_language1('n');
+    //         mdhd->set_language2('d');
+    //         mdia->set_mdhd(mdhd);
+    //         // hdlr
+    //         auto hdlr = std::make_shared<HdlrBox>();
+    //         hdlr->handler_type_ = HANDLER_TYPE_VIDE;
+    //         hdlr->name_ = "VideoHandler";
+    //         mdia->set_hdlr(hdlr);
+    //         // minf
+    //         auto minf = std::make_shared<MinfBox>();
+    //         {
+    //             auto vmhd = std::make_shared<VmhdBox>();
+    //             minf->add_box(vmhd);
+    //             auto dinf = std::make_shared<DinfBox>();
+    //             minf->add_box(dinf);
+    //             {
+    //                 auto dref = std::make_shared<DrefBox>();
+    //                 auto url = std::make_shared<UrlBox>();
+    //                 // url->location_ = "same file";
+    //                 dref->entries_.push_back(url);
+    //                 dinf->set_dref(dref);
+    //             }
+
+    //             auto stbl = std::make_shared<StblBox>();
+    //             {
+    //                 auto stts = std::make_shared<SttsBox>();
+    //                 stbl->add_box(stts);
+    //                 auto stsc = std::make_shared<StscBox>();
+    //                 stbl->add_box(stsc);
+    //                 auto stsz = std::make_shared<StszBox>();
+    //                 stbl->add_box(stsz);
+    //                 auto stco = std::make_shared<StcoBox>();
+    //                 stbl->add_box(stco);
+
+    //                 auto stsd = std::make_shared<StsdBox>();
+    //                 {
+    //                     auto avc1 = std::make_shared<VisualSampleEntry>(BOX_TYPE_AVC1);
+    //                     stsd->entries_.push_back(avc1);
+    //                     avc1->width_ = w;
+    //                     avc1->height_ = h;
+    //                     avc1->data_reference_index_ = 1;
+
+    //                     auto avcc = std::make_shared<AvccBox>();
+    //                     auto &avc_config = h264_codec->get_avc_configuration();
+    //                     auto avc_size = avc_config.size();
+    //                     std::string avc_raw_data;
+    //                     avc_raw_data.resize(avc_size);
+    //                     avc_config.encode((uint8_t *)avc_raw_data.data(), avc_raw_data.size());
+    //                     avcc->avc_config_ = avc_raw_data;
+    //                     avc1->set_avcc_box(avcc);
+    //                 }
+    //                 stbl->add_box(stsd);
+    //             }
+    //             minf->add_box(stbl);
+    //         }
+    //         mdia->set_minf(minf);
+    //     }
+    // }
+
+    // auto mvex = std::make_shared<MvexBox>();
+    // auto trex = std::make_shared<TrexBox>();
+    // trex->track_ID_ = video_track_ID_;
+    // trex->default_sample_description_index_ = 1;
+    // mvex->add_box(trex);
+    // video_moov_->add_box(mvex);
+
+    // video_moov_->size();
+    // n = NetBuffer(init_video_mp4_seg_->alloc_buffer(video_moov_->size()));
+    // video_moov_->encode(n);
+
+    // init_video_mp4_seg_->set_filename("video-init.m4s");
+    // mp4_media_source_->on_video_init_segment(init_video_mp4_seg_);
+    return true;
+}
+
 bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) {
+    if (!audio_codec_) {
+        return false;
+    }
+
+    if (audio_codec_->get_codec_type() != CODEC_AAC) {
+        return false;
+    }
+
     init_audio_mp4_seg_ = std::make_shared<Mp4Segment>();
     FtypBox ftyp;
     ftyp.major_brand_ = Mp4BoxBrandISO5;
@@ -766,6 +906,18 @@ bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
 }
 
 bool RtmpToM4s::generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt) {
+    if (video_codec_) {
+        if (video_codec_->get_codec_type() != CODEC_H264) {
+            return false;
+        }
+    }
+
+    if (audio_codec_) {
+        if (audio_codec_->get_codec_type() != CODEC_AAC) {
+            return false;
+        }
+    }
+
     H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
     AACCodec *aac_codec = ((AACCodec *)audio_codec_.get());
 

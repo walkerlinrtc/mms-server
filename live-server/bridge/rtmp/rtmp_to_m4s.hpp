@@ -47,6 +47,8 @@ private:
     bool process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt);
     bool process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt);
     bool generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt);
+    bool generate_h264_video_init_seg();
+    bool generate_h265_video_init_seg();
     bool generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt);
     bool generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt);
     
