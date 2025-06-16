@@ -192,8 +192,7 @@ void HttpLongM4sServerSession::stop() {
                 if (source) {
                     source->remove_media_sink(mp4_media_sink_);
                     mp4_media_sink_->on_close({});
-                    mp4_media_sink_->set_audio_init_segment_cb({});
-                    mp4_media_sink_->set_video_init_segment_cb({});
+                    mp4_media_sink_->set_combined_init_segment_cb({});
                     mp4_media_sink_->set_audio_mp4_segment_cb({});
                     mp4_media_sink_->set_video_mp4_segment_cb({});
                     mp4_media_sink_->close();

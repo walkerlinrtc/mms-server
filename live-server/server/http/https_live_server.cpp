@@ -10,6 +10,7 @@
 #include "http_flv_server_session.hpp"
 #include "http_mpd_server_session.hpp"
 #include "http_m4s_server_session.hpp"
+#include "http_long_m4s_server_session.hpp"
 
 #include "server/webrtc/webrtc_server.hpp"
 #include "config/config.h"
@@ -46,7 +47,6 @@ bool HttpsLiveServer::register_route() {
         co_return;
     });
     if (!ret) {
-        spdlog::error("register on_get /:app/:stream.flv, failed");
         return false;
     }
 
@@ -80,6 +80,16 @@ bool HttpsLiveServer::register_route() {
         return false;
     }
 
+    ret = on_get("/:app/:stream.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_long_m4s_session = std::make_shared<HttpLongM4sServerSession>(req, resp);
+        http_long_m4s_session->start();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
     ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_mpd_session = std::make_shared<HttpMpdServerSession>(req, resp);
@@ -100,7 +110,7 @@ bool HttpsLiveServer::register_route() {
         return false;
     }
 
-    ret = on_post("/:app/:stream/whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_post("/:app/:stream.whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
             co_await webrtc_server_->on_whip(req, resp);
@@ -113,7 +123,7 @@ bool HttpsLiveServer::register_route() {
         return false;
     }
 
-    ret = on_post("/:app/:stream/whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_post("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
             co_await webrtc_server_->on_whep(req, resp);
