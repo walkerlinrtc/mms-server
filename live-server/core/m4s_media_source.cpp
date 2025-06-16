@@ -60,6 +60,16 @@ bool M4sMediaSource::init() {
     return true;
 }
 
+bool M4sMediaSource::on_combined_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
+    combined_init_seg_.store(mp4_seg);
+    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    for (auto sink : sinks_) {
+        auto s = std::static_pointer_cast<M4sMediaSink>(sink);
+        s->recv_combined_init_segment(mp4_seg);
+    }
+    return true;
+}
+
 bool M4sMediaSource::on_audio_init_segment(std::shared_ptr<Mp4Segment> mp4_seg) {
     audio_init_seg_.store(mp4_seg);
     std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);

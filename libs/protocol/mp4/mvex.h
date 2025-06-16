@@ -16,14 +16,12 @@ public:
     int64_t encode(NetBuffer & buf) override;
     int64_t decode(NetBuffer & buf) override;
 public:
-    void set_trex(std::shared_ptr<TrexBox> trex) {
-        trex_ = trex;
-    }
-
-    std::shared_ptr<TrexBox> get_trex() {
-        return trex_;
+    void add_box(std::shared_ptr<Box> box) {
+        boxes_.push_back(box);
     }
 public:
-    std::shared_ptr<TrexBox> trex_;
+    std::vector<std::shared_ptr<Box>> find_box(Box::Type type);
+protected:
+    std::vector<std::shared_ptr<Box>> boxes_;
 };
 };

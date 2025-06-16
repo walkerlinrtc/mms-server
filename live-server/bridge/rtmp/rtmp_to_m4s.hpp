@@ -48,6 +48,7 @@ private:
     bool process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt);
     bool generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt);
     bool generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt);
+    bool generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt);
     
     bool process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt);
     bool process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt);
@@ -55,6 +56,7 @@ private:
     void reap_audio_seg(int64_t dts);
 private:
     int32_t get_nalus(uint8_t *data, int32_t len, std::list<std::string_view> & nalus);
+    void on_stream_ready();
 
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
     std::shared_ptr<M4sMediaSource> mp4_media_source_;
@@ -66,6 +68,7 @@ private:
     bool video_ready_ = false;
     bool has_audio_ = false;
     bool audio_ready_ = false;
+    bool stream_ready_ = false;
     std::shared_ptr<Codec> video_codec_;
     std::shared_ptr<Codec> audio_codec_;
     int32_t nalu_length_size_ = 4;
@@ -80,6 +83,7 @@ private:
 
     std::shared_ptr<Mp4Segment> init_video_mp4_seg_;
     std::shared_ptr<Mp4Segment> init_audio_mp4_seg_;
+    std::shared_ptr<Mp4Segment> combined_init_seg_;;
     
     std::vector<std::shared_ptr<RtmpMessage>> video_pkts_;
     int64_t video_bytes_ = 0;

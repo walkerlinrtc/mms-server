@@ -117,28 +117,16 @@ void HttpLongM4sServerSession::start() {
                 });
 
             mp4_media_sink_->on_close([this, self]() { stop(); });
-
-            mp4_media_sink_->set_audio_init_segment_cb([this, self](std::shared_ptr<Mp4Segment> seg) -> boost::asio::awaitable<bool> {
+            mp4_media_sink_->set_combined_init_segment_cb([this, self](std::shared_ptr<Mp4Segment> seg) -> boost::asio::awaitable<bool> {
                 boost::system::error_code ec;
                 co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&HttpLongM4sServerSession::send_fmp4_seg, this, seg),
                                                         boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
                     co_return false;
                 }
-                CORE_DEBUG("audio_init_segment_cb");
                 co_return true;
             });
 
-            mp4_media_sink_->set_video_init_segment_cb([this, self](std::shared_ptr<Mp4Segment> seg) -> boost::asio::awaitable<bool> {
-                boost::system::error_code ec;
-                co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&HttpLongM4sServerSession::send_fmp4_seg, this, seg),
-                                                        boost::asio::redirect_error(boost::asio::use_awaitable, ec));
-                if (ec) {
-                    co_return false;
-                }
-                CORE_DEBUG("video_init_segment_cb");
-                co_return true;
-            });
 
             mp4_media_sink_->set_audio_mp4_segment_cb([this, self](std::shared_ptr<Mp4Segment> seg) -> boost::asio::awaitable<bool> {
                 boost::system::error_code ec;
@@ -147,7 +135,6 @@ void HttpLongM4sServerSession::start() {
                 if (ec) {
                     co_return false;
                 }
-                CORE_DEBUG("audio_mp4_segment_cb");
                 co_return true;
             });
 
@@ -158,7 +145,6 @@ void HttpLongM4sServerSession::start() {
                 if (ec) {
                     co_return false;
                 }
-                CORE_DEBUG("video_mp4_segment_cb");
                 co_return true;
             });
 

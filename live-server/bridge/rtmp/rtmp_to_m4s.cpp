@@ -243,6 +243,13 @@ bool RtmpToM4s::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         return true;
     }
 
+    if (!stream_ready_) {
+        stream_ready_ = (metadata_ != nullptr) && (has_audio_?audio_ready_:true) && (has_video_?video_ready_:true);
+        if (stream_ready_) {
+            on_stream_ready();
+        }
+    }
+
     bool is_key = header.is_key_frame() && !header.is_seq_header();
     if (video_pkts_.size() <= 0 && !is_key) {  // 片段开始的帧，必须是关键帧
         return false;
@@ -263,6 +270,22 @@ bool RtmpToM4s::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     video_pkts_.push_back(video_pkt);
 
     return true;
+}
+
+void RtmpToM4s::on_stream_ready() {
+    if (has_video_) {
+        if (!video_header_) {
+            return;
+        }
+    }
+
+    if (has_audio_) {
+        if (!audio_header_) {
+            return;
+        }
+    }
+
+    generate_combined_init_seg(video_header_, audio_header_);
 }
 
 void RtmpToM4s::reap_video_seg(int64_t dts) {
@@ -609,7 +632,7 @@ bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
     auto trex = std::make_shared<TrexBox>();
     trex->track_ID_ = video_track_ID_;
     trex->default_sample_description_index_ = 1;
-    mvex->set_trex(trex);
+    mvex->add_box(trex);
     video_moov_->add_box(mvex);
 
     video_moov_->size();
@@ -730,7 +753,7 @@ bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
     auto trex = std::make_shared<TrexBox>();
     trex->track_ID_ = audio_track_ID_;
     trex->default_sample_description_index_ = 1;
-    mvex->set_trex(trex);
+    mvex->add_box(trex);
     video_moov_->add_box(mvex);
 
     video_moov_->size();
@@ -741,6 +764,192 @@ bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
     mp4_media_source_->on_audio_init_segment(init_audio_mp4_seg_);
     return true;
 }
+
+bool RtmpToM4s::generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt) {
+    H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
+    AACCodec *aac_codec = ((AACCodec *)audio_codec_.get());
+
+    combined_init_seg_ = std::make_shared<Mp4Segment>();
+
+    // 写入 ftyp box
+    FtypBox ftyp;
+    ftyp.major_brand_ = Mp4BoxBrandISO5;
+    ftyp.minor_version_ = 512;
+    ftyp.compatible_brands_ = {Mp4BoxBrandDASH, Mp4BoxBrandISO6, Mp4BoxBrandMP41};
+    size_t ftyp_size = ftyp.size();
+    NetBuffer n(combined_init_seg_->alloc_buffer(ftyp_size));
+    ftyp.encode(n);
+
+    // 构造 moov box
+    auto moov = std::make_shared<MoovBox>();
+    {
+        auto mvhd = std::make_shared<MvhdBox>();
+        mvhd->creation_time_ = time(NULL) + 2082844800;
+        mvhd->timescale_ = 1000;
+        mvhd->duration_ = 0;
+        mvhd->next_track_ID_ = std::max(video_track_ID_, audio_track_ID_) + 1;
+        moov->add_box(mvhd);
+    }
+
+    // 添加 video track
+    {
+        auto trak = std::make_shared<TrakBox>();
+        moov->add_box(trak);
+        auto tkhd = std::make_shared<TkhdBox>(0, 0x03);
+        tkhd->track_ID_ = video_track_ID_;
+        tkhd->duration_ = 0;
+        uint32_t w, h;
+        h264_codec->get_wh(w, h);
+        tkhd->width_ = (w << 16);
+        tkhd->height_ = (h << 16);
+        trak->set_tkhd(tkhd);
+
+        auto mdia = std::make_shared<MdiaBox>();
+        trak->set_mdia(mdia);
+        {
+            auto mdhd = std::make_shared<MdhdBox>();
+            mdhd->timescale_ = 1000;
+            mdhd->duration_ = 0;
+            mdhd->set_language0('u');
+            mdhd->set_language1('n');
+            mdhd->set_language2('d');
+            mdia->set_mdhd(mdhd);
+
+            auto hdlr = std::make_shared<HdlrBox>();
+            hdlr->handler_type_ = HANDLER_TYPE_VIDE;
+            hdlr->name_ = "VideoHandler";
+            mdia->set_hdlr(hdlr);
+
+            auto minf = std::make_shared<MinfBox>();
+            minf->add_box(std::make_shared<VmhdBox>());
+            auto dinf = std::make_shared<DinfBox>();
+            auto dref = std::make_shared<DrefBox>();
+            dref->entries_.push_back(std::make_shared<UrlBox>());
+            dinf->set_dref(dref);
+            minf->add_box(dinf);
+
+            auto stbl = std::make_shared<StblBox>();
+            stbl->add_box(std::make_shared<SttsBox>());
+            stbl->add_box(std::make_shared<StscBox>());
+            stbl->add_box(std::make_shared<StszBox>());
+            stbl->add_box(std::make_shared<StcoBox>());
+
+            auto stsd = std::make_shared<StsdBox>();
+            auto avc1 = std::make_shared<VisualSampleEntry>(BOX_TYPE_AVC1);
+            avc1->width_ = w;
+            avc1->height_ = h;
+            avc1->data_reference_index_ = 1;
+
+            auto avcc = std::make_shared<AvccBox>();
+            auto &avc_config = h264_codec->get_avc_configuration();
+            std::string avc_raw_data(avc_config.size(), '\0');
+            avc_config.encode((uint8_t *)avc_raw_data.data(), avc_raw_data.size());
+            avcc->avc_config_ = avc_raw_data;
+            avc1->set_avcc_box(avcc);
+            stsd->entries_.push_back(avc1);
+            stbl->add_box(stsd);
+
+            minf->add_box(stbl);
+            mdia->set_minf(minf);
+        }
+    }
+
+    // 添加 audio track
+    {
+        auto trak = std::make_shared<TrakBox>();
+        moov->add_box(trak);
+        auto tkhd = std::make_shared<TkhdBox>(0, 0x03);
+        tkhd->track_ID_ = audio_track_ID_;
+        tkhd->duration_ = 0;
+        tkhd->volume_ = 0x0100;
+        trak->set_tkhd(tkhd);
+
+        auto mdia = std::make_shared<MdiaBox>();
+        trak->set_mdia(mdia);
+        {
+            auto mdhd = std::make_shared<MdhdBox>();
+            mdhd->timescale_ = 1000;
+            mdhd->duration_ = 0;
+            mdhd->set_language0('u');
+            mdhd->set_language1('n');
+            mdhd->set_language2('d');
+            mdia->set_mdhd(mdhd);
+
+            auto hdlr = std::make_shared<HdlrBox>();
+            hdlr->handler_type_ = HANDLER_TYPE_SOUN;
+            hdlr->name_ = "SoundHandler";
+            mdia->set_hdlr(hdlr);
+
+            auto minf = std::make_shared<MinfBox>();
+            auto dinf = std::make_shared<DinfBox>();
+            auto dref = std::make_shared<DrefBox>();
+            dref->entries_.push_back(std::make_shared<UrlBox>());
+            dinf->set_dref(dref);
+            minf->add_box(dinf);
+
+            auto stbl = std::make_shared<StblBox>();
+            stbl->add_box(std::make_shared<SttsBox>());
+            stbl->add_box(std::make_shared<StscBox>());
+            stbl->add_box(std::make_shared<StszBox>());
+            stbl->add_box(std::make_shared<StcoBox>());
+
+            auto stsd = std::make_shared<StsdBox>();
+            auto mp4a = std::make_shared<AudioSampleEntry>(BOX_TYPE_MP4A);
+            auto audio_config = aac_codec->get_audio_specific_config();
+            mp4a->data_reference_index_ = 1;
+            mp4a->channel_count_ = audio_config->channel_configuration;
+            mp4a->sample_size_ = 16;
+            mp4a->sample_rate_ = audio_config->sampling_frequency << 16;
+
+            auto esds = std::make_shared<EsdsBox>();
+            auto payload = audio_pkt->get_using_data();
+            AudioTagHeader header;
+            int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
+            Mp4ES_Descriptor &es = esds->es_;
+            es.ES_ID_ = 0x02;
+            auto &desc = es.decConfigDescr_;
+            desc.object_type_indication_ = Mp4ObjectTypeAac;
+            desc.stream_type_ = Mp4StreamTypeAudioStream;
+            desc.dec_specific_info_ = std::make_shared<Mp4DecoderSpecificInfo>();
+            desc.dec_specific_info_->asc_ = std::string(payload.data() + header_consumed, payload.size() - header_consumed);
+            mp4a->esds_ = esds;
+
+            stsd->entries_.push_back(mp4a);
+            stbl->add_box(stsd);
+
+            minf->add_box(stbl);
+            mdia->set_minf(minf);
+        }
+    }
+
+    // mvex
+    {
+        auto mvex = std::make_shared<MvexBox>();
+        {
+            auto trex_v = std::make_shared<TrexBox>();
+            trex_v->track_ID_ = video_track_ID_;
+            trex_v->default_sample_description_index_ = 1;
+            mvex->add_box(trex_v);
+        }
+        {
+            auto trex_a = std::make_shared<TrexBox>();
+            trex_a->track_ID_ = audio_track_ID_;
+            trex_a->default_sample_description_index_ = 1;
+            mvex->add_box(trex_a);
+        }
+        moov->add_box(mvex);
+    }
+
+    moov->size();
+    n = NetBuffer(combined_init_seg_->alloc_buffer(moov->size()));
+    moov->encode(n);
+
+    combined_init_seg_->set_filename("combined-init.m4s");
+    mp4_media_source_->on_combined_init_segment(combined_init_seg_);
+
+    return true;
+}
+
 
 bool RtmpToM4s::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     VideoTagHeader header;
@@ -848,6 +1057,13 @@ bool RtmpToM4s::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
 
     if (!audio_ready_) {
         return false;
+    }
+
+    if (!stream_ready_) {
+        stream_ready_ = (metadata_ != nullptr) && (has_audio_?audio_ready_:true) && (has_video_?video_ready_:true);
+        if (stream_ready_) {
+            on_stream_ready();
+        }
     }
 
     if (audio_pkts_.size() >= 2) {
