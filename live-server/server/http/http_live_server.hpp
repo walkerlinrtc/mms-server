@@ -9,7 +9,7 @@ public:
     HttpLiveServer(ThreadWorker *w):HttpServerBase(w) {
     }
     
-    virtual ~HttpLiveServer();
+    virtual ~HttpLiveServer() = default;
     void set_webrtc_server(std::shared_ptr<WebRtcServer> wrtc_server);
 private:
     boost::asio::awaitable<void> response_json(std::shared_ptr<HttpResponse> resp, int32_t code, const std::string & msg);

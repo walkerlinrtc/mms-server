@@ -12,7 +12,7 @@
 #include "http_mpd_server_session.hpp"
 #include "http_m4s_server_session.hpp"
 
-#include "http_long_mp4_server_session.hpp"
+#include "http_long_m4s_server_session.hpp"
 #include "http_long_ts_server_session.hpp"
 
 #include "core/stream_session.hpp"
@@ -26,10 +26,6 @@
 #include "obj_viewer.h"
 
 using namespace mms;
-HttpApiServer::~HttpApiServer() {
-
-}
-
 bool HttpApiServer::register_route() {
     bool ret;
     ret = on_get("/api/version", std::bind(&HttpApiServer::get_api_version, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));

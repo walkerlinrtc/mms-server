@@ -14,10 +14,10 @@ class M4sMediaSink;
 class ThreadWorker;
 class Mp4Segment;
 
-class HttpLongMp4ServerSession : public StreamSession, public ObjTracker<HttpLongMp4ServerSession> {
+class HttpLongM4sServerSession : public StreamSession, public ObjTracker<HttpLongM4sServerSession> {
 public:
-    HttpLongMp4ServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
-    virtual ~HttpLongMp4ServerSession();
+    HttpLongM4sServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
+    virtual ~HttpLongM4sServerSession() = default;
     void start();
     void stop();
 private:

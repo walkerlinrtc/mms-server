@@ -12,7 +12,7 @@
 #include "http_mpd_server_session.hpp"
 #include "http_m4s_server_session.hpp"
 
-#include "http_long_mp4_server_session.hpp"
+#include "http_long_m4s_server_session.hpp"
 #include "http_long_ts_server_session.hpp"
 
 #include "core/stream_session.hpp"
@@ -27,11 +27,6 @@
 #include "server/webrtc/webrtc_server.hpp"
 
 using namespace mms;
-
-HttpLiveServer::~HttpLiveServer() {
-
-}
-
 void HttpLiveServer::set_webrtc_server(std::shared_ptr<WebRtcServer> wrtc_server) {
     webrtc_server_ = wrtc_server;
 }
@@ -89,15 +84,15 @@ bool HttpLiveServer::register_route() {
         return false;
     }
 
-    // ret = on_get("/:app/:stream.mp4", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-    //     (void)session;
-    //     auto http_long_mp4_session = std::make_shared<HttpLongMp4ServerSession>(req, resp);
-    //     http_long_mp4_session->start();
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
+    ret = on_get("/:app/:stream.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_long_m4s_session = std::make_shared<HttpLongM4sServerSession>(req, resp);
+        http_long_m4s_session->start();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
     
     ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;

@@ -510,6 +510,7 @@ bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
     FtypBox ftyp;
     ftyp.major_brand_ = Mp4BoxBrandISO5;
     ftyp.minor_version_ = 512;
+    ftyp.compatible_brands_.push_back(Mp4BoxBrandDASH);
     ftyp.compatible_brands_.push_back(Mp4BoxBrandISO6);
     ftyp.compatible_brands_.push_back(Mp4BoxBrandMP41);
     size_t s = ftyp.size();
@@ -518,7 +519,7 @@ bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
 
     video_moov_ = std::make_shared<MoovBox>();
     std::shared_ptr<MvhdBox> mvhd = std::make_shared<MvhdBox>();
-    mvhd->creation_time_ = time(NULL);
+    mvhd->creation_time_ = time(NULL) + 2082844800;
     mvhd->timescale_ = 1000;
     mvhd->duration_ = 0;
     mvhd->next_track_ID_ = video_track_ID_ + 1;
@@ -633,7 +634,7 @@ bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
 
     video_moov_ = std::make_shared<MoovBox>();
     std::shared_ptr<MvhdBox> mvhd = std::make_shared<MvhdBox>();
-    mvhd->creation_time_ = time(NULL);
+    mvhd->creation_time_ = time(NULL) + 2082844800; //使用从 1904 开始的时间戳：time(NULL) + 2082844800
     mvhd->timescale_ = 1000;
     mvhd->duration_ = 0;
     mvhd->next_track_ID_ = audio_track_ID_ + 1;

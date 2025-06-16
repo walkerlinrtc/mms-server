@@ -9,7 +9,7 @@ public:
     HttpApiServer(ThreadWorker *w):HttpServerBase(w) {
     }
     
-    virtual ~HttpApiServer();
+    virtual ~HttpApiServer() = default;
 private:
     boost::asio::awaitable<void> response_json(std::shared_ptr<HttpResponse> resp, int32_t code, const std::string & msg);
     bool register_route();
