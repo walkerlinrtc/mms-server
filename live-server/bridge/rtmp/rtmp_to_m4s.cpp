@@ -906,6 +906,8 @@ bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
 }
 
 bool RtmpToM4s::generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt) {
+    (void)video_pkt;
+    (void)audio_pkt;
     if (video_codec_) {
         if (video_codec_->get_codec_type() != CODEC_H264) {
             return false;
