@@ -276,7 +276,6 @@ boost::asio::awaitable<bool> HttpFlvServerSession::send_flv_tags(std::vector<std
         has_write_flv_header_ = true;
     }
 
-    spdlog::info("send_flv_tags count:{}", tags.size());
     int i = 0;
     send_bufs_.clear();
     for (auto& flv_tag : tags) {

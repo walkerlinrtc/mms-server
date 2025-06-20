@@ -168,7 +168,6 @@ void WebRtcToFlv::on_status_ok() {
 }
 
 bool WebRtcToFlv::generateFlvHeaders() {
-    spdlog::info("xxxxxxxxxxxxxxxxx generateFlvHeaders xxxxxxxxxxx");
     if (!generate_metadata()) {
         return false;
     }
@@ -235,8 +234,8 @@ bool WebRtcToFlv::generate_metadata() {
     metadata_amf0_.set_item_value("7.1", false);
     metadata_amf0_.set_item_value("audiocodecid", 10.0); // aac
     // 固定值
-    if (audio_codec_->get_codec_type() == CODEC_AAC) {
-        auto aac_codec = std::static_pointer_cast<AACCodec>(audio_codec_);
+    if (my_audio_codec_->get_codec_type() == CODEC_AAC) {
+        auto aac_codec = std::static_pointer_cast<AACCodec>(my_audio_codec_);
         metadata_amf0_.set_item_value("audiocodecid", 10.0);
         auto audio_specific_config = aac_codec->get_audio_specific_config();
         if (!audio_specific_config) {
@@ -248,7 +247,7 @@ bool WebRtcToFlv::generate_metadata() {
         } else {
             metadata_amf0_.set_item_value("stereo", false);
         }
-        metadata_amf0_.set_item_value("audiodatarate", (double)audio_codec_->get_data_rate());
+        metadata_amf0_.set_item_value("audiodatarate", (double)my_audio_codec_->get_data_rate());
         metadata_amf0_.set_item_value("audiosamplesize", 16.0); // 好像aac是固定的16bit
     } else {
         return false;
@@ -345,8 +344,8 @@ bool WebRtcToFlv::generate_video_header() {
 
 bool WebRtcToFlv::generate_audio_header() {
     audio_header_ = std::make_shared<FlvTag>();
-    if (audio_codec_->get_codec_type() == CODEC_AAC) {
-        auto aac_codec = std::static_pointer_cast<AACCodec>(audio_codec_);
+    if (my_audio_codec_->get_codec_type() == CODEC_AAC) {
+        auto aac_codec = std::static_pointer_cast<AACCodec>(my_audio_codec_);
         auto audio_data = std::make_unique<AUDIODATA>();
         audio_data->header.sound_format = AudioTagHeader::AAC;
         auto audio_config = aac_codec->get_audio_specific_config();
@@ -376,11 +375,12 @@ bool WebRtcToFlv::generate_audio_header() {
 
         auto payload = audio_header_->get_unuse_data();
         payload.remove_prefix(FLV_TAG_HEADER_BYTES + 2);
-        auto ret = audio_config->encode((uint8_t *)payload.data(), payload.size());
+        uint8_t* write_ptr = (uint8_t*)payload.data();
+        memset(write_ptr, 0, payload_size);
+        auto ret = audio_config->encode(write_ptr, payload_size);
         if (ret < 0) {
             return false;
         }
-
         audio_data->payload = payload;
         audio_header_->tag_data = std::move(audio_data);
         audio_header_->encode();
