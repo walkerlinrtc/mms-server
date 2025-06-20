@@ -79,7 +79,6 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<WebRtcServerSession>> endpoint_session_map_;
     std::multimap<WebRtcServerSession *, uint64_t> session_endpoint_map_;
     std::unordered_map<std::string, std::shared_ptr<WebRtcServerSession>> ufrag_session_map_;
-    std::unordered_map<std::string, std::shared_ptr<WebRtcServerSession>> etag_session_map_;
 
     static std::shared_ptr<DtlsCert> default_dtls_cert_;
 };

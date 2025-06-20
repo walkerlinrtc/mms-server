@@ -27,6 +27,7 @@
 #include "protocol/sdp/media-level/ssrc_group.h"
 
 #include "payload.h"
+#include "spdlog/spdlog.h"
 // Media description, if present
 //     m=  (media name and transport address)
 //     i=* (media title)

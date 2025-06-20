@@ -9,6 +9,7 @@ struct StunGoogNetworkInfoAttr : public StunMsgAttr
     }
 
     StunGoogNetworkInfoAttr() = default;
+    virtual ~StunGoogNetworkInfoAttr() = default;
 
     size_t size();
 

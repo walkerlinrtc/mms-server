@@ -7,6 +7,7 @@ namespace mms
         {
         }
 
+        virtual ~StunChangeAddressAttr() = default;
         uint8_t family; // always 0x01
         uint16_t port;
         uint32_t address;

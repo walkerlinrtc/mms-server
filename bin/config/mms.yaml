@@ -40,6 +40,6 @@ http_api:
 webrtc:
   enabled: true
   udp_port: 8878
-  ip: 192.168.108.211
-  internal_ip: 192.168.108.211
+  ip: 192.168.172.128
+  internal_ip: 192.168.172.128
 

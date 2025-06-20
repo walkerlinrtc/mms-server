@@ -157,10 +157,14 @@ boost::asio::awaitable<bool> WebRtcServer::process_stun_packet(std::shared_ptr<S
     }
     
     auto ret = co_await webrtc_session->process_stun_packet(stun_msg, std::move(data), len, sock, remote_ep);
+    if (!ret) {
+        CORE_ERROR("WebRtcServerSession process_stun_packet failed");
+    }
     co_return ret;
 }
 
 boost::asio::awaitable<void> WebRtcServer::on_whip(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
+    CORE_DEBUG("on whip");
     auto webrtc_session = std::make_shared<WebRtcServerSession>(thread_pool_inst::get_mutable_instance().get_worker(-1));
     webrtc_session->set_local_ip(extern_ip_);
     webrtc_session->set_udp_port(listen_udp_port_);
@@ -192,7 +196,6 @@ boost::asio::awaitable<void> WebRtcServer::on_whep(std::shared_ptr<HttpRequest> 
         std::lock_guard<std::mutex> lck(session_map_mtx_);
         auto etag = Utils::get_rand_str(16);
         ufrag_session_map_.insert(std::pair(webrtc_session->get_local_ice_ufrag(), webrtc_session));
-        // etag_session_map_.insert(std::pair(etag, webrtc_session));
     }
 
     webrtc_session->set_close_handler(this);

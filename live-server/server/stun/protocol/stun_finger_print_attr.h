@@ -41,6 +41,7 @@ namespace mms {
         }
 
         stun_finger_print_attr() = default;
+        virtual ~stun_finger_print_attr() = default;
         
         size_t size()
         {

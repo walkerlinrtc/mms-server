@@ -14,14 +14,9 @@
 #include "http_server_session.hpp"
 #include "log/log.h"
 
-
 using namespace mms;
-HttpFlvServerSession::HttpFlvServerSession(std::shared_ptr<HttpRequest> http_req,
-                                           std::shared_ptr<HttpResponse> http_resp)
-    : StreamSession(http_resp->get_worker()),
-      send_funcs_channel_(get_worker()->get_io_context()),
-      alive_timeout_timer_(get_worker()->get_io_context()),
-      wg_(get_worker()) {
+HttpFlvServerSession::HttpFlvServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp)
+    : StreamSession(http_resp->get_worker()), send_funcs_channel_(get_worker()->get_io_context()), alive_timeout_timer_(get_worker()->get_io_context()), wg_(get_worker()) {
     http_request_ = http_req;
     http_response_ = http_resp;
     send_bufs_.reserve(20);
@@ -39,8 +34,7 @@ void HttpFlvServerSession::start_send_coroutine() {
         [this, self]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
             while (1) {
-                auto send_func = co_await send_funcs_channel_.async_receive(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                auto send_func = co_await send_funcs_channel_.async_receive(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
                     break;
                 }
@@ -69,13 +63,12 @@ void HttpFlvServerSession::start_alive_checker() {
             boost::system::error_code ec;
             while (1) {
                 alive_timeout_timer_.expires_after(std::chrono::seconds(5));
-                co_await alive_timeout_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                co_await alive_timeout_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
                     co_return;
                 }
                 int64_t now_ms = Utils::get_current_ms();
-                if (now_ms - last_active_time_ >= 50000) {  // 5秒没数据，超时
+                if (now_ms - last_active_time_ >= 50000) { // 5秒没数据，超时
                     co_return;
                 }
                 CORE_DEBUG("session:{} is alive", get_session_name());
@@ -111,8 +104,7 @@ void HttpFlvServerSession::start() {
                 }
             }
 
-            set_session_info(domain, http_request_->get_path_param("app"),
-                             http_request_->get_path_param("stream"));
+            set_session_info(domain, http_request_->get_path_param("app"), http_request_->get_path_param("stream"));
             if (!find_and_set_app(domain_name_, app_name_, false)) {
                 CORE_ERROR("could not find config for domain:{}, app:{}", domain_name_, app_name_);
                 http_response_->add_header("Content-Type", "video/x-flv");
@@ -137,10 +129,8 @@ void HttpFlvServerSession::start() {
             }
             auto publish_app = play_app->get_publish_app();
             // 1.本机查找
-            auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" +
-                               http_request_->get_path_param("stream");
-            auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(),
-                                                                   get_app_name(), get_stream_name());
+            auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" + http_request_->get_path_param("stream");
+            auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
             auto endpoint = this->get_param("mms-endpoint");
             if (endpoint && endpoint.value().get() == "1") {
                 // if (!source) {
@@ -157,11 +147,6 @@ void HttpFlvServerSession::start() {
             if (!source) {
                 source = co_await publish_app->find_media_source(self);
             }
-            // 3. 到media center中心查找
-            // if (!source) {
-            //     source = co_await
-            //     MediaCenterClient::get_instance().find_and_create_pull_media_source(self);
-            // }
 
             if (!source) {
                 // 真找不到源流了，应该是没在播
@@ -174,9 +159,8 @@ void HttpFlvServerSession::start() {
 
             // 判断是否需要进行桥转换
             std::shared_ptr<MediaBridge> bridge;
-            if (source->get_media_type() != "flv") {  // 尝试通过桥来创建
-                bridge = source->get_or_create_bridge(source->get_media_type() + "-flv", publish_app,
-                                                      stream_name_);
+            if (source->get_media_type() != "flv") { // 尝试通过桥来创建
+                bridge = source->get_or_create_bridge(source->get_media_type() + "-flv", publish_app, stream_name_);
                 if (!bridge) {
                     http_response_->add_header("Connection", "close");
                     if (!(co_await http_response_->write_header(415, "Unsupported Media Type"))) {
@@ -191,10 +175,7 @@ void HttpFlvServerSession::start() {
             // 关闭flv
             flv_media_sink_->on_close([this, self]() { stop(); });
             // 事件处理
-            flv_media_sink_->set_on_source_status_changed_cb(
-                [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
-                    co_return co_await process_source_status(status);
-                });
+            flv_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status) -> boost::asio::awaitable<void> { co_return co_await process_source_status(status); });
             source->add_media_sink(flv_media_sink_);
             co_return;
         },
@@ -217,22 +198,19 @@ boost::asio::awaitable<void> HttpFlvServerSession::process_source_status(SourceS
         }
         // 发送完头部后，再开发送flv的tag
         start_send_coroutine();
-        flv_media_sink_->on_flv_tag(
-            [this, self](std::vector<std::shared_ptr<FlvTag>>& flv_tags) -> boost::asio::awaitable<bool> {
-                boost::system::error_code ec;
-                if (flv_tags.size() <= 0) {
-                    co_return true;
-                }
-
-                co_await send_funcs_channel_.async_send(
-                    boost::system::error_code{},
-                    std::bind(&HttpFlvServerSession::send_flv_tags, this, flv_tags),
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
-                if (ec) {
-                    co_return false;
-                }
+        flv_media_sink_->on_flv_tag([this, self](std::vector<std::shared_ptr<FlvTag>>& flv_tags) -> boost::asio::awaitable<bool> {
+            boost::system::error_code ec;
+            if (flv_tags.size() <= 0) {
                 co_return true;
-            });
+            }
+
+            co_await send_funcs_channel_.async_send(boost::system::error_code{}, std::bind(&HttpFlvServerSession::send_flv_tags, this, flv_tags),
+                                                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+            if (ec) {
+                co_return false;
+            }
+            co_return true;
+        });
     } else if (status == E_SOURCE_STATUS_NOT_FOUND) {
         if (!has_send_http_header_) {
             has_send_http_header_ = true;
@@ -284,8 +262,7 @@ boost::asio::awaitable<void> HttpFlvServerSession::process_source_status(SourceS
 boost::asio::awaitable<bool> HttpFlvServerSession::send_flv_tags(std::vector<std::shared_ptr<FlvTag>> tags) {
     if (!has_write_flv_header_) {
         // 再发flv头部
-        auto source =
-            flv_media_sink_->get_source();  // SourceManager::get_instance().get_source(get_session_name());
+        auto source = flv_media_sink_->get_source(); // SourceManager::get_instance().get_source(get_session_name());
         uint8_t flv_header[9];
         FlvHeader header;
         header.flag.flags.audio = source->has_audio() ? 1 : 0;
@@ -320,7 +297,7 @@ boost::asio::awaitable<bool> HttpFlvServerSession::send_flv_tags(std::vector<std
     co_return true;
 }
 
-void HttpFlvServerSession::close(bool close_connection) {  // 如果是长连接，则不关闭socket
+void HttpFlvServerSession::close(bool close_connection) { // 如果是长连接，则不关闭socket
     if (close_connection) {
         http_response_->close();
     }

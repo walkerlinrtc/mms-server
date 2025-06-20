@@ -9,6 +9,8 @@ struct StunErrorCodeAttr : public StunMsgAttr
             number = (uint8_t)(code % 100);
         }
 
+        virtual ~StunErrorCodeAttr() = default;
+
         size_t size()
         {
             return StunMsgAttr::size() + 4 + reason.size();

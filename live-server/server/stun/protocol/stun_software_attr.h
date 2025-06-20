@@ -18,16 +18,16 @@ The PRIORITY attribute indicates the priority that is to be
 */
 #pragma once
 #include "stun_define.hpp"
+#include "stun_msg_attr.h"
 namespace mms {
-struct StunIcePriorityAttr : public StunMsgAttr
+struct StunSoftwareAttr : public StunMsgAttr
 {
-    StunIcePriorityAttr(uint32_t priority) : StunMsgAttr(STUN_ICE_ATTR_PRIORITY), priority_(priority)
+    StunSoftwareAttr() : StunMsgAttr(STUN_ATTR_SOFTWARE)
     {
         
     }
 
-    StunIcePriorityAttr() = default;
-    virtual ~StunIcePriorityAttr() = default;
+    virtual ~StunSoftwareAttr() = default;
 
     size_t size();
 
@@ -35,14 +35,14 @@ struct StunIcePriorityAttr : public StunMsgAttr
 
     int32_t decode(uint8_t *data, size_t len);
 
-    uint32_t get_priority() const {
-        return priority_;
+    const std::string & get_val() const {
+        return val_;
     }
 
-    void set_priority(uint32_t val) {
-        priority_ = val;
+    void set_val(const std::string & v) {
+        val_ = v;
     }
 private:
-    uint32_t priority_ = 0;
+    std::string val_;
 };
 };

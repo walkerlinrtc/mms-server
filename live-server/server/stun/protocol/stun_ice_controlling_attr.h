@@ -16,6 +16,7 @@ struct StunIceControllingAttr : public StunMsgAttr
     }
 
     StunIceControllingAttr() = default;
+    virtual ~StunIceControllingAttr() = default;
 
     size_t size();
 

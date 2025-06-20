@@ -117,7 +117,7 @@ bool DomainConfig::load_config(const std::string & file) {
         }
         app_confs_[app_config->get_app_name()] = app_config;
         app->update_conf(app_config);
-        CORE_INFO("load app config succeed, domain:{}, app:{}", domain_name_, app_config->get_app_name());
+        CORE_INFO("load app config succeed, domain:{}, app:{}, type:{}", domain_name_, app_config->get_app_name(), type_);
     }
 
     // 配置文件更新后，如果app被删了，需要移除已经不存在的app
