@@ -184,6 +184,7 @@ void HttpFlvServerSession::start() {
 
 boost::asio::awaitable<void> HttpFlvServerSession::process_source_status(SourceStatus status) {
     auto self(shared_from_this());
+    CORE_DEBUG("HttpFlvServerSession::process_source_status:{}", int(status));
     if (status == E_SOURCE_STATUS_OK) {
         if (!has_send_http_header_) {
             has_send_http_header_ = true;
@@ -275,6 +276,7 @@ boost::asio::awaitable<bool> HttpFlvServerSession::send_flv_tags(std::vector<std
         has_write_flv_header_ = true;
     }
 
+    spdlog::info("send_flv_tags count:{}", tags.size());
     int i = 0;
     send_bufs_.clear();
     for (auto& flv_tag : tags) {

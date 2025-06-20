@@ -14,21 +14,17 @@
 #include "codec/h264/h264_codec.hpp"
 #include "codec/hevc/hevc_codec.hpp"
 #include "codec/opus/opus_codec.hpp"
+#include "config/app_config.h"
 #include "core/flv_media_source.hpp"
 #include "core/rtp_media_sink.hpp"
 #include "protocol/rtmp/flv/flv_define.hpp"
 
-
 using namespace mms;
 
-WebRtcToFlv::WebRtcToFlv(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
-                         std::weak_ptr<MediaSource> origin_source, const std::string &domain_name,
-                         const std::string &app_name, const std::string &stream_name)
-    : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name),
-      check_closable_timer_(worker->get_io_context()),
-      wg_(worker) {
-    source_ = std::make_shared<FlvMediaSource>(
-        worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
+WebRtcToFlv::WebRtcToFlv(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string &domain_name, const std::string &app_name,
+                         const std::string &stream_name)
+    : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name), check_closable_timer_(worker->get_io_context()), wg_(worker) {
+    source_ = std::make_shared<FlvMediaSource>(worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
     flv_media_source_ = std::static_pointer_cast<FlvMediaSource>(source_);
     sink_ = std::make_shared<RtpMediaSink>(worker);
     rtp_media_sink_ = std::static_pointer_cast<RtpMediaSink>(sink_);
@@ -50,15 +46,15 @@ bool WebRtcToFlv::init() {
         worker_->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
+            auto app_conf = publish_app_->get_conf();
             while (1) {
-                check_closable_timer_.expires_after(std::chrono::milliseconds(30000));  // 30s检查一次
-                co_await check_closable_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                check_closable_timer_.expires_after(std::chrono::milliseconds(app_conf->bridge_config().no_players_timeout_ms())); // 30s检查一次
+                co_await check_closable_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (boost::asio::error::operation_aborted == ec) {
                     break;
                 }
 
-                if (flv_media_source_->has_no_sinks_for_time(30000)) {  // 已经30秒没人播放了
+                if (flv_media_source_->has_no_sinks_for_time(app_conf->bridge_config().no_players_timeout_ms())) { // 已经30秒没人播放了
                     spdlog::debug("close WebRtcToFlv because no players for 30s");
                     break;
                 }
@@ -71,12 +67,9 @@ bool WebRtcToFlv::init() {
             close();
         });
 
-    rtp_media_sink_->on_close([this, self]() {
-        close();
-    });
+    rtp_media_sink_->on_close([this, self]() { close(); });
 
-    rtp_media_sink_->set_source_codec_ready_cb([this, self](std::shared_ptr<Codec> video_codec,
-                                                            std::shared_ptr<Codec> audio_codec) -> bool {
+    rtp_media_sink_->set_source_codec_ready_cb([this, self](std::shared_ptr<Codec> video_codec, std::shared_ptr<Codec> audio_codec) -> bool {
         video_codec_ = video_codec;
         audio_codec_ = audio_codec;
         if (video_codec_) {
@@ -95,8 +88,7 @@ bool WebRtcToFlv::init() {
                 AVChannelLayout in_ch_layout;
                 av_channel_layout_default(&out_ch_layout, 2);
                 av_channel_layout_default(&in_ch_layout, opus_codec->get_channels());
-                int ret = swr_alloc_set_opts2(&swr_context_, &out_ch_layout, AV_SAMPLE_FMT_S16, 44100,
-                                              &in_ch_layout, AV_SAMPLE_FMT_S16, opus_codec->getFs(), 0, NULL);
+                int ret = swr_alloc_set_opts2(&swr_context_, &out_ch_layout, AV_SAMPLE_FMT_S16, 44100, &in_ch_layout, AV_SAMPLE_FMT_S16, opus_codec->getFs(), 0, NULL);
                 if (ret < 0) {
                     spdlog::error("swr init failed");
                     return false;
@@ -107,61 +99,77 @@ bool WebRtcToFlv::init() {
                 return false;
             }
 
+            has_audio_ = true;
+
             aac_encoder_ = std::make_unique<AACEncoder>();
             aac_encoder_->init(44100, opus_codec->get_channels());
-            has_audio_ = true;
+            my_audio_codec_ = std::make_shared<AACCodec>();
+            auto spec_conf = aac_encoder_->get_specific_configuration();
+            std::shared_ptr<AudioSpecificConfig> audio_specific_config = std::make_shared<AudioSpecificConfig>();
+            auto ret = audio_specific_config->parse((uint8_t*)spec_conf.data(), spec_conf.size());
+            if (ret > 0) {
+                my_audio_codec_->set_audio_specific_config(audio_specific_config);
+            }
         }
 
         if (video_codec_ && !video_codec_->is_ready()) {
+            spdlog::error("vcodec is not ready");
             return true;
         }
 
         if (audio_codec_ && !audio_codec_->is_ready()) {
+            spdlog::error("acodec is not ready");
             return true;
         }
 
         return generateFlvHeaders();
     });
 
-    rtp_media_sink_->set_video_pkts_cb(
-        [this, self](std::vector<std::shared_ptr<RtpPacket>> pkts) -> boost::asio::awaitable<bool> {
-            if (first_rtp_video_ts_ == 0) {
-                if (pkts.size() > 0) {
-                    first_rtp_video_ts_ = pkts[0]->get_timestamp();
-                }
-            }
-
-            for (auto pkt : pkts) {
-                process_video_packet(pkt);
-            }
-
-            co_return true;
-        });
-
-    rtp_media_sink_->set_audio_pkts_cb(
-        [this, self](std::vector<std::shared_ptr<RtpPacket>> pkts) -> boost::asio::awaitable<bool> {
-            if (first_rtp_audio_ts_ == 0) {
-                if (pkts.size() > 0) {
-                    first_rtp_audio_ts_ = pkts[0]->get_timestamp();
-                }
-            }
-
-            for (auto pkt : pkts) {
-                process_audio_packet(pkt);
-            }
-
-            co_return true;
-        });
+    rtp_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status) -> boost::asio::awaitable<void> {
+        flv_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            on_status_ok();
+        }
+        co_return;
+    });
 
     return true;
 }
 
-bool WebRtcToFlv::generateFlvHeaders() {
-    if (!generate_metadata()) {
-        return false;
-    }
+void WebRtcToFlv::on_status_ok() {
+    auto self(shared_from_this());
+    rtp_media_sink_->set_video_pkts_cb([this, self](std::vector<std::shared_ptr<RtpPacket>> pkts) -> boost::asio::awaitable<bool> {
+        if (first_rtp_video_ts_ == 0) {
+            if (pkts.size() > 0) {
+                first_rtp_video_ts_ = pkts[0]->get_timestamp();
+            }
+        }
 
-    if (!flv_media_source_->on_metadata(metadata_pkt_)) {
+        for (auto pkt : pkts) {
+            process_video_packet(pkt);
+        }
+
+        co_return true;
+    });
+
+    rtp_media_sink_->set_audio_pkts_cb([this, self](std::vector<std::shared_ptr<RtpPacket>> pkts) -> boost::asio::awaitable<bool> {
+        if (first_rtp_audio_ts_ == 0) {
+            if (pkts.size() > 0) {
+                first_rtp_audio_ts_ = pkts[0]->get_timestamp();
+            }
+        }
+
+        for (auto pkt : pkts) {
+            process_audio_packet(pkt);
+        }
+
+        co_return true;
+    });
+}
+
+bool WebRtcToFlv::generateFlvHeaders() {
+    spdlog::info("xxxxxxxxxxxxxxxxx generateFlvHeaders xxxxxxxxxxx");
+    if (!generate_metadata()) {
         return false;
     }
 
@@ -169,11 +177,15 @@ bool WebRtcToFlv::generateFlvHeaders() {
         return false;
     }
 
-    if (!flv_media_source_->on_video_packet(video_header_)) {
+    if (!generate_audio_header()) {
         return false;
     }
 
-    if (!generate_audio_header()) {
+    if (!flv_media_source_->on_metadata(metadata_pkt_)) {
+        return false;
+    }
+
+    if (!flv_media_source_->on_video_packet(video_header_)) {
         return false;
     }
 
@@ -221,7 +233,7 @@ bool WebRtcToFlv::generate_metadata() {
     metadata_amf0_.set_item_value("4.1", false);
     metadata_amf0_.set_item_value("5.1", false);
     metadata_amf0_.set_item_value("7.1", false);
-    metadata_amf0_.set_item_value("audiocodecid", 10.0);  // aac
+    metadata_amf0_.set_item_value("audiocodecid", 10.0); // aac
     // 固定值
     if (audio_codec_->get_codec_type() == CODEC_AAC) {
         auto aac_codec = std::static_pointer_cast<AACCodec>(audio_codec_);
@@ -237,7 +249,7 @@ bool WebRtcToFlv::generate_metadata() {
             metadata_amf0_.set_item_value("stereo", false);
         }
         metadata_amf0_.set_item_value("audiodatarate", (double)audio_codec_->get_data_rate());
-        metadata_amf0_.set_item_value("audiosamplesize", 16.0);  // 好像aac是固定的16bit
+        metadata_amf0_.set_item_value("audiosamplesize", 16.0); // 好像aac是固定的16bit
     } else {
         return false;
     }
@@ -356,9 +368,7 @@ bool WebRtcToFlv::generate_audio_header() {
         audio_data->header.aac_packet_type = AudioTagHeader::AACSequenceHeader;
 
         auto payload_size = audio_config->size();
-        audio_header_ =
-            std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 2 +
-                                     payload_size);  // 11字节flv tag头+2字节aac头+audio_specific_config字节数
+        audio_header_ = std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 2 + payload_size); // 11字节flv tag头+2字节aac头+audio_specific_config字节数
         audio_header_->tag_header.tag_type = FlvTagHeader::AudioTag;
         audio_header_->tag_header.data_size = 2 + payload_size;
         audio_header_->tag_header.stream_id = 0;
@@ -389,20 +399,32 @@ void WebRtcToFlv::process_h264_packet(std::shared_ptr<RtpPacket> pkt) {
     auto h264_nalu = rtp_h264_depacketizer_.on_packet(pkt);
     if (h264_nalu) {
         uint32_t this_timestamp = h264_nalu->get_timestamp();
-        auto flv_tag = generate_h264_flv_tag((this_timestamp - first_rtp_video_ts_) / 90,
-                                             h264_nalu);  // todo 除90这个要根据sdp来计算，目前固定
-        if (flv_tag) {
-            flv_media_source_->on_video_packet(flv_tag);
+        auto video_tag = generate_h264_flv_tag((this_timestamp - first_rtp_video_ts_) / 90, h264_nalu); // todo 除90这个要根据sdp来计算，目前固定
+        if (!video_header_ && video_codec_->is_ready()) {
+            H264Codec* h264_codec = (H264Codec*)video_codec_.get();
+            uint32_t w, h;
+            h264_codec->get_wh(w, h);
+        }
+
+        if (!stream_ready_) {
+            stream_ready_ = (has_audio_?(audio_codec_ && audio_codec_->is_ready()):true) && (has_video_?(video_codec_ && video_codec_->is_ready()):true);
+            if (stream_ready_) {
+                generateFlvHeaders();
+            }
+        }
+
+        if (video_tag && header_ready_) {
+            flv_media_source_->on_video_packet(video_tag);
         }
     }
 }
 
-std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
-                                                           std::shared_ptr<RtpH264NALU> &nalu) {
+std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp, std::shared_ptr<RtpH264NALU> &nalu) {
     bool is_key = false;
     char *buf = video_frame_cache_.get();
     auto &pkts = nalu->get_rtp_pkts();
     int32_t total_payload_bytes = 0;
+    H264Codec* h264_codec = (H264Codec*)video_codec_.get();
     for (auto it = pkts.begin(); it != pkts.end(); it++) {
         auto pkt = it->second;
 
@@ -419,6 +441,10 @@ std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
                 uint8_t nalu_type = *(data + 2) & 0x1F;
                 if (nalu_type == H264NaluTypeIDR) {
                     is_key = true;
+                } else if (nalu_type == H264NaluTypeSPS) {
+                    h264_codec->set_sps(std::string((char*)data+2, nalu_size));
+                } else if (nalu_type == H264NaluTypePPS) {
+                    h264_codec->set_pps(std::string((char*)data+2, nalu_size));
                 }
 
                 uint32_t s = htonl(nalu_size);
@@ -431,18 +457,16 @@ std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
                 data += 2 + nalu_size;
             }
 
-            if (pkt->get_header().marker == 1) {  // 最后一个
+            if (pkt->get_header().marker == 1) { // 最后一个
                 total_payload_bytes = buf - video_frame_cache_.get();
-                std::shared_ptr<FlvTag> video_flv_tag =
-                    std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 5 + total_payload_bytes);
+                std::shared_ptr<FlvTag> video_flv_tag = std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 5 + total_payload_bytes);
                 video_flv_tag->tag_header.tag_type = FlvTagHeader::VideoTag;
                 video_flv_tag->tag_header.data_size = total_payload_bytes + 5;
                 video_flv_tag->tag_header.stream_id = 0;
                 video_flv_tag->tag_header.timestamp = timestamp;
                 auto video_data = std::make_unique<VIDEODATA>();
 
-                video_data->header.frame_type =
-                    is_key ? VideoTagHeader::KeyFrame : VideoTagHeader::InterFrame;
+                video_data->header.frame_type = is_key ? VideoTagHeader::KeyFrame : VideoTagHeader::InterFrame;
                 video_data->header.codec_id = VideoTagHeader::AVC;
                 video_data->header.avc_packet_type = VideoTagHeader::AVCNALU;
                 video_data->header.composition_time = 0;
@@ -459,6 +483,10 @@ std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
         } else if (pkt_info.is_single_nalu()) {
             if (pkt_info.get_nalu_type() == H264NaluTypeIDR) {
                 is_key = true;
+            } else if (pkt_info.get_nalu_type() == H264NaluTypeSPS) {
+                h264_codec->set_sps(std::string(pkt->get_payload()));
+            } else if (pkt_info.get_nalu_type() == H264NaluTypePPS) {
+                h264_codec->set_pps(std::string(pkt->get_payload()));
             }
 
             uint32_t s = htonl(pkt->get_payload().size());
@@ -469,16 +497,14 @@ std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
 
             if (pkt->get_header().marker == 1) {
                 total_payload_bytes = buf - video_frame_cache_.get();
-                std::shared_ptr<FlvTag> video_flv_tag =
-                    std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 5 + total_payload_bytes);
+                std::shared_ptr<FlvTag> video_flv_tag = std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 5 + total_payload_bytes);
                 video_flv_tag->tag_header.tag_type = FlvTagHeader::VideoTag;
                 video_flv_tag->tag_header.data_size = total_payload_bytes + 5;
                 video_flv_tag->tag_header.stream_id = 0;
                 video_flv_tag->tag_header.timestamp = timestamp;
 
                 auto video_data = std::make_unique<VIDEODATA>();
-                video_data->header.frame_type =
-                    is_key ? VideoTagHeader::KeyFrame : VideoTagHeader::InterFrame;
+                video_data->header.frame_type = is_key ? VideoTagHeader::KeyFrame : VideoTagHeader::InterFrame;
                 video_data->header.codec_id = VideoTagHeader::AVC;
                 video_data->header.avc_packet_type = VideoTagHeader::AVCNALU;
                 video_data->header.composition_time = 0;
@@ -498,16 +524,29 @@ std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
             if (pkt_info.is_start_fu()) {
                 do {
                     if (pkt_info.is_start_fu()) {
+                        bool is_sps = false;
+                        bool is_pps = false;
                         if (pkt_info.get_nalu_type() == H264NaluTypeIDR) {
                             is_key = true;
+                        } else if (pkt_info.get_nalu_type() == H264NaluTypeSPS) {
+                            is_sps = true;
+                        } else if (pkt_info.get_nalu_type() == H264NaluTypePPS) {
+                            is_pps = true;
                         }
 
                         nalu_size += pkt->get_payload().size() - 1;
                         const uint8_t *pkt_buf = (const uint8_t *)pkt->get_payload().data();
                         uint8_t nalu_type = (pkt_buf[0] & 0xe0) | (pkt_buf[1] & 0x1F);
+                        char * buf_start = buf;
                         memcpy(buf, &nalu_type, 1);
                         memcpy(buf + 1, pkt->get_payload().data() + 2, pkt->get_payload().size() - 2);
                         buf += pkt->get_payload().size() - 1;
+
+                        if (is_sps) {
+                            h264_codec->set_sps(std::string(buf_start, buf - buf_start));
+                        } else if (is_pps) {
+                            h264_codec->set_pps(std::string(buf_start, buf - buf_start));
+                        }
                     } else {
                         nalu_size += pkt->get_payload().size() - 2;
                         memcpy(buf, pkt->get_payload().data() + 2, pkt->get_payload().size() - 2);
@@ -529,16 +568,14 @@ std::shared_ptr<FlvTag> WebRtcToFlv::generate_h264_flv_tag(uint32_t timestamp,
 
             if (pkt->get_header().marker == 1) {
                 total_payload_bytes = buf - video_frame_cache_.get();
-                std::shared_ptr<FlvTag> video_flv_tag =
-                    std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 5 + total_payload_bytes);
+                std::shared_ptr<FlvTag> video_flv_tag = std::make_shared<FlvTag>(FLV_TAG_HEADER_BYTES + 5 + total_payload_bytes);
                 video_flv_tag->tag_header.data_size = total_payload_bytes + 5;
                 video_flv_tag->tag_header.stream_id = 0;
                 video_flv_tag->tag_header.tag_type = FlvTagHeader::VideoTag;
                 video_flv_tag->tag_header.timestamp = timestamp;
 
                 auto video_data = std::make_unique<VIDEODATA>();
-                video_data->header.frame_type =
-                    is_key ? VideoTagHeader::KeyFrame : VideoTagHeader::InterFrame;
+                video_data->header.frame_type = is_key ? VideoTagHeader::KeyFrame : VideoTagHeader::InterFrame;
                 video_data->header.codec_id = VideoTagHeader::AVC;
                 video_data->header.avc_packet_type = VideoTagHeader::AVCNALU;
                 video_data->header.composition_time = 0;
@@ -592,8 +629,7 @@ void WebRtcToFlv::process_opus_packet(std::shared_ptr<RtpPacket> pkt) {
         AVChannelLayout in_ch_layout;
         av_channel_layout_default(&out_ch_layout, 2);
         av_channel_layout_default(&in_ch_layout, 2);
-        int ret = swr_alloc_set_opts2(&swr_context_, &out_ch_layout, AV_SAMPLE_FMT_S16, 44100, &in_ch_layout,
-                                      AV_SAMPLE_FMT_S16, 48000, 0, NULL);
+        int ret = swr_alloc_set_opts2(&swr_context_, &out_ch_layout, AV_SAMPLE_FMT_S16, 44100, &in_ch_layout, AV_SAMPLE_FMT_S16, 48000, 0, NULL);
         if (ret < 0) {
             spdlog::error("swr init failed");
             return;
@@ -610,8 +646,7 @@ void WebRtcToFlv::process_opus_packet(std::shared_ptr<RtpPacket> pkt) {
         return;
     }
 
-    int in_samples = opus_decode(opus_decoder_.get(), (uint8_t *)pkt->get_payload().data(),
-                                 pkt->get_payload().size(), decoded_pcm_, 4096, 0);
+    int in_samples = opus_decode(opus_decoder_.get(), (uint8_t *)pkt->get_payload().data(), pkt->get_payload().size(), decoded_pcm_, 4096, 0);
     if (swr_context_) {
         // int dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_context_, 48000) + in_samples, 44100, 48000,
         // AV_ROUND_UP);
@@ -620,8 +655,7 @@ void WebRtcToFlv::process_opus_packet(std::shared_ptr<RtpPacket> pkt) {
         data_in[0] = (uint8_t *)decoded_pcm_;
         data_out[0] = (uint8_t *)resampled_pcm_;
         int32_t total_samples = 0;
-        int out_samples =
-            swr_convert(swr_context_, (uint8_t **)&data_out, 1024, (const uint8_t **)&data_in, in_samples);
+        int out_samples = swr_convert(swr_context_, (uint8_t **)&data_out, 1024, (const uint8_t **)&data_in, in_samples);
         total_samples += out_samples;
         data_out[0] = (uint8_t *)resampled_pcm_ + total_samples * 2 * 2;
         while ((out_samples = swr_convert(swr_context_, (uint8_t **)&data_out, 1024, NULL, 0)) > 0) {
@@ -629,12 +663,22 @@ void WebRtcToFlv::process_opus_packet(std::shared_ptr<RtpPacket> pkt) {
             total_samples += out_samples;
         }
 
-        auto aac_bytes =
-            aac_encoder_->encode((uint8_t *)resampled_pcm_, total_samples * 2 * 2, aac_data_, 8192);
+        if (!aac_encoder_) {
+            return;
+        }
+
+        auto aac_bytes = aac_encoder_->encode((uint8_t *)resampled_pcm_, total_samples * 2 * 2, aac_data_, 8192);
         if (aac_bytes > 0) {
             aac_bytes_ = aac_bytes;
             auto audio_flv_tag = generate_aac_flv_tag((pkt->get_timestamp() - first_rtp_audio_ts_) / 48);
-            if (audio_flv_tag) {
+            if (!stream_ready_) {
+                stream_ready_ = (has_audio_?(audio_codec_ && my_audio_codec_->is_ready()):true) && (has_video_?(video_codec_ && video_codec_->is_ready()):true);
+                if (stream_ready_) {
+                    generateFlvHeaders();
+                }
+            }
+            
+            if (audio_flv_tag && header_ready_) {
                 flv_media_source_->on_audio_packet(audio_flv_tag);
             }
         }

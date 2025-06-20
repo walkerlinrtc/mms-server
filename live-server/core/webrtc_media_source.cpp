@@ -118,6 +118,7 @@ std::string WebRtcMediaSource::process_publish_sdp(const std::string & sdp) {
     }
 
     create_play_sdp();
+
     stream_ready_ = true;
     // RtpMediaSource::on_source_codec_ready();
     spdlog::debug("WebRtcMediaSource video_pt:{}, audio_pt:{}", video_pt_, audio_pt_);

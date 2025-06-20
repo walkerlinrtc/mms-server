@@ -190,19 +190,6 @@ bool HttpLiveServer::register_route() {
             }
         }
     }
-    
-
-    // ret = on_websocket("/:app/:stream/rtc_msg", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<WsConn> ws_conn)->boost::asio::awaitable<void> {
-    //     (void)req;
-    //     (void)session;
-    //     if (webrtc_server_) {
-    //         co_await webrtc_server_->on_ws_open(ws_conn);
-    //     }
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
 
     // ret = on_static_fs("/static/*", "/data/");
     // if (!ret) {

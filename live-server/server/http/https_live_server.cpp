@@ -146,18 +146,6 @@ bool HttpsLiveServer::register_route() {
             }
         }
     }
-    
-    // ret = on_websocket("/:app/:stream/rtc_msg", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<WsConn> ws_conn)->boost::asio::awaitable<void> {
-    //     (void)req;
-    //     (void)session;
-    //     if (webrtc_server_) {
-    //         co_await webrtc_server_->on_ws_open(ws_conn);
-    //     }
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
 
     // ret = on_get("/http3", [](std::shared_ptr<HttpServerSession<HttpsConn>> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
     //     // 测试get接口
