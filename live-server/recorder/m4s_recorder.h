@@ -35,13 +35,13 @@ public:
 
     bool init() override;
     void close() override;
+    std::shared_ptr<Json::Value> to_json() override;
 
     // 数据处理相关函数
     bool on_audio_init_segment(std::shared_ptr<Mp4Segment> Mp4Segment);
     bool on_video_init_segment(std::shared_ptr<Mp4Segment> Mp4Segment);
     bool on_audio_segment(std::shared_ptr<Mp4Segment> Mp4Segment);
     bool on_video_segment(std::shared_ptr<Mp4Segment> Mp4Segment);
-
 private:
     void gen_mpd();
     std::shared_ptr<M4sMediaSink> mp4_media_sink_;
@@ -57,5 +57,6 @@ private:
     std::shared_ptr<Mp4Segment> video_init_seg_;
     std::vector<M4sRecordSeg> audio_m4s_segs_;
     std::vector<M4sRecordSeg> video_m4s_segs_;
+    int64_t write_bytes_ = 0;
 };
 };  // namespace mms

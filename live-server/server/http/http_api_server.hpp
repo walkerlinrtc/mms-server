@@ -34,7 +34,18 @@ private:
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);
 
+    boost::asio::awaitable<void> get_domain_recorders(std::shared_ptr<HttpServerSession> session, 
+                                                    std::shared_ptr<HttpRequest> req, 
+                                                    std::shared_ptr<HttpResponse> resp);
+
+    boost::asio::awaitable<void> get_app_recorders(std::shared_ptr<HttpServerSession> session, 
+                                                 std::shared_ptr<HttpRequest> req, 
+                                                 std::shared_ptr<HttpResponse> resp);
+
     boost::asio::awaitable<void> cut_off_stream(std::shared_ptr<HttpServerSession> session, 
+                                                 std::shared_ptr<HttpRequest> req, 
+                                                 std::shared_ptr<HttpResponse> resp);
+    boost::asio::awaitable<void> stop_recorder(std::shared_ptr<HttpServerSession> session, 
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);
 };

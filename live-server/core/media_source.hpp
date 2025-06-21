@@ -43,7 +43,8 @@ public:
     virtual bool remove_bridge(std::shared_ptr<MediaBridge> bridge);
     virtual bool remove_bridge(const std::string & id);
     virtual std::shared_ptr<Recorder> get_or_create_recorder(const std::string & type, std::shared_ptr<PublishApp> app);
-    
+    void add_recorder(const std::string & type, std::shared_ptr<Recorder> recorder);
+    void remove_recorder(std::shared_ptr<Recorder> recorder);
     const std::string & get_media_type() const {
         return media_type_;
     }
@@ -106,19 +107,18 @@ public:
     boost::asio::awaitable<std::shared_ptr<R>> sync_exec(const std::function<std::shared_ptr<R>()> & exec_func) {
         auto self(shared_from_this());
         WaitGroup wg(worker_);
-        std::shared_ptr<R> r;
+        std::atomic<std::shared_ptr<R>> result = nullptr;
         wg.add(1);
-        boost::asio::co_spawn(worker_->get_io_context(), [this, self, &wg, &exec_func]()->boost::asio::awaitable<std::shared_ptr<R>> {
-            std::shared_ptr<R> r = exec_func();
-            co_return r;
-        }, [this, self, &wg, &r](std::exception_ptr exp, std::shared_ptr<R> ret) {
+        boost::asio::co_spawn(worker_->get_io_context(), [this, self, &wg, &exec_func, &result]()->boost::asio::awaitable<void> {
+            result.store(exec_func(), std::memory_order_release);
+            co_return;
+        }, [this, self, &wg](std::exception_ptr exp) {
             (void)exp;
-            r = ret;
             wg.done();
         });
 
         co_await wg.wait();
-        co_return r;
+        co_return result.load(std::memory_order_acquire);
     }
 
     boost::asio::awaitable<std::shared_ptr<Json::Value>> sync_to_json();

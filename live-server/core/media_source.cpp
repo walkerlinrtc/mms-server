@@ -206,9 +206,24 @@ std::shared_ptr<Recorder> MediaSource::get_or_create_recorder(const std::string 
     if (!recorder->init()) {
         return nullptr;
     }
-    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
-    recorders_.insert(std::pair(record_type, recorder));
+    
+    source->add_recorder(record_type, recorder);
     return recorder;
+}
+
+void MediaSource::remove_recorder(std::shared_ptr<Recorder> recorder) {
+    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
+    for (auto it = recorders_.begin(); it != recorders_.end(); it++) {
+        if (it->second == recorder) {
+            recorders_.erase(it);
+            break;
+        }
+    }
+}
+
+void MediaSource::add_recorder(const std::string & type, std::shared_ptr<Recorder> recorder) {
+    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
+    recorders_[type] = recorder;
 }
 
 bool MediaSource::is_stream_ready() {

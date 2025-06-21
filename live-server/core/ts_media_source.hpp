@@ -40,7 +40,6 @@ public:
     std::vector<std::shared_ptr<PESPacket>> get_pkts(int64_t &last_pkt_index, uint32_t max_count);
 
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name);
-    std::shared_ptr<Recorder> get_or_create_recorder(const std::string & record_type, std::shared_ptr<PublishApp> app);
     bool has_no_sinks_for_time(uint32_t milli_secs);
 protected:
     std::deque<std::shared_ptr<TsSegment>> ts_segs_;

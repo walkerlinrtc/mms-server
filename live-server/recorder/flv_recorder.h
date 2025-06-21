@@ -22,6 +22,7 @@ public:
 
     bool init() override;
     void close() override;
+    std::shared_ptr<Json::Value> to_json() override;
 private:
     bool has_write_flv_header_ = false;
     uint32_t prev_tag_size_ = 0;
@@ -31,5 +32,8 @@ private:
     int64_t record_duration_ = 0;
     int64_t record_start_time_ = 0;
     int flv_file_ = -1;
+    std::string file_dir_;
+    std::string file_name_;
+    int64_t write_bytes_ = 0;
 };
 };

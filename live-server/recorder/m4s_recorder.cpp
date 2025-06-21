@@ -16,6 +16,7 @@
 #include "json/json.h"
 #include "log/log.h"
 #include "protocol/mp4/m4s_segment.h"
+#include "recorder_manager.h"
 
 using namespace mms;
 
@@ -35,7 +36,7 @@ bool M4sRecordSeg::load(const Json::Value &v) {
 M4sRecorder::M4sRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
                            std::weak_ptr<MediaSource> source, const std::string &domain_name,
                            const std::string &app_name, const std::string &stream_name)
-    : Recorder(worker, app, source, domain_name, app_name, stream_name) {
+    : Recorder("m4s", worker, app, source, domain_name, app_name, stream_name) {
     sink_ = std::make_shared<M4sMediaSink>(worker);
     mp4_media_sink_ = std::static_pointer_cast<M4sMediaSink>(sink_);
     CORE_DEBUG("create M4sRecorder");
@@ -82,7 +83,7 @@ bool M4sRecorder::init() {
     if (!ret) {
         return false;
     }
-
+    RecorderManager::get_instance().add_recorder(self);
     return true;
 }
 
@@ -112,6 +113,7 @@ bool M4sRecorder::on_video_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     auto mp4_data = m4s_seg->get_used_buf();
     m4s_file.write(mp4_data.data(), mp4_data.size());
     m4s_file.close();
+    write_bytes_ += mp4_data.size();
     // update_mpd();
     return true;
 }
@@ -126,6 +128,7 @@ bool M4sRecorder::on_audio_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     auto mp4_data = m4s_seg->get_used_buf();
     m4s_file.write(mp4_data.data(), mp4_data.size());
     m4s_file.close();
+    write_bytes_ += mp4_data.size();
 
     M4sRecordSeg seg;
     seg.create_at_ = m4s_seg->get_create_at();
@@ -151,6 +154,7 @@ bool M4sRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     auto mp4_data = m4s_seg->get_used_buf();
     m4s_file.write(mp4_data.data(), mp4_data.size());
     m4s_file.close();
+    write_bytes_ += mp4_data.size();
 
     M4sRecordSeg seg;
     seg.create_at_ = m4s_seg->get_create_at();
@@ -166,6 +170,20 @@ bool M4sRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     return true;
 }
 
+std::shared_ptr<Json::Value> M4sRecorder::to_json() {
+    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
+    Json::Value & v = *d;
+    v["type"] = type_;
+    v["domain"] = domain_name_;
+    v["app"] = app_name_;
+    v["stream"] = stream_name_;
+    v["create_at"] = create_at_;
+    v["file_dir"] = file_dir_;
+    v["duration"] = record_duration_;
+    v["write_bytes"] = write_bytes_;
+    return d;
+}
+
 void M4sRecorder::close() {
     CORE_DEBUG("close M4sRecorder");
     if (closed_.test_and_set(std::memory_order_acquire)) {
@@ -173,26 +191,26 @@ void M4sRecorder::close() {
     }
 
     auto self(shared_from_this());
-    boost::asio::co_spawn(
-        worker_->get_io_context(),
-        [this, self]() -> boost::asio::awaitable<void> {
-            auto s = source_.lock();
-            if (s) {
-                s->remove_media_sink(mp4_media_sink_);
-            }
-            mp4_media_sink_->on_close({});
-            mp4_media_sink_->set_audio_init_segment_cb({});
-            mp4_media_sink_->set_video_init_segment_cb({});
-            mp4_media_sink_->set_audio_mp4_segment_cb({});
-            mp4_media_sink_->set_video_mp4_segment_cb({});
-            mp4_media_sink_->close();
-
-            if (!file_dir_.empty()) {
-                gen_mpd();
-            }
-            co_return;
-        },
-        boost::asio::detached);
+    boost::asio::co_spawn(worker_->get_io_context(), [this, self]() -> boost::asio::awaitable<void> {
+        auto s = source_.lock();
+        if (s) {
+            s->remove_media_sink(mp4_media_sink_);
+            s->remove_recorder(self);
+        }
+        mp4_media_sink_->close();
+        mp4_media_sink_->on_close({});
+        mp4_media_sink_->set_audio_init_segment_cb({});
+        mp4_media_sink_->set_video_init_segment_cb({});
+        mp4_media_sink_->set_audio_mp4_segment_cb({});
+        mp4_media_sink_->set_video_mp4_segment_cb({});
+        
+        if (!file_dir_.empty()) {
+            gen_mpd();
+        }
+        RecorderManager::get_instance().remove_recorder(self);
+        co_return;
+    },
+    boost::asio::detached);
 }
 
 std::string format_duration_mpd(int64_t duration_ms) {

@@ -33,6 +33,7 @@ public:
 
     bool init() override;
     void close() override;
+    std::shared_ptr<Json::Value> to_json() override;
 private:
     void gen_m3u8();
     std::shared_ptr<TsMediaSink> ts_media_sink_;
@@ -44,5 +45,6 @@ private:
 
     std::string file_dir_;
     std::vector<TsRecordSeg> ts_segs_;
+    int64_t write_bytes_ = 0;
 };
 };
