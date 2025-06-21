@@ -58,6 +58,13 @@ int32_t BridgeConfig::load(const YAML::Node & config) {
             boost::algorithm::to_lower(v);
             rtmp_to_webrtc_ = v == "on";
         }
+
+        YAML::Node rtmp_to_m4s = rtmp["to_m4s"];
+        if (rtmp_to_m4s.IsDefined()) {
+            std::string v = rtmp_to_m4s.as<std::string>();
+            boost::algorithm::to_lower(v);
+            rtmp_to_m4s_ = v == "on";
+        }
     }
     
 

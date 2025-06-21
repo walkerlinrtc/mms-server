@@ -50,9 +50,9 @@ std::shared_ptr<MediaBridge> BridgeFactory::create_bridge(ThreadWorker *worker,
         return std::make_shared<RtmpToRtsp>(worker, app, origin_source, domain_name, app_name, stream_name);
     } else if (id == "rtmp-ts" && app->get_conf()->bridge_config().rtmp_to_hls()) {
         return std::make_shared<RtmpToTs>(worker, app, origin_source, domain_name, app_name, stream_name);
-    } else if (id == "rtmp-m4s") {
+    } else if (id == "rtmp-m4s" && app->get_conf()->bridge_config().rtmp_to_webrtc()) {
         return std::make_shared<RtmpToM4s>(worker, app, origin_source, domain_name, app_name, stream_name);
-    } else if (id == "rtmp-webrtc{rtp[es]}") {
+    } else if (id == "rtmp-webrtc{rtp[es]}" && app->get_conf()->bridge_config().rtmp_to_webrtc()) {
         return std::make_shared<RtmpToWebRtc>(worker, app, origin_source, domain_name, app_name, stream_name);
     } else if (id == "m4s-mpd") {
         return std::make_shared<M4sToMpd>(worker, app, origin_source, domain_name, app_name, stream_name);

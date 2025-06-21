@@ -24,6 +24,10 @@ public:
         return rtmp_to_webrtc_;
     }
 
+    bool rtmp_to_m4s() const {
+        return rtmp_to_m4s_;
+    }
+
     bool flv_to_rtmp() const {
         return flv_to_rtmp_;
     }
@@ -82,6 +86,7 @@ protected:
     bool rtmp_to_rtsp_ = false;
     bool rtmp_to_hls_ = false;
     bool rtmp_to_webrtc_ = false;
+    bool rtmp_to_m4s_ = false;
 
     bool flv_to_rtmp_ = false;
     bool flv_to_rtsp_ = false;
