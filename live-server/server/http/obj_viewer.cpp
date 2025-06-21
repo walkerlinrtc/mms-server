@@ -19,6 +19,7 @@ using namespace mms;
 #include "bridge/rtmp/rtmp_to_m4s.hpp"
 #include "bridge/rtmp/rtmp_to_rtsp.hpp"
 #include "bridge/rtmp/rtmp_to_webrtc.hpp"
+#include "bridge/webrtc/webrtc_to_flv.hpp"
 
 #include "bridge/flv/flv_to_rtmp.hpp"
 #include "bridge/flv/flv_to_rtsp.hpp"
@@ -65,6 +66,7 @@ Json::Value ObjViewer::to_json() {
     // webttc
     v["WebRtcMediaSource"] = ObjTracker<WebRtcMediaSource>::get_use_count();
     v["WebRtcServerSession"] = ObjTracker<WebRtcServerSession>::get_use_count();
+    v["WebRtcToFlv"] = ObjTracker<WebRtcToFlv>::get_use_count();
     // recorder
     v["FlvRecorder"] = ObjTracker<FlvRecorder>::get_use_count();
     v["TsRecorder"] = ObjTracker<TsRecorder>::get_use_count();

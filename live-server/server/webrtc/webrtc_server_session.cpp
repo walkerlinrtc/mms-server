@@ -404,6 +404,7 @@ boost::asio::awaitable<bool> WebRtcServerSession::process_whip_req(std::shared_p
     webrtc_media_source_ = std::make_shared<WebRtcMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
     webrtc_media_source_->set_source_info(get_domain_name(), get_app_name(), get_stream_name());
     webrtc_media_source_->set_status(E_SOURCE_STATUS_OK);
+    webrtc_media_source_->set_session(self);
     std::string answer_sdp = webrtc_media_source_->process_publish_sdp(sdp);
     if (answer_sdp.empty()) {
         CORE_ERROR("process publish sdp failed");

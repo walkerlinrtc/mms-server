@@ -23,21 +23,24 @@ using namespace mms;
 
 WebRtcToFlv::WebRtcToFlv(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string &domain_name, const std::string &app_name,
                          const std::string &stream_name)
-    : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name), check_closable_timer_(worker->get_io_context()), wg_(worker) {
+    : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name), 
+    check_closable_timer_(worker->get_io_context()), wg_(worker) {
     source_ = std::make_shared<FlvMediaSource>(worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
     flv_media_source_ = std::static_pointer_cast<FlvMediaSource>(source_);
     sink_ = std::make_shared<RtpMediaSink>(worker);
     rtp_media_sink_ = std::static_pointer_cast<RtpMediaSink>(sink_);
     video_frame_cache_ = std::make_unique<char[]>(1024 * 1024);
     audio_frame_cache_ = std::make_unique<char[]>(1024 * 20);
+    type_ = "webrtc-to-flv";
+}
+
+WebRtcToFlv::~WebRtcToFlv() { 
     if (swr_context_) {
         swr_free(&swr_context_);
         swr_context_ = nullptr;
     }
-    type_ = "webrtc-to-flv";
+    spdlog::debug("destroy WebRtcToFlv"); 
 }
-
-WebRtcToFlv::~WebRtcToFlv() { spdlog::debug("destroy WebRtcToFlv"); }
 
 bool WebRtcToFlv::init() {
     auto self(shared_from_this());
@@ -100,7 +103,6 @@ bool WebRtcToFlv::init() {
             }
 
             has_audio_ = true;
-
             aac_encoder_ = std::make_unique<AACEncoder>();
             aac_encoder_->init(44100, opus_codec->get_channels());
             my_audio_codec_ = std::make_shared<AACCodec>();
@@ -706,6 +708,7 @@ void WebRtcToFlv::close() {
             if (rtp_media_sink_) {
                 rtp_media_sink_->on_close({});
                 rtp_media_sink_->set_source_codec_ready_cb({});
+                rtp_media_sink_->set_on_source_status_changed_cb({});
                 rtp_media_sink_->set_audio_pkts_cb({});
                 rtp_media_sink_->set_video_pkts_cb({});
 
@@ -717,7 +720,7 @@ void WebRtcToFlv::close() {
             }
 
             if (origin_source) {
-                origin_source->remove_bridge(shared_from_this());
+                origin_source->remove_bridge(self);
             }
             co_return;
         },
