@@ -39,6 +39,7 @@ class RtmpMetaDataMessage;
 class RtpH264NALU;
 class RtpAACNALU;
 class AACEncoder;
+class AACCodec;
 
 class WebRtcToRtmp : public MediaBridge, public ObjTracker<WebRtcToRtmp> {
 public:
@@ -60,6 +61,7 @@ private:
     bool generate_video_header();
     bool generate_audio_header();
     bool generate_rtmp_headers();
+    void on_status_ok();
 private:
     std::shared_ptr<RtpMediaSink> rtp_media_sink_;
     std::shared_ptr<RtmpMediaSource> rtmp_media_source_;
@@ -74,6 +76,7 @@ private:
     bool has_audio_ = false;
     std::shared_ptr<Codec> video_codec_;
     std::shared_ptr<Codec> audio_codec_;
+    std::shared_ptr<AACCodec> my_audio_codec_;
     
     boost::asio::steady_timer check_closable_timer_;
     RtpH264Depacketizer rtp_h264_depacketizer_;
@@ -95,6 +98,7 @@ private:
     int32_t resampled_pcm_samples_ = 0;
     std::unique_ptr<AACEncoder> aac_encoder_;
     bool header_ready_ = false;
+    bool stream_ready_ = false;
     
     WaitGroup wg_;
 };

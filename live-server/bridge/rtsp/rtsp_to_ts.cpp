@@ -301,7 +301,7 @@ void RtspToTs::generate_h264_ts(int64_t timestamp, std::shared_ptr<RtpH264NALU> 
             if (pkt->get_header().marker == 1) {
                 break;
             } else {
-                spdlog::error("H264_RTP_PAYLOAD_FU_A nalu not marker");
+                // spdlog::error("H264_RTP_PAYLOAD_FU_A nalu not marker");
             }
         }
     }
@@ -602,7 +602,7 @@ void RtspToTs::generate_h265_ts(int64_t timestamp, std::shared_ptr<RtpH265NALU> 
             if (pkt->get_header().marker == 1) {
                 break;
             } else {
-                spdlog::error("H264_RTP_PAYLOAD_FU_A nalu not marker");
+                // spdlog::error("H264_RTP_PAYLOAD_FU_A nalu not marker");
             }
         }
     }
