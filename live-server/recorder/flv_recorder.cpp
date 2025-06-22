@@ -169,10 +169,11 @@ void FlvRecorder::close() {
 
     RecorderManager::get_instance().remove_recorder(self);
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-        auto s = source_.lock();
         flv_media_sink_->on_close({});
         flv_media_sink_->on_flv_tag({});
         flv_media_sink_->close();
+        
+        auto s = source_.lock();
         if (s) {
             s->remove_media_sink(flv_media_sink_);
             s->remove_recorder(self);

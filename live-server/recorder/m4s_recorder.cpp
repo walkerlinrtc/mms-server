@@ -191,17 +191,18 @@ void M4sRecorder::close() {
 
     auto self(shared_from_this());
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]() -> boost::asio::awaitable<void> {
-        auto s = source_.lock();
-        if (s) {
-            s->remove_media_sink(mp4_media_sink_);
-            s->remove_recorder(self);
-        }
         mp4_media_sink_->close();
         mp4_media_sink_->on_close({});
         mp4_media_sink_->set_audio_init_segment_cb({});
         mp4_media_sink_->set_video_init_segment_cb({});
         mp4_media_sink_->set_audio_mp4_segment_cb({});
         mp4_media_sink_->set_video_mp4_segment_cb({});
+
+        auto s = source_.lock();
+        if (s) {
+            s->remove_media_sink(mp4_media_sink_);
+            s->remove_recorder(self);
+        }
         
         if (!file_dir_.empty()) {
             gen_mpd();
