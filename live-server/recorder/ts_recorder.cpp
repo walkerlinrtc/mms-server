@@ -134,6 +134,7 @@ void TsRecorder::close() {
         auto s = source_.lock();
         if (s) {
             s->remove_media_sink(ts_media_sink_);
+            s->remove_recorder(self);
         }
         ts_media_sink_->on_close({});
         ts_media_sink_->on_ts_segment({});

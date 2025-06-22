@@ -175,6 +175,7 @@ void FlvRecorder::close() {
         flv_media_sink_->close();
         if (s) {
             s->remove_media_sink(flv_media_sink_);
+            s->remove_recorder(self);
         }
         co_return;
     }, boost::asio::detached);

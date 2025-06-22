@@ -206,10 +206,10 @@ void M4sRecorder::close() {
         if (!file_dir_.empty()) {
             gen_mpd();
         }
-        RecorderManager::get_instance().remove_recorder(self);
         co_return;
     },
     boost::asio::detached);
+    RecorderManager::get_instance().remove_recorder(self);
 }
 
 std::string format_duration_mpd(int64_t duration_ms) {
