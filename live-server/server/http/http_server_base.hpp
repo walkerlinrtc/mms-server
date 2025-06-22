@@ -35,6 +35,7 @@ protected:
     bool on_options(const std::string & path, const HTTP_HANDLER & handler);
     bool on_post(const std::string & path, const HTTP_HANDLER & handler);
     bool on_patch(const std::string & path, const HTTP_HANDLER & handler);
+    bool on_delete(const std::string & path, const HTTP_HANDLER & handler);
     bool on_websocket(const std::string & path, const WS_HANDLER & handler);
     bool on_static_fs(const std::string & path, const std::string & root_path);
     virtual bool register_route();

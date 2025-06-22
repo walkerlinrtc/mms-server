@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include "webrtc_server.hpp"
 #include "webrtc_server_session.hpp"
 #include "config/config.h"
@@ -14,6 +15,10 @@
 #include "log/log.h"
 
 #include "base/thread/thread_pool.hpp"
+#include "base/utils/utils.h"
+#include "core/source_manager.hpp"
+#include "core/media_source.hpp"
+
 using namespace mms;
 
 std::shared_ptr<DtlsCert> WebRtcServer::default_dtls_cert_;
@@ -182,6 +187,33 @@ boost::asio::awaitable<void> WebRtcServer::on_whip(std::shared_ptr<HttpRequest> 
         co_return;
     }
     webrtc_session->start();
+    co_return;
+}
+
+boost::asio::awaitable<void> WebRtcServer::on_whip_delete(std::shared_ptr<HttpRequest> req,
+                                                            std::shared_ptr<HttpResponse> resp)
+{
+    std::string domain = req->get_query_param("domain");
+    if (domain.empty()) {
+        domain = req->get_header("Host");
+        auto pos = domain.find(":");
+        if (pos != std::string::npos) {
+            domain = domain.substr(0, pos);
+        }
+    }
+    
+    auto source = SourceManager::get_instance().get_source(domain, req->get_path_param("app"), req->get_path_param("stream"));
+    if (!source) {
+        resp->add_header("Connection", "Close");
+        co_await resp->write_header(404, "Not Found");
+        resp->close();
+        co_return;
+    }
+
+    source->close();
+    resp->add_header("Connection", "Close");
+    co_await resp->write_header(200, "Ok");
+    resp->close();
     co_return;
 }
 

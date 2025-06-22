@@ -42,6 +42,10 @@ public:
 
     boost::asio::awaitable<void> on_whip(std::shared_ptr<HttpRequest> req,
                                          std::shared_ptr<HttpResponse> resp);
+    
+    boost::asio::awaitable<void> on_whip_delete(std::shared_ptr<HttpRequest> req,
+                                         std::shared_ptr<HttpResponse> resp);
+
     boost::asio::awaitable<void> on_whep(std::shared_ptr<HttpRequest> req,
                                          std::shared_ptr<HttpResponse> resp);
     boost::asio::awaitable<void> on_whep_patch(std::shared_ptr<HttpRequest> req,

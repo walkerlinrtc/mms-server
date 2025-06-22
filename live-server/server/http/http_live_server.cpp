@@ -127,6 +127,19 @@ bool HttpLiveServer::register_route() {
         return false;
     }
 
+    ret = on_delete("/:app/:stream.whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        if (webrtc_server_) {
+            co_await webrtc_server_->on_whip_delete(req, resp);
+        } else {
+            resp->close();
+        }
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
     ret = on_post("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
