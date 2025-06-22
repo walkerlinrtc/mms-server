@@ -34,7 +34,7 @@ public:
     M4sMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
     virtual ~M4sMediaSource();
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
     bool init();
     bool add_media_sink(std::shared_ptr<MediaSink> media_sink);
     bool on_combined_init_segment(std::shared_ptr<Mp4Segment> mp4_seg);

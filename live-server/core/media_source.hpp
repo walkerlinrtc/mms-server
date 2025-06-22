@@ -101,16 +101,16 @@ public:
     SourceStatus get_status() const;
     void set_status(SourceStatus status);
     
-    virtual std::shared_ptr<Json::Value> to_json();
+    virtual Json::Value to_json();
 
     template <typename R> 
-    boost::asio::awaitable<std::shared_ptr<R>> sync_exec(const std::function<std::shared_ptr<R>()> & exec_func) {
+    boost::asio::awaitable<R> sync_exec(const std::function<R()> & exec_func) {
         auto self(shared_from_this());
         WaitGroup wg(worker_);
-        std::atomic<std::shared_ptr<R>> result = nullptr;
+        std::shared_ptr<R> result = std::make_shared<R>();
         wg.add(1);
-        boost::asio::co_spawn(worker_->get_io_context(), [this, self, &wg, &exec_func, &result]()->boost::asio::awaitable<void> {
-            result.store(exec_func(), std::memory_order_release);
+        boost::asio::co_spawn(worker_->get_io_context(), [this, self, &wg, &exec_func, result]()->boost::asio::awaitable<void> {
+            *result = exec_func();
             co_return;
         }, [this, self, &wg](std::exception_ptr exp) {
             (void)exp;
@@ -118,10 +118,10 @@ public:
         });
 
         co_await wg.wait();
-        co_return result.load(std::memory_order_acquire);
+        co_return *result;
     }
 
-    boost::asio::awaitable<std::shared_ptr<Json::Value>> sync_to_json();
+    boost::asio::awaitable<Json::Value> sync_to_json();
     void notify_status(SourceStatus status);
     virtual void close();
 protected:

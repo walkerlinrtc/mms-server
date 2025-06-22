@@ -33,7 +33,7 @@ public:
 
     bool init() override;
     void close() override;
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
 private:
     void gen_m3u8();
     std::shared_ptr<TsMediaSink> ts_media_sink_;

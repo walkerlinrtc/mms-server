@@ -143,9 +143,8 @@ bool FlvRecorder::init() {
     return true;
 }
 
-std::shared_ptr<Json::Value> FlvRecorder::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value FlvRecorder::to_json() {
+    Json::Value v;
     v["type"] = type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -155,7 +154,7 @@ std::shared_ptr<Json::Value> FlvRecorder::to_json() {
     v["duration"] = record_duration_;
     v["file_dir"] = file_dir_;
     v["write_bytes"] = write_bytes_;
-    return d;
+    return v;
 }
 
 void FlvRecorder::close() {

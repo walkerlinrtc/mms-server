@@ -32,9 +32,8 @@ M4sMediaSource::~M4sMediaSource() {
 
 }
 
-std::shared_ptr<Json::Value> M4sMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value M4sMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -52,7 +51,7 @@ std::shared_ptr<Json::Value> M4sMediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+    return v;
 }
 
 

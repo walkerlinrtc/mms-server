@@ -18,11 +18,11 @@ Recorder::~Recorder() {
 
 }
 
-std::shared_ptr<Json::Value> Recorder::to_json() {
-    return nullptr;
+Json::Value Recorder::to_json() {
+    return Json::Value{};
 }
 
-boost::asio::awaitable<std::shared_ptr<Json::Value>> Recorder::sync_to_json() {
+boost::asio::awaitable<Json::Value> Recorder::sync_to_json() {
     auto r = co_await sync_exec<Json::Value>([this]() {
         return to_json();
     });

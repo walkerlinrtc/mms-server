@@ -43,7 +43,7 @@ public:
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, 
                                                       const std::string & stream_name) override;
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
 protected:
     SequencePktBuf<FlvTag> flv_tags_;
     std::shared_ptr<RtmpMetaDataMessage> metadata_;

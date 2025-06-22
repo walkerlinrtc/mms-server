@@ -33,7 +33,7 @@ public:
     TsMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
     virtual ~TsMediaSource();
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
     bool init();
     bool on_ts_segment(std::shared_ptr<TsSegment> ts_seg);
     bool on_pes_packet(std::shared_ptr<PESPacket> pes_packet);

@@ -22,7 +22,7 @@ public:
 
     bool init() override;
     void close() override;
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
 private:
     bool has_write_flv_header_ = false;
     uint32_t prev_tag_size_ = 0;

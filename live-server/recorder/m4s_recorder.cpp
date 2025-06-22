@@ -170,9 +170,8 @@ bool M4sRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     return true;
 }
 
-std::shared_ptr<Json::Value> M4sRecorder::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value M4sRecorder::to_json() {
+    Json::Value v;
     v["type"] = type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -181,7 +180,7 @@ std::shared_ptr<Json::Value> M4sRecorder::to_json() {
     v["file_dir"] = file_dir_;
     v["duration"] = record_duration_;
     v["write_bytes"] = write_bytes_;
-    return d;
+    return v;
 }
 
 void M4sRecorder::close() {

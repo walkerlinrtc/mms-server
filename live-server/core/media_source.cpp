@@ -44,9 +44,8 @@ std::shared_ptr<StreamSession> MediaSource::get_session() {
     return s;
 }
 
-std::shared_ptr<Json::Value> MediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value MediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -63,10 +62,10 @@ std::shared_ptr<Json::Value> MediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+    return v;
 }
 
-boost::asio::awaitable<std::shared_ptr<Json::Value>> MediaSource::sync_to_json() {
+boost::asio::awaitable<Json::Value> MediaSource::sync_to_json() {
     auto r = co_await sync_exec<Json::Value>([this]() {
         return to_json();
     });

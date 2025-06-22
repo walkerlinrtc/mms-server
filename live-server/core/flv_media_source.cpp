@@ -39,9 +39,8 @@ FlvMediaSource::FlvMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession
 FlvMediaSource::~FlvMediaSource() {
 }
 
-std::shared_ptr<Json::Value> FlvMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value FlvMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -59,7 +58,7 @@ std::shared_ptr<Json::Value> FlvMediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+    return v;
 }
 
 bool FlvMediaSource::on_metadata(std::shared_ptr<FlvTag> metadata_pkt) {

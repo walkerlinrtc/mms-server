@@ -147,9 +147,8 @@ void TsRecorder::close() {
     RecorderManager::get_instance().remove_recorder(self);
 }
 
-std::shared_ptr<Json::Value> TsRecorder::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value TsRecorder::to_json() {
+    Json::Value v;
     v["type"] = type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -159,7 +158,7 @@ std::shared_ptr<Json::Value> TsRecorder::to_json() {
     v["duration"] = record_duration_;
     v["write_bytes"] = write_bytes_;
     v["record_seg_count"] = record_seg_count_;
-    return d;
+    return v;
 }
 
 void TsRecorder::gen_m3u8() {

@@ -35,7 +35,7 @@ public:
 
     bool init() override;
     void close() override;
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
 
     // 数据处理相关函数
     bool on_audio_init_segment(std::shared_ptr<Mp4Segment> Mp4Segment);

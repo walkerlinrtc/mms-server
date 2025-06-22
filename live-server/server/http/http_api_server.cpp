@@ -219,7 +219,7 @@ boost::asio::awaitable<void> HttpApiServer::get_domain_streams(std::shared_ptr<H
         Json::Value japp_streams;
         for (auto stream : it_app->second) {
             auto v = co_await stream.second->sync_to_json();
-            japp_streams[stream.first] = *v;
+            japp_streams[stream.first] = v;
         }
         root[it_app->first] = japp_streams;
     }
@@ -260,9 +260,7 @@ boost::asio::awaitable<void> HttpApiServer::get_app_streams(std::shared_ptr<Http
         Json::Value jstreams;
         for (auto it = streams.begin(); it != streams.end(); it++) {
             auto v = co_await it->second->sync_to_json();
-            if (v) {
-                jstreams.append(*v);
-            }
+            jstreams.append(v);
         }
         root["data"] = jstreams;
         root["code"] = 0;
@@ -301,7 +299,7 @@ boost::asio::awaitable<void> HttpApiServer::get_domain_recorders(std::shared_ptr
         for (auto app_recorders : it_app->second) {
             for (auto r : app_recorders.second) {
                 auto v = co_await r->sync_to_json();
-                japp_recorders.append(*v);
+                japp_recorders.append(v);
             }
         }
         root[it_app->first] = japp_recorders;
@@ -344,11 +342,7 @@ boost::asio::awaitable<void> HttpApiServer::get_app_recorders(std::shared_ptr<Ht
         for (auto it = recorders.begin(); it != recorders.end(); it++) {
             for (auto r : it->second) {
                 auto v = co_await r->sync_to_json();
-                if (v) {
-                    jrecorders.append(*v);
-                } else {
-                    spdlog::error("no json");
-                }
+                jrecorders.append(v);
             }
         }
         root["data"] = jrecorders;

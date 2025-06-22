@@ -19,9 +19,8 @@ using namespace mms;
 WebRtcMediaSource::WebRtcMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app) : RtpMediaSource("webrtc{rtp[es]}", session, app, worker) {
 }
 
-std::shared_ptr<Json::Value> WebRtcMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value WebRtcMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -43,7 +42,7 @@ std::shared_ptr<Json::Value> WebRtcMediaSource::to_json() {
     if (session) {
         v["session"] = session->to_json();
     }
-    return d;
+    return v;
 }
 
 
