@@ -22,6 +22,9 @@ bool SourceManager::add_source(const std::string & domain,
     std::lock_guard<std::mutex> lck(sources_mtx_);
     auto it = sources_[domain][app_name].find(stream_name);
     if (it != sources_[domain][app_name].end()) {
+        if (source == it->second) {
+            return true;
+        }
         return false;
     }
     sources_[domain][app_name][stream_name] = source;
