@@ -30,7 +30,7 @@ bool TsMediaSink::recv_ts_segment(std::shared_ptr<TsSegment> ts_seg) {
 }
 
 boost::asio::awaitable<void> TsMediaSink::do_work() {
-    if (!source_->is_stream_ready()) {
+    if (source_ == nullptr || !source_->is_stream_ready()) {
         co_return;
     }
     

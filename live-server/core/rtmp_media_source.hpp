@@ -44,7 +44,7 @@ public:
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name);
     Json::Value to_json() override;
 protected:
-    LockFreeSeqPktBuf<RtmpMessage> av_pkts_;
+    SequencePktBuf<RtmpMessage> av_pkts_;
     std::shared_ptr<RtmpMetaDataMessage> metadata_;
     std::shared_ptr<RtmpMessage> video_header_;
     std::shared_ptr<RtmpMessage> audio_header_;
