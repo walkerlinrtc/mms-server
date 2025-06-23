@@ -1,5 +1,5 @@
 type: publish
-name: test.publish.com
+name: test2.publish.com
 key_file: test.publish.com.key
 cert_file: test.publish.com.crt
 apps:
@@ -10,11 +10,11 @@ apps:
         # - ts
         # - m4s
         # - flv
-    test_push_to_count: 200
-    edge_push:
-      - enabled: true
-        protocol: rtmp
-        url: rtmp://test2.publish.com/${app}/${stream_name}
+    # test_push_to_count: 1
+    # edge_push:
+    #   - enabled: false
+    #     protocol: rtmp
+    #     url: rtmp://test.publish.com/${app}/${stream_name}
     #   - protocol: rtmp
     #     url: rtmp://srs.com:1937/${app}/${stream_name}_b?sign=${params[sign]}
     #     params:

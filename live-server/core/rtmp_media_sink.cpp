@@ -61,7 +61,7 @@ bool RtmpMediaSink::on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt) {
 } 
 
 boost::asio::awaitable<void> RtmpMediaSink::do_work() {
-    if (!source_->is_stream_ready()) {
+    if (source_ == nullptr || !source_->is_stream_ready()) {
         co_return;
     }
 

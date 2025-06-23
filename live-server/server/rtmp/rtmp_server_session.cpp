@@ -440,8 +440,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
 
     is_publisher_ = true;
     is_player_ = false;
-    auto rtmp_media_source =
-        SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+    auto rtmp_media_source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
     if (!rtmp_media_source || rtmp_media_source->get_media_type() != "rtmp") {
         rtmp_media_source_ = std::make_shared<RtmpMediaSource>(
             get_worker(), std::weak_ptr<StreamSession>(self), std::static_pointer_cast<PublishApp>(app_));

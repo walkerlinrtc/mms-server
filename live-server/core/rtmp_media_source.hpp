@@ -16,6 +16,7 @@
 
 #include "media_source.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/lockfree_seq_pkt_buf.hpp"
 #include "base/obj_tracker.hpp"
 
 namespace mms {

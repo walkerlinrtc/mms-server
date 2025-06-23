@@ -512,7 +512,15 @@ bool Utils::parse_url(const std::string &url, std::string &protocol, std::string
     if (comma_pos == std::string::npos)
     {
         domain = vs_url[2];
-        port = 80;
+        if (protocol == "http") {
+            port = 80;
+        } else if (protocol == "rtmp") {
+            port = 1935;
+        } else if (protocol == "https") {
+            port = 443;
+        } else if (protocol == "rtmps") {
+            port = 1936;
+        }
     }
     else
     {

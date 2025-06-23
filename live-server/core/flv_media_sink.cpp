@@ -77,7 +77,7 @@ bool FlvMediaSink::on_metadata(std::shared_ptr<FlvTag> metadata_pkt) {
 } 
 
 boost::asio::awaitable<void> FlvMediaSink::do_work() {
-    if (!source_->is_stream_ready()) {
+    if (source_ == nullptr || !source_->is_stream_ready()) {
         co_return;
     }
 
@@ -108,6 +108,6 @@ void FlvMediaSink::on_flv_tag(const std::function<boost::asio::awaitable<bool>(s
 
 void FlvMediaSink::close() {
     cb_ = {};
-    MediaSink::close();
+    LazyMediaSink::close();
     return;
 }

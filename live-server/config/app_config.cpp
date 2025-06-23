@@ -73,7 +73,7 @@ int32_t AppConfig::load_config(const YAML::Node & node)
 
     auto test_push_to_count_node = node["test_push_to_count"];
     if (test_push_to_count_node.IsDefined()) {
-        auto push_to_node = node["push_to"];
+        auto push_to_node = node["edge_push"];
         int32_t test_push_to_count = test_push_to_count_node.as<int32_t>();
         if (push_to_node.IsDefined()) {
             for (size_t i = 0; i < push_to_node.size(); i++) {
