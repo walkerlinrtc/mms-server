@@ -13,6 +13,15 @@ ExternalProject_Add(libspdlog
     INSTALL_COMMAND make -C build install
 )
 
+ExternalProject_Add(libjemalloc
+    EXCLUDE_FROM_ALL 1
+    URL https://github.com/jemalloc/jemalloc/archive/refs/tags/5.3.0.tar.gz
+    BUILD_IN_SOURCE 1
+    CONFIGURE_COMMAND ./autogen.sh && ./configure --prefix=${PROJECT_BINARY_DIR} --enable-static
+    BUILD_COMMAND make
+    INSTALL_COMMAND make install
+)
+
 ExternalProject_Add(libboost
     EXCLUDE_FROM_ALL 1
     # URL https://archives.boost.io/release/1.82.0/source/boost_1_82_0.tar.gz

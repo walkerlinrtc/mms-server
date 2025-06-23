@@ -93,7 +93,7 @@ bool TsMediaSource::on_pes_packet(std::shared_ptr<PESPacket> pes_packet) {
         keyframe_indexes_.push_back(latest_frame_index_);
     }
     
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);

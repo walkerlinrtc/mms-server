@@ -144,7 +144,7 @@ bool RtmpMediaSource::on_audio_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     }
 
     latest_audio_timestamp_ = audio_pkt->timestamp_;
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);
@@ -225,7 +225,7 @@ bool RtmpMediaSource::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     latest_video_timestamp_ = video_pkt->timestamp_;
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);

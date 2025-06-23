@@ -25,6 +25,7 @@
 using namespace mms;
 
 FlvMediaSink::FlvMediaSink(ThreadWorker *worker) : LazyMediaSink(worker) {
+    pkts_.reserve(20);
 }
 
 bool FlvMediaSink::init() {
@@ -81,15 +82,13 @@ boost::asio::awaitable<void> FlvMediaSink::do_work() {
         co_return;
     }
 
-    std::vector<std::shared_ptr<FlvTag>> pkts;
-    pkts.reserve(20);
     auto flv_source = std::static_pointer_cast<FlvMediaSource>(source_);
     do {
-        pkts = flv_source->get_pkts(last_send_pkt_index_, 20);
-        if (!co_await cb_(pkts)) {
+        pkts_ = flv_source->get_pkts(last_send_pkt_index_, 20);
+        if (!co_await cb_(pkts_)) {
             break;
         }
-    } while (pkts.size() > 0);
+    } while (pkts_.size() > 0);
     co_return;
 }
 

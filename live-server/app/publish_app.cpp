@@ -108,7 +108,6 @@ void PublishApp::on_destroy_source(const std::string & domain,
 std::vector<std::shared_ptr<MediaSink>> PublishApp::create_push_streams(std::shared_ptr<MediaSource> source, std::shared_ptr<StreamSession> session) {
     std::vector<std::shared_ptr<MediaSink>> sinks;
     auto push_configs = app_conf_->edge_push_configs();
-    CORE_DEBUG("xxxxxxxxxxxxxxxxxx create_push_streams xxxxxxxxxxxxxxxxxxxx");
     for (auto & config : push_configs) {
         if (config->is_enabled() && config->get_protocol() == "rtmp" && source->get_media_type() == "rtmp") {
             auto url = config->gen_url(session);

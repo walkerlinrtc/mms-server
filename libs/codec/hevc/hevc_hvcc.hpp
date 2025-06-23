@@ -5,9 +5,9 @@
 
 namespace mms {
 struct HVCCNALUnitArray {
-    uint8_t array_completeness;//1bit
+    uint8_t array_completeness = 0;//1bit
     uint8_t reserved = 0;//1bit
-    uint8_t NAL_unit_type;//6bit
+    uint8_t NAL_unit_type = 0;//6bit
     uint16_t numNalus = 0;//16bit
     struct Nalu {
         uint16_t nalUnitLength = 0;
