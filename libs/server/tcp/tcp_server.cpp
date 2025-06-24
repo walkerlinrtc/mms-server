@@ -32,6 +32,7 @@ int32_t TcpServer::start_listen(uint16_t port, const std::string &addr) {
             acceptor_->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
             while (1) {
                 boost::system::error_code ec;
+                // 随机取个worker
                 auto worker = thread_pool_inst::get_mutable_instance().get_worker(-1);
                 auto tcp_sock = co_await acceptor_->async_accept(
                     worker->get_io_context(), boost::asio::redirect_error(boost::asio::use_awaitable, ec));

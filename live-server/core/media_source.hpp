@@ -142,6 +142,7 @@ protected:
     std::shared_mutex recorder_mtx_;
     std::unordered_map<std::string, std::shared_ptr<Recorder>> recorders_;
 
+    // id
     std::string domain_name_;
     std::string app_name_;
     std::string stream_name_;

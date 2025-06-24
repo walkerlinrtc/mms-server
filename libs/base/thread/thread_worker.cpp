@@ -27,14 +27,19 @@ void ThreadWorker::start() {
 }
 
 void ThreadWorker::work() {
+    // 创建CPU集合
     cpu_set_t mask;
+    // 清空CPU集合
     CPU_ZERO(&mask);
+    // 设置mask为目标cpu_core_
     CPU_SET(cpu_core_, &mask);
+    // 绑定当前线程到指定cpu上
     if (pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask) < 0) {
         // print error log
     } else {
     }
 
+    // 启动boost::asio的事件循环
     io_context_.run();
 }
 
