@@ -21,6 +21,7 @@
 #include "core/ts_media_source.hpp"
 #include "protocol/ts/ts_pat_pmt.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -57,7 +58,7 @@ struct AdtsHeader {
     char data[7];
 };
 
-class RtmpToTs : public MediaBridge {
+class RtmpToTs : public MediaBridge, public ObjTracker<RtmpToTs> {
 public:
     RtmpToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~RtmpToTs();

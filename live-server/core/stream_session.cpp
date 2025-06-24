@@ -49,7 +49,7 @@ bool StreamSession::find_and_set_app(const std::string &domain, const std::strin
     }
 
     if (app->is_publish_app() != is_publish) {
-        CORE_WARN("app: {} is not publish app", app_name);
+        CORE_WARN("domain:{}, app: {} is not publish app", domain, app_name);
         return false;
     }
 

@@ -43,7 +43,7 @@ HttpLongTsServerSession::~HttpLongTsServerSession() {
 
 }
 
-void HttpLongTsServerSession::service() {
+void HttpLongTsServerSession::start() {
     auto self(std::static_pointer_cast<HttpLongTsServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         auto domain = http_request_->get_query_param("domain");
@@ -68,7 +68,7 @@ void HttpLongTsServerSession::service() {
             http_response_->add_header("Content-Type", "video/MP2T");
             http_response_->add_header("Connection", "Close");
             co_await http_response_->write_header(404, "Not Found");
-            close();
+            stop();
             co_return;
         }
 
@@ -79,7 +79,7 @@ void HttpLongTsServerSession::service() {
             http_response_->add_header("Content-Type", "video/MP2T");
             http_response_->add_header("Connection", "Close");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -111,7 +111,7 @@ void HttpLongTsServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(404, "Not Found");
-            close();
+            stop();
             co_return;
         } else {
             if (source->get_media_type() != "ts") {
@@ -121,7 +121,7 @@ void HttpLongTsServerSession::service() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    close();
+                    stop();
                     co_return;
                 }
 
@@ -132,6 +132,10 @@ void HttpLongTsServerSession::service() {
 
             ts_media_sink_ = std::make_shared<TsMediaSink>(worker_);
             // 事件处理
+            ts_media_sink_->on_close([this, self]() {
+                stop();
+            });
+
             ts_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status)->boost::asio::awaitable<void> {
                 co_return co_await process_source_status(status);
             });
@@ -241,7 +245,7 @@ void HttpLongTsServerSession::start_send_coroutine() {
     }, [this, self](std::exception_ptr exp) {
         (void)exp;
         wg_.done();
-        close();
+        stop();
     });
 }
 
@@ -280,10 +284,10 @@ void HttpLongTsServerSession::close(bool close_conn) {
     if (close_conn) {
         http_response_->close();
     }
-    close();
+    stop();
 }
 
-void HttpLongTsServerSession::close() {
+void HttpLongTsServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;
@@ -298,6 +302,9 @@ void HttpLongTsServerSession::close() {
             auto source = ts_media_sink_->get_source();//SourceManager::get_instance().get_source(get_session_name());
             if (source) {
                 source->remove_media_sink(ts_media_sink_);
+                ts_media_sink_->on_close({});
+                ts_media_sink_->set_on_source_status_changed_cb({});
+                ts_media_sink_->on_pes_pkts({});
                 ts_media_sink_->close();
             }
 

@@ -29,9 +29,8 @@ TsMediaSource::~TsMediaSource() {
 
 }
 
-std::shared_ptr<Json::Value> TsMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value TsMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -49,7 +48,7 @@ std::shared_ptr<Json::Value> TsMediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+    return v;
 }
 
 
@@ -94,7 +93,7 @@ bool TsMediaSource::on_pes_packet(std::shared_ptr<PESPacket> pes_packet) {
         keyframe_indexes_.push_back(latest_frame_index_);
     }
     
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);
@@ -208,42 +207,4 @@ std::shared_ptr<MediaBridge> TsMediaSource::get_or_create_bridge(const std::stri
     
     bridges_.insert(std::pair(id, bridge));
     return bridge;
-}
-
-std::shared_ptr<Recorder> TsMediaSource::get_or_create_recorder(const std::string & record_type, std::shared_ptr<PublishApp> app) {
-    CORE_DEBUG("TsMediaSource::get_or_create_recorder");
-    std::shared_ptr<Recorder> recorder;
-    {
-        std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
-        auto it = recorders_.find(record_type);
-        if (it != recorders_.end()) {
-            return it->second;
-        }
-    }
-    
-    CORE_INFO("create recorder {}/{}/{}/{}", app_->get_domain_name(), app->get_app_name(), stream_name_, record_type);
-    std::shared_ptr<MediaSource> source;
-    auto media_type = get_media_type();
-    if (record_type != get_media_type()) {
-        auto bridge = get_or_create_bridge(media_type + "-" + record_type, app_, stream_name_);
-        if (!bridge) {
-            return nullptr;
-        }
-
-        source = bridge->get_media_source();
-    } else {
-        source = shared_from_this();
-    }
-
-    if (!source) {
-        return nullptr;
-    }
-    
-    recorder = RecorderFactory::create_recorder(worker_, record_type, app, std::weak_ptr<MediaSource>(source), app->get_domain_name(), app->get_app_name(), stream_name_);
-    if (!recorder->init()) {
-        return nullptr;
-    }
-    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
-    recorders_.insert(std::pair(record_type, recorder));
-    return recorder;
 }

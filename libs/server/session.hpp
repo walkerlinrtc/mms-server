@@ -8,19 +8,19 @@
 #include <optional>
 
 #include <boost/asio/awaitable.hpp>
-
+#include "base/obj_tracker.hpp"
 #include "json/json.h"
 namespace mms {
 class App;
 class ThreadWorker;
 
-class Session : public std::enable_shared_from_this<Session> {
+class Session : public std::enable_shared_from_this<Session>, public ObjTracker<Session> {
     friend class App;
 public:
     Session(ThreadWorker *worker);
     virtual ~Session();
-    virtual void service() = 0;
-    virtual void close() = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
     
     ThreadWorker *get_worker() const {
         return worker_;

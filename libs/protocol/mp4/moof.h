@@ -19,9 +19,9 @@ public:
         return mfhd_;
     }
 
-    void set_mfhd(std::shared_ptr<MfhdBox> mfhd) {
-        mfhd_ = mfhd;
-    }
+    // void set_mfhd(std::shared_ptr<MfhdBox> mfhd) {
+    //     mfhd_ = mfhd;
+    // }
 
     void set_traf(std::shared_ptr<TrafBox> traf) {
         traf_ = traf;
@@ -31,7 +31,7 @@ public:
         return traf_;
     }
 public:
-    std::shared_ptr<MdhdBox> mdhd_;
+    // std::shared_ptr<MdhdBox> mdhd_;
     std::shared_ptr<MfhdBox> mfhd_;
     std::shared_ptr<TrafBox> traf_;
 };

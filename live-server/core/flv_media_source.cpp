@@ -39,9 +39,8 @@ FlvMediaSource::FlvMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession
 FlvMediaSource::~FlvMediaSource() {
 }
 
-std::shared_ptr<Json::Value> FlvMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value FlvMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -59,7 +58,7 @@ std::shared_ptr<Json::Value> FlvMediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+    return v;
 }
 
 bool FlvMediaSource::on_metadata(std::shared_ptr<FlvTag> metadata_pkt) {
@@ -99,6 +98,7 @@ bool FlvMediaSource::on_metadata(std::shared_ptr<FlvTag> metadata_pkt) {
             audio_ready_ = true;
         } 
     }
+
     return true;
 }
 
@@ -139,7 +139,7 @@ bool FlvMediaSource::on_audio_packet(std::shared_ptr<FlvTag> audio_tag) {
 
     latest_audio_timestamp_ = audio_tag->tag_header.timestamp;
 
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);
@@ -205,7 +205,7 @@ bool FlvMediaSource::on_video_packet(std::shared_ptr<FlvTag> video_tag) {
 
     latest_video_timestamp_ = video_tag->tag_header.timestamp + video_data->header.composition_time;
 
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);

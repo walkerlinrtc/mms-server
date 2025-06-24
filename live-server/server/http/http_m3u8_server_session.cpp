@@ -29,7 +29,7 @@ HttpM3u8ServerSession::HttpM3u8ServerSession(std::shared_ptr<HttpRequest> http_r
 
 HttpM3u8ServerSession::~HttpM3u8ServerSession() {}
 
-void HttpM3u8ServerSession::service() {
+void HttpM3u8ServerSession::start() {
     auto self(std::static_pointer_cast<HttpM3u8ServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(
         worker_->get_io_context(),
@@ -48,7 +48,7 @@ void HttpM3u8ServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                close();
+                stop();
                 co_return;
             }
 
@@ -60,7 +60,7 @@ void HttpM3u8ServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                close();
+                stop();
                 co_return;
             }
             auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" +
@@ -83,7 +83,7 @@ void HttpM3u8ServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
                 co_return;
             } else {
                 if (source->get_media_type() != "hls") {
@@ -94,7 +94,7 @@ void HttpM3u8ServerSession::service() {
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        close();
+                        stop();
                         co_return;
                     }
 
@@ -106,7 +106,7 @@ void HttpM3u8ServerSession::service() {
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        close();
+                        stop();
                         co_return;
                     }
                     hls_source = std::static_pointer_cast<HlsLiveMediaSource>(hls_bridge->get_media_source());
@@ -121,7 +121,7 @@ void HttpM3u8ServerSession::service() {
                     auto status = hls_source->get_status();
                     bool ret = co_await process_source_status(status);
                     if (!ret) {
-                        close();
+                        stop();
                         co_return;
                     }
 
@@ -141,7 +141,7 @@ void HttpM3u8ServerSession::service() {
                     http_response_->add_header("Content-Length", std::to_string(m3u8.size()));
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     if (!(co_await http_response_->write_header(200, "OK"))) {
-                        close();
+                        stop();
                         co_return;
                     }
                     co_await http_response_->write_data((uint8_t*)m3u8.data(), m3u8.size());
@@ -151,7 +151,7 @@ void HttpM3u8ServerSession::service() {
                 http_response_->add_header("Connection", "close");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
             }
 
             co_return;
@@ -169,7 +169,7 @@ boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(Source
         http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
         http_response_->add_header("Access-Control-Allow-Origin", "*");
         if (!(co_await http_response_->write_header(404, "Not Found"))) {
-            close();
+            stop();
             co_return false;
         }
         co_return false;
@@ -178,7 +178,7 @@ boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(Source
         http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
         http_response_->add_header("Access-Control-Allow-Origin", "*");
         if (!(co_await http_response_->write_header(401, "Unauthorized"))) {
-            close();
+            stop();
             co_return false;
         }
         co_return false;
@@ -187,7 +187,7 @@ boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(Source
         http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
         http_response_->add_header("Access-Control-Allow-Origin", "*");
         if (!(co_await http_response_->write_header(403, "Forbidden"))) {
-            close();
+            stop();
             co_return false;
         }
         co_return false;
@@ -196,7 +196,7 @@ boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(Source
         http_response_->add_header("Content-Type", "application/vnd.apple.mpegurl");
         http_response_->add_header("Access-Control-Allow-Origin", "*");
         if (!(co_await http_response_->write_header(500, "Gateway timeout"))) {
-            close();
+            stop();
             co_return false;
         }
         co_return false;
@@ -204,7 +204,7 @@ boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(Source
     co_return true;
 }
 
-void HttpM3u8ServerSession::close() {
+void HttpM3u8ServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;

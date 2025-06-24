@@ -21,6 +21,8 @@
 #include "base/utils/utils.h"
 #include "base/wait_group.h"
 
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class WebRtcServerSession;
 class WebRtcServerSessionCloseHandler;
@@ -40,7 +42,7 @@ class DtlsCert;
 class HttpRequest;
 class HttpResponse;
 
-class WebRtcServerSession  : public StreamSession {
+class WebRtcServerSession  : public StreamSession, public ObjTracker<WebRtcServerSession> {
 public:
     WebRtcServerSession(ThreadWorker *worker);
     virtual ~WebRtcServerSession();
@@ -48,11 +50,15 @@ public:
         close_handler_ = close_handler;
     }
 
-    void service();
-    void close() override;
+    void start() override;
+    void stop() override;
     
     ThreadWorker *get_worker() {
         return worker_;
+    }
+
+    void set_etag(const std::string & etag) {
+        etag_ = etag;
     }
 
     const std::string & get_local_ice_ufrag() const {
@@ -96,8 +102,6 @@ public:
     }
     
     boost::asio::awaitable<bool> process_stun_packet(std::shared_ptr<StunMsg> stun_msg, std::unique_ptr<uint8_t[]> data, size_t len, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
-    // boost::asio::awaitable<void> process_websocket_msg(std::shared_ptr<WebSocketPacket> msg);
-    
     boost::asio::awaitable<bool> process_dtls_packet(std::unique_ptr<uint8_t[]> data, size_t len, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
     boost::asio::awaitable<bool> process_srtp_packet(std::unique_ptr<uint8_t[]> data, size_t len, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
     boost::asio::awaitable<void> async_process_udp_msg(UdpSocket *sock, std::unique_ptr<uint8_t[]> data, size_t len, boost::asio::ip::udp::endpoint &remote_ep);
@@ -105,6 +109,7 @@ public:
 public:
     boost::asio::awaitable<bool> process_whip_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
     boost::asio::awaitable<bool> process_whep_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
+    boost::asio::awaitable<bool> process_whep_patch_req(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp);
     void update_active_timestamp();
 private:
     void start_alive_checker();
@@ -120,11 +125,12 @@ private:
     void start_rtcp_sender();
     boost::asio::awaitable<void> stop_rtcp_sender();
 
-    boost::asio::awaitable<bool> process_stun_binding_req(std::shared_ptr<StunMsg> stun_msg, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
+    boost::asio::awaitable<int32_t> process_stun_binding_req(std::shared_ptr<StunMsg> stun_msg, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep);
     void on_dtls_handshake_done(SRTPProtectionProfile profile, const std::string & srtp_recv_key, const std::string & srtp_send_key);
     bool find_key_frame(uint32_t timestamp, std::shared_ptr<RtpH264NALU> & nalu);
 private:
     ThreadWorker *worker_;
+    std::string etag_;
     std::string local_ip_;
     uint16_t udp_port_;
 

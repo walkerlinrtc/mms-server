@@ -50,14 +50,15 @@ WebRtcToTs::WebRtcToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
     video_frame_cache_ = std::make_unique<char[]>(1024 * 1024);
     audio_frame_cache_ = std::make_unique<char[]>(1024 * 20);
     spdlog::debug("create webrtc to ts");
+    type_ = "webrtc-to-ts";
+}
+
+WebRtcToTs::~WebRtcToTs() {
     if (swr_context_) {
         swr_free(&swr_context_);
         swr_context_ = nullptr;
     }
-    type_ = "webrtc-to-ts";
 }
-
-WebRtcToTs::~WebRtcToTs() {}
 
 bool WebRtcToTs::init() {
     auto self(shared_from_this());
@@ -86,6 +87,10 @@ bool WebRtcToTs::init() {
             wg_.done();
             close();
         });
+
+    rtp_media_sink_->on_close([this, self]() {
+        close();
+    });
 
     rtp_media_sink_->set_source_codec_ready_cb([this, self](std::shared_ptr<Codec> video_codec,
                                                             std::shared_ptr<Codec> audio_codec) -> bool {
@@ -120,6 +125,14 @@ bool WebRtcToTs::init() {
 
             aac_encoder_ = std::make_unique<AACEncoder>();
             aac_encoder_->init(44100, opus_codec->get_channels());
+            my_audio_codec_ = std::make_shared<AACCodec>();
+            auto spec_conf = aac_encoder_->get_specific_configuration();
+            std::shared_ptr<AudioSpecificConfig> audio_specific_config = std::make_shared<AudioSpecificConfig>();
+            auto ret = audio_specific_config->parse((uint8_t*)spec_conf.data(), spec_conf.size());
+            if (ret > 0) {
+                my_audio_codec_->set_audio_specific_config(audio_specific_config);
+            }
+
             has_audio_ = true;
         }
 
@@ -148,7 +161,20 @@ bool WebRtcToTs::init() {
         return true;
     });
 
-    rtp_media_sink_->set_video_pkts_cb(
+    rtp_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status) -> boost::asio::awaitable<void> {
+        ts_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            on_status_ok();
+        }
+        co_return;
+    });
+
+    return true;
+}
+
+void WebRtcToTs::on_status_ok() {
+    auto self(shared_from_this());
+        rtp_media_sink_->set_video_pkts_cb(
         [this, self](std::vector<std::shared_ptr<RtpPacket>> pkts) -> boost::asio::awaitable<bool> {
             if (first_rtp_video_ts_ == 0) {
                 if (pkts.size() > 0) {
@@ -177,7 +203,6 @@ bool WebRtcToTs::init() {
 
             co_return true;
         });
-    return true;
 }
 
 void WebRtcToTs::process_video_packet(std::shared_ptr<RtpPacket> pkt) {
@@ -190,8 +215,7 @@ void WebRtcToTs::process_h264_packet(std::shared_ptr<RtpPacket> pkt) {
     auto h264_nalu = rtp_h264_depacketizer_.on_packet(pkt);
     if (h264_nalu) {
         int64_t this_timestamp = h264_nalu->get_timestamp();
-        generate_h264_ts((this_timestamp - first_rtp_video_ts_) / 90,
-                         h264_nalu);  // todo 除90这个要根据sdp来计算，目前固定
+        generate_h264_ts((this_timestamp - first_rtp_video_ts_) / 90, h264_nalu);  // todo 除90这个要根据sdp来计算，目前固定
     }
 }
 
@@ -306,7 +330,7 @@ void WebRtcToTs::generate_h264_ts(int64_t timestamp, std::shared_ptr<RtpH264NALU
             if (pkt->get_header().marker == 1) {
                 break;
             } else {
-                spdlog::error("H264_RTP_PAYLOAD_FU_A nalu not marker");
+                // spdlog::error("H264_RTP_PAYLOAD_FU_A nalu not marker");
             }
         }
     }
@@ -881,8 +905,7 @@ void WebRtcToTs::process_opus_packet(std::shared_ptr<RtpPacket> pkt, int64_t tim
         data_in[0] = (uint8_t *)decoded_pcm_;
         data_out[0] = (uint8_t *)resampled_pcm_;
         int32_t total_samples = 0;
-        int out_samples =
-            swr_convert(swr_context_, (uint8_t **)&data_out, 1024, (const uint8_t **)&data_in, in_samples);
+        int out_samples = swr_convert(swr_context_, (uint8_t **)&data_out, 1024, (const uint8_t **)&data_in, in_samples);
         total_samples += out_samples;
         data_out[0] = (uint8_t *)resampled_pcm_ + total_samples * 2 * 2;
         while ((out_samples = swr_convert(swr_context_, (uint8_t **)&data_out, 1024, NULL, 0)) > 0) {
@@ -1127,6 +1150,8 @@ void WebRtcToTs::close() {
 
             auto origin_source = origin_source_.lock();
             if (rtp_media_sink_) {
+                rtp_media_sink_->on_close({});
+                rtp_media_sink_->set_on_source_status_changed_cb({});
                 rtp_media_sink_->set_source_codec_ready_cb({});
                 rtp_media_sink_->set_video_pkts_cb({});
                 rtp_media_sink_->set_audio_pkts_cb({});

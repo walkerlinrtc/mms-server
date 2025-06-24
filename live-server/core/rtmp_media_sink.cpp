@@ -20,6 +20,7 @@ using namespace mms;
 
 RtmpMediaSink::RtmpMediaSink(ThreadWorker *worker) : LazyMediaSink(worker) {
     CORE_DEBUG("create RtmpMediaSink");
+    pkts_.reserve(20);
 }
 
 bool RtmpMediaSink::init() {
@@ -61,7 +62,7 @@ bool RtmpMediaSink::on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt) {
 } 
 
 boost::asio::awaitable<void> RtmpMediaSink::do_work() {
-    if (!source_->is_stream_ready()) {
+    if (source_ == nullptr || !source_->is_stream_ready()) {
         co_return;
     }
 
@@ -70,15 +71,13 @@ boost::asio::awaitable<void> RtmpMediaSink::do_work() {
     }
 
     auto rtmp_source = std::static_pointer_cast<RtmpMediaSource>(source_);
-    std::vector<std::shared_ptr<RtmpMessage>> pkts;
-    pkts.reserve(10);
     do {
-        pkts = rtmp_source->get_pkts(last_send_pkt_index_, 10);
-        if (!co_await rtmp_msg_cb_(pkts)) {
+        pkts_ = rtmp_source->get_pkts(last_send_pkt_index_, 20);
+        if (!co_await rtmp_msg_cb_(pkts_)) {
             close();
             break;
         }
-    } while (pkts.size() > 0);
+    } while (pkts_.size() > 0);
 
     co_return;
 }

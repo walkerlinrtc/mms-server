@@ -69,6 +69,10 @@ bool WebRtcToRtmp::init() {
             close();
         });
 
+    rtp_media_sink_->on_close([this, self]() {
+        close();
+    });
+
     rtp_media_sink_->set_source_codec_ready_cb([this, self](std::shared_ptr<Codec> video_codec,
                                                             std::shared_ptr<Codec> audio_codec) -> bool {
         video_codec_ = video_codec;
@@ -103,6 +107,14 @@ bool WebRtcToRtmp::init() {
 
             aac_encoder_ = std::make_unique<AACEncoder>();
             aac_encoder_->init(44100, opus_codec->get_channels());
+
+            my_audio_codec_ = std::make_shared<AACCodec>();
+            auto spec_conf = aac_encoder_->get_specific_configuration();
+            std::shared_ptr<AudioSpecificConfig> audio_specific_config = std::make_shared<AudioSpecificConfig>();
+            auto ret = audio_specific_config->parse((uint8_t*)spec_conf.data(), spec_conf.size());
+            if (ret > 0) {
+                my_audio_codec_->set_audio_specific_config(audio_specific_config);
+            }
             has_audio_ = true;
         }
 
@@ -117,7 +129,20 @@ bool WebRtcToRtmp::init() {
         return generate_rtmp_headers();
     });
 
-    rtp_media_sink_->set_video_pkts_cb(
+    rtp_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status) -> boost::asio::awaitable<void> {
+        rtmp_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            on_status_ok();
+        }
+        co_return;
+    });
+
+    return true;
+}
+
+void WebRtcToRtmp::on_status_ok() {
+    auto self(shared_from_this());
+        rtp_media_sink_->set_video_pkts_cb(
         [this, self](std::vector<std::shared_ptr<RtpPacket>> pkts) -> boost::asio::awaitable<bool> {
             if (first_rtp_video_ts_ == 0) {
                 if (pkts.size() > 0) {
@@ -146,8 +171,6 @@ bool WebRtcToRtmp::init() {
 
             co_return true;
         });
-
-    return true;
 }
 
 bool WebRtcToRtmp::generate_rtmp_headers() {
@@ -155,15 +178,7 @@ bool WebRtcToRtmp::generate_rtmp_headers() {
         return false;
     }
 
-    if (!rtmp_media_source_->on_metadata(metadata_pkt_)) {
-        return false;
-    }
-
     if (!generate_video_header()) {
-        return false;
-    }
-
-    if (!rtmp_media_source_->on_video_packet(video_header_)) {
         return false;
     }
 
@@ -171,7 +186,15 @@ bool WebRtcToRtmp::generate_rtmp_headers() {
         return false;
     }
 
+    if (!rtmp_media_source_->on_metadata(metadata_pkt_)) {
+        return false;
+    }
+
     if (!rtmp_media_source_->on_audio_packet(audio_header_)) {
+        return false;
+    }
+
+    if (!rtmp_media_source_->on_video_packet(video_header_)) {
         return false;
     }
 
@@ -313,8 +336,8 @@ bool WebRtcToRtmp::generate_video_header() {
 }
 
 bool WebRtcToRtmp::generate_audio_header() {
-    if (audio_codec_->get_codec_type() == CODEC_AAC) {
-        auto aac_codec = std::static_pointer_cast<AACCodec>(audio_codec_);
+    if (my_audio_codec_->get_codec_type() == CODEC_AAC) {
+        auto aac_codec = std::static_pointer_cast<AACCodec>(my_audio_codec_);
         AUDIODATA audio_data;
         audio_data.header.sound_format = AudioTagHeader::AAC;
         auto audio_config = aac_codec->get_audio_specific_config();
@@ -354,8 +377,9 @@ bool WebRtcToRtmp::generate_audio_header() {
         }
         audio_header_->inc_used_bytes(consumed1);
         payload = audio_header_->get_unuse_data();
-
-        auto consumed2 = audio_config->encode((uint8_t *)payload.data(), payload.size());
+        uint8_t* write_ptr = (uint8_t*)payload.data();
+        memset(write_ptr, 0, payload_size);
+        auto consumed2 = audio_config->encode(write_ptr, payload.size());
         if (consumed2 < 0) {
             spdlog::error("audio data encode failed, consumed2:{}", consumed2);
             return false;
@@ -381,7 +405,15 @@ void WebRtcToRtmp::process_h264_packet(std::shared_ptr<RtpPacket> pkt) {
         uint32_t this_timestamp = h264_nalu->get_timestamp();
         auto rtmp_msg = generate_h264_rtmp_msg((this_timestamp - first_rtp_video_ts_) / 90,
                                                h264_nalu);  // todo 除90这个要根据sdp来计算，目前固定
-        if (rtmp_msg) {
+
+        if (!stream_ready_) {
+            stream_ready_ = (has_audio_?(audio_codec_ && audio_codec_->is_ready()):true) && (has_video_?(video_codec_ && video_codec_->is_ready()):true);
+            if (stream_ready_) {
+                generate_rtmp_headers();
+            }
+        }
+
+        if (rtmp_msg && header_ready_) {
             rtmp_media_source_->on_video_packet(rtmp_msg);
         }
     }
@@ -393,6 +425,7 @@ std::shared_ptr<RtmpMessage> WebRtcToRtmp::generate_h264_rtmp_msg(uint32_t times
     char *buf = video_frame_cache_.get();
     auto &pkts = nalu->get_rtp_pkts();
     int32_t total_payload_size = 0;
+    H264Codec* h264_codec = (H264Codec*)video_codec_.get();
     for (auto it = pkts.begin(); it != pkts.end(); it++) {
         auto pkt = it->second;
         H264RtpPktInfo pkt_info;
@@ -408,6 +441,10 @@ std::shared_ptr<RtmpMessage> WebRtcToRtmp::generate_h264_rtmp_msg(uint32_t times
                 uint8_t nalu_type = *(data + 2) & 0x1F;
                 if (nalu_type == H264NaluTypeIDR) {
                     is_key = true;
+                } else if (nalu_type == H264NaluTypeSPS) {
+                    h264_codec->set_sps(std::string((char*)data+2, nalu_size));
+                } else if (nalu_type == H264NaluTypePPS) {
+                    h264_codec->set_pps(std::string((char*)data+2, nalu_size));
                 }
 
                 uint32_t s = htonl(nalu_size);
@@ -422,8 +459,7 @@ std::shared_ptr<RtmpMessage> WebRtcToRtmp::generate_h264_rtmp_msg(uint32_t times
 
             if (pkt->get_header().marker == 1) {  // 最后一个
                 total_payload_size = buf - video_frame_cache_.get();
-                std::shared_ptr<RtmpMessage> video_msg =
-                    std::make_shared<RtmpMessage>(total_payload_size + 5);
+                std::shared_ptr<RtmpMessage> video_msg = std::make_shared<RtmpMessage>(total_payload_size + 5);
                 video_msg->message_stream_id_ = 0;
                 video_msg->chunk_stream_id_ = 8;
                 video_msg->message_type_id_ = FlvTagHeader::VideoTag;
@@ -449,6 +485,10 @@ std::shared_ptr<RtmpMessage> WebRtcToRtmp::generate_h264_rtmp_msg(uint32_t times
         } else if (pkt_info.is_single_nalu()) {
             if (pkt_info.get_nalu_type() == H264NaluTypeIDR) {
                 is_key = true;
+            } else if (pkt_info.get_nalu_type() == H264NaluTypeSPS) {
+                h264_codec->set_sps(std::string(pkt->get_payload()));
+            } else if (pkt_info.get_nalu_type() == H264NaluTypePPS) {
+                h264_codec->set_pps(std::string(pkt->get_payload()));
             }
 
             uint32_t s = htonl(pkt->get_payload().size());
@@ -490,16 +530,28 @@ std::shared_ptr<RtmpMessage> WebRtcToRtmp::generate_h264_rtmp_msg(uint32_t times
             if (pkt_info.is_start_fu()) {
                 do {
                     if (pkt_info.is_start_fu()) {
+                        bool is_sps = false;
+                        bool is_pps = false;
                         if (pkt_info.get_nalu_type() == H264NaluTypeIDR) {
                             is_key = true;
+                        } else if (pkt_info.get_nalu_type() == H264NaluTypeSPS) {
+                            is_sps = true;
+                        } else if (pkt_info.get_nalu_type() == H264NaluTypePPS) {
+                            is_pps = true;
                         }
 
                         nalu_size += pkt->get_payload().size() - 1;
                         const uint8_t *pkt_buf = (const uint8_t *)pkt->get_payload().data();
                         uint8_t nalu_type = (pkt_buf[0] & 0xe0) | (pkt_buf[1] & 0x1F);
+                        char * buf_start = buf;
                         memcpy(buf, &nalu_type, 1);
                         memcpy(buf + 1, pkt->get_payload().data() + 2, pkt->get_payload().size() - 2);
                         buf += pkt->get_payload().size() - 1;
+                        if (is_sps) {
+                            h264_codec->set_sps(std::string(buf_start, buf - buf_start));
+                        } else if (is_pps) {
+                            h264_codec->set_pps(std::string(buf_start, buf - buf_start));
+                        }
                     } else {
                         nalu_size += pkt->get_payload().size() - 2;
                         memcpy(buf, pkt->get_payload().data() + 2, pkt->get_payload().size() - 2);
@@ -521,8 +573,7 @@ std::shared_ptr<RtmpMessage> WebRtcToRtmp::generate_h264_rtmp_msg(uint32_t times
 
             if (pkt->get_header().marker == 1) {
                 total_payload_size = buf - video_frame_cache_.get();
-                std::shared_ptr<RtmpMessage> video_msg =
-                    std::make_shared<RtmpMessage>(total_payload_size + 5);
+                std::shared_ptr<RtmpMessage> video_msg = std::make_shared<RtmpMessage>(total_payload_size + 5);
                 auto payload = video_msg->get_unuse_data();
                 video_msg->message_stream_id_ = 0;
                 video_msg->chunk_stream_id_ = 8;
@@ -613,8 +664,7 @@ void WebRtcToRtmp::process_opus_packet(std::shared_ptr<RtpPacket> pkt) {
         data_in[0] = (uint8_t *)decoded_pcm_;
         data_out[0] = (uint8_t *)resampled_pcm_;
         int32_t total_samples = 0;
-        int out_samples =
-            swr_convert(swr_context_, (uint8_t **)&data_out, 1024, (const uint8_t **)&data_in, in_samples);
+        int out_samples = swr_convert(swr_context_, (uint8_t **)&data_out, 1024, (const uint8_t **)&data_in, in_samples);
         total_samples += out_samples;
         data_out[0] = (uint8_t *)resampled_pcm_ + total_samples * 2 * 2;
         while ((out_samples = swr_convert(swr_context_, (uint8_t **)&data_out, 1024, NULL, 0)) > 0) {
@@ -622,12 +672,19 @@ void WebRtcToRtmp::process_opus_packet(std::shared_ptr<RtpPacket> pkt) {
             total_samples += out_samples;
         }
 
-        auto aac_bytes =
-            aac_encoder_->encode((uint8_t *)resampled_pcm_, total_samples * 2 * 2, aac_data_, 8192);
+        auto aac_bytes = aac_encoder_->encode((uint8_t *)resampled_pcm_, total_samples * 2 * 2, aac_data_, 8192);
         if (aac_bytes > 0) {
             aac_bytes_ = aac_bytes;
             auto audio_msg = generate_aac_rtmp_msg((pkt->get_timestamp() - first_rtp_audio_ts_) / 48);
-            if (audio_msg) {
+
+            if (!stream_ready_) {
+                stream_ready_ = (has_audio_?(audio_codec_ && audio_codec_->is_ready()):true) && (has_video_?(video_codec_ && video_codec_->is_ready()):true);
+                if (stream_ready_) {
+                    generate_rtmp_headers();
+                }
+            }
+            
+            if (audio_msg && header_ready_) {
                 rtmp_media_source_->on_audio_packet(audio_msg);
             }
         }
@@ -653,6 +710,8 @@ void WebRtcToRtmp::close() {
 
             auto origin_source = origin_source_.lock();
             if (rtp_media_sink_) {
+                rtp_media_sink_->on_close({});
+                rtp_media_sink_->set_on_source_status_changed_cb({});
                 rtp_media_sink_->set_source_codec_ready_cb({});
                 rtp_media_sink_->set_video_pkts_cb({});
                 rtp_media_sink_->set_audio_pkts_cb({});

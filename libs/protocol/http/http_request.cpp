@@ -3,7 +3,7 @@
 
 #include "http_request.hpp"
 #include "base/network/socket_interface.hpp"
-
+#include "spdlog/spdlog.h"
 using namespace mms;
 
 HttpRequest::HttpRequest() {
@@ -48,6 +48,10 @@ const std::string & HttpRequest::get_header(const std::string & k) const {
         return empty_str;
     }
     return it->second;
+}
+
+const std::unordered_map<std::string, std::string> & HttpRequest::get_headers() const {
+    return headers_;
 }
 
 void HttpRequest::add_header(const std::string & k, const std::string & v) {
@@ -170,6 +174,8 @@ bool HttpRequest::parse_request_line(const char *buf, size_t len) {
         method_ = PUT;
     } else if (m == "DELETE") {
         method_ = DELETE;
+    } else if (m == "PATCH") {
+        method_ = PATCH;
     } else {
         return false;
     }
@@ -227,7 +233,22 @@ bool HttpRequest::parse_header(const char *buf, size_t len) {
     return true;
 }
 
-bool HttpRequest::parse_body(const char *buf, size_t len) {
-    body_.append(buf, len);
-    return true;
+int32_t HttpRequest::parse_body(const char *buf, size_t len) {
+    auto content_len = get_header("Content-Length");
+    if (content_len.empty()) {
+        body_.append(buf, len);
+        return len;
+    } else {
+        try {
+            auto icontent_len = std::atoi(content_len.c_str());
+            if (len < (size_t)icontent_len) {
+                return 0;
+            }
+            body_.append(buf, len);
+            return len;
+        } catch (std::exception & exp) {
+            return -2;
+        }
+    }
+    return -1;
 }

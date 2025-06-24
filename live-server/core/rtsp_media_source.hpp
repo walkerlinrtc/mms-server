@@ -15,6 +15,7 @@
 
 #include "json/json.h"
 #include "core/rtp_media_source.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -26,13 +27,13 @@ class StreamSession;
 class PublishApp;
 class MediaBridge;
 
-class RtspMediaSource : public RtpMediaSource {
+class RtspMediaSource : public RtpMediaSource, public ObjTracker<RtspMediaSource> {
 public:
     RtspMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> s, std::shared_ptr<PublishApp> app);
     virtual ~RtspMediaSource();
     bool process_announce_sdp(const std::string & sdp);
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
     uint16_t get_video_pt() const {
         return video_pt_;
     }

@@ -19,6 +19,7 @@
 #include "media_source.hpp"
 #include "protocol/ts/ts_pes.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -28,14 +29,15 @@ class StreamSession;
 class Mp4Segment;
 class PublishApp;
 
-class Mp4MediaSource : public MediaSource {
+class M4sMediaSource : public MediaSource, public ObjTracker<M4sMediaSource> {
 public:
-    Mp4MediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
-    virtual ~Mp4MediaSource();
+    M4sMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
+    virtual ~M4sMediaSource();
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
     bool init();
     bool add_media_sink(std::shared_ptr<MediaSink> media_sink);
+    bool on_combined_init_segment(std::shared_ptr<Mp4Segment> mp4_seg);
     bool on_audio_init_segment(std::shared_ptr<Mp4Segment> mp4_seg);
     bool on_video_init_segment(std::shared_ptr<Mp4Segment> mp4_seg);
     bool on_audio_mp4_segment(std::shared_ptr<Mp4Segment> mp4_seg);
@@ -44,6 +46,7 @@ public:
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name);
     bool has_no_sinks_for_time(uint32_t milli_secs);
 protected:
+    std::atomic<std::shared_ptr<Mp4Segment>> combined_init_seg_;
     std::atomic<std::shared_ptr<Mp4Segment>> audio_init_seg_;
     std::atomic<std::shared_ptr<Mp4Segment>> video_init_seg_;
     std::deque<std::shared_ptr<Mp4Segment>> audio_mp4_segs_;

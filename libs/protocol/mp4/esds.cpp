@@ -258,6 +258,7 @@ int64_t EsdsBox::size() {
 }
 
 int64_t EsdsBox::encode(NetBuffer & buf) {
+    update_size();
     auto start = buf.pos();
     FullBox::encode(buf);
     es_.encode(buf);

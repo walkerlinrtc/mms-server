@@ -1,5 +1,15 @@
 Language: Cpp
 BasedOnStyle: Google
 IndentWidth: 4
-ColumnLimit: 110
 AccessModifierOffset: -4
+SpacesBeforeTrailingComments: 1
+BreakBeforeBraces: Attach
+Cpp11BracedListStyle: true
+BinPackParameters: true       # 尽量把函数参数放在一行内，允许多参数一行
+AllowAllParametersOfDeclarationOnNextLine: true   # 允许所有参数换到下一行，但前提是能装下
+ColumnLimit: 200              # 设置最大列宽，宽一点能装下更多参数不换行
+BraceWrapping:
+  AfterLambda: false         # lambda的{另起一行
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false

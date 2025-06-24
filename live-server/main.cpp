@@ -212,6 +212,8 @@ int main(int argc, char *argv[]) {
             return -6;
         }
 
+        CORE_INFO("start stun server on:{} ok", webrtc_config.get_ip());
+
         std::string listen_ip;
         if (!webrtc_config.get_internal_ip().empty()) {
             listen_ip = webrtc_config.get_internal_ip();

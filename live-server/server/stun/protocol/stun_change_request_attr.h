@@ -6,6 +6,8 @@ namespace mms {
         {
         }
 
+        virtual ~StunChangeRequestAttr() = default;
+        
         bool change_ip = false;
         bool change_port = false;
     };

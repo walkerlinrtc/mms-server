@@ -13,5 +13,7 @@ public:
         auto attr = std::make_unique<StunErrorCodeAttr>(code, msg);
         attrs.emplace_back(std::move(attr));
     }
+
+    virtual ~StunBindingErrorResponseMsg() = default;
 };
 };

@@ -350,7 +350,7 @@ boost::asio::awaitable<bool> DtlsBoringSSLSession::process_dtls_packet(
                 break;
             case SSL_ERROR_ZERO_RETURN:
                 spdlog::debug("SSL_ERROR_ZERO_RETURN");
-                break;
+                co_return false;
             case SSL_ERROR_WANT_CONNECT:
                 spdlog::debug("SSL_ERROR_WANT_CONNECT");
                 break;
@@ -359,7 +359,7 @@ boost::asio::awaitable<bool> DtlsBoringSSLSession::process_dtls_packet(
                 break;
             default:
                 spdlog::debug("SSL_ERROR_UNKNOWN");
-                break;
+                co_return false;
         }
     }
     co_await send_pending_outgoing_dtls_packet();

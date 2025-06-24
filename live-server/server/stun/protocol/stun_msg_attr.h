@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 namespace mms
 {
@@ -12,6 +13,8 @@ namespace mms
         {
         }
 
+        virtual ~StunMsgAttr() = default;
+        
         virtual size_t size()
         {
             return 4;

@@ -15,6 +15,8 @@
 
 #include "media_source.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/lockfree_seq_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -26,7 +28,7 @@ class FlvTag;
 class MediaSink;
 class RtmpMetaDataMessage;
 
-class FlvMediaSource : public MediaSource {
+class FlvMediaSource : public MediaSource, public ObjTracker<FlvMediaSource> {
 public:
     FlvMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
 
@@ -42,7 +44,7 @@ public:
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, 
                                                       const std::string & stream_name) override;
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
 protected:
     SequencePktBuf<FlvTag> flv_tags_;
     std::shared_ptr<RtmpMetaDataMessage> metadata_;

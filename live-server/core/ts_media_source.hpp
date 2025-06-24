@@ -18,6 +18,7 @@
 #include "media_source.hpp"
 #include "protocol/ts/ts_pes.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -27,19 +28,18 @@ class StreamSession;
 class TsSegment;
 class PublishApp;
 
-class TsMediaSource : public MediaSource {
+class TsMediaSource : public MediaSource, public ObjTracker<TsMediaSource> {
 public:
     TsMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
     virtual ~TsMediaSource();
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
     bool init();
     bool on_ts_segment(std::shared_ptr<TsSegment> ts_seg);
     bool on_pes_packet(std::shared_ptr<PESPacket> pes_packet);
     std::vector<std::shared_ptr<PESPacket>> get_pkts(int64_t &last_pkt_index, uint32_t max_count);
 
     std::shared_ptr<MediaBridge> get_or_create_bridge(const std::string & id, std::shared_ptr<PublishApp> app, const std::string & stream_name);
-    std::shared_ptr<Recorder> get_or_create_recorder(const std::string & record_type, std::shared_ptr<PublishApp> app);
     bool has_no_sinks_for_time(uint32_t milli_secs);
 protected:
     std::deque<std::shared_ptr<TsSegment>> ts_segs_;

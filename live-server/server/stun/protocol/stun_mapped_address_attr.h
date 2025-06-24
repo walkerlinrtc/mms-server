@@ -21,6 +21,8 @@ namespace mms
         {
         }
 
+        virtual ~StunMappedAddressAttr() = default;
+
         size_t size()
         {
             return StunMsgAttr::size() + 8;

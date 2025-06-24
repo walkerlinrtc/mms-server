@@ -5,25 +5,25 @@ cert_file: test.publish.com.crt
 apps:
   - name: app #接入点名称
     record:
-      enabled: true
+      enabled: false
       types:
-        - ts
+        # - ts
+        # - m4s
         # - flv
-    # edge_push:
-    #   - protocol: rtmp
-    #     url: rtmp://test.publish.com:1936/${app}/${stream_name}_a?sign=${params[sign]}
-    #     params:
-    #       time: get_time()
-    #       sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
+    test_push_to_count: 200
+    edge_push:
+      - enabled: true
+        protocol: rtmp
+        url: rtmp://test2.publish.com/${app}/${stream_name}
     #   - protocol: rtmp
     #     url: rtmp://srs.com:1937/${app}/${stream_name}_b?sign=${params[sign]}
     #     params:
     #       time: get_time()
     #       sign: md5_upper(sys@test.publish.com/${domain}/${app}/${stream}/${params[time]})
-    origin_pull:
-      enabled: true
-      protocol: http-flv
-      url: https://test.play.com:1443/${app}/${stream_name}.flv
+    # origin_pull:
+    #   enabled: true
+    #   protocol: http-flv
+    #   url: https://test.play.com:1443/${app}/${stream_name}.flv
     publish_auth_check: #限时鉴权sk(expiry_sk)
       enabled: false
       params:

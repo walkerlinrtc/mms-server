@@ -85,6 +85,7 @@ Internet-Draft                ICE SDP Usage                  August 2019
 #pragma once
 #include <string>
 #include "stun_define.hpp"
+#include "stun_msg_attr.h"
 namespace mms
 {
     struct StunUsernameAttr : public StunMsgAttr
@@ -94,6 +95,7 @@ namespace mms
         }
 
         StunUsernameAttr() = default;
+        virtual ~StunUsernameAttr() = default;
 
         size_t size();
 
@@ -101,7 +103,7 @@ namespace mms
 
         int32_t decode(uint8_t *data, size_t len);
 
-        const std::string &get_local_user_name() const
+        const std::string & get_local_user_name() const
         {
             return local_user_name_;
         }

@@ -1,10 +1,11 @@
 #pragma once
 #include "core/rtp_media_sink.hpp"
 #include "protocol/sdp/sdp.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtpPacket;
-class RtspMediaSink : public RtpMediaSink {
+class RtspMediaSink : public RtpMediaSink, public ObjTracker<RtspMediaSink> {
 public:
     RtspMediaSink(ThreadWorker *worker);
     // bool on_audio_packet(std::shared_ptr<RtpPacket> audio_pkt);

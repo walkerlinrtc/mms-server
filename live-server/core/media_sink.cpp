@@ -61,6 +61,8 @@ void MediaSink::on_source_status_changed(SourceStatus status) {
     boost::asio::co_spawn(worker_->get_io_context(), [status, this, self]()->boost::asio::awaitable<void> {
         if (status_cb_) {
             co_await status_cb_(status);
+        } else {
+            spdlog::error("status cb is null");
         }
         co_return;
     }, boost::asio::detached);

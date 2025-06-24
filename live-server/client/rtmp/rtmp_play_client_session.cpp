@@ -56,7 +56,7 @@ void RtmpPlayClientSession::on_socket_open(std::shared_ptr<SocketInterface> sock
 
 void RtmpPlayClientSession::on_socket_close(std::shared_ptr<SocketInterface> sock) { (void)sock; }
 
-void RtmpPlayClientSession::service() {
+void RtmpPlayClientSession::start() {
     auto self(std::static_pointer_cast<RtmpPlayClientSession>(shared_from_this()));
     auto media_source =
         SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
@@ -91,7 +91,7 @@ void RtmpPlayClientSession::service() {
     } else if (protocol == "rtmps") {
         conn_ = std::make_shared<TlsSocket>(this, worker_);
     } else {
-        close();
+        stop();
         return;
     }
 
@@ -128,7 +128,7 @@ void RtmpPlayClientSession::service() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 
     wg_.add(1);
@@ -191,7 +191,7 @@ void RtmpPlayClientSession::service() {
                 [this](std::exception_ptr exp) {
                     (void)exp;
                     wg_.done();
-                    close();
+                    stop();
                     CORE_DEBUG("RtmpPlayClientSession send coroutine exited");
                 });
 
@@ -228,14 +228,14 @@ void RtmpPlayClientSession::service() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
             CORE_DEBUG("RtmpPlayClientSession recv coroutine exited");
         });
 }
 
 void RtmpPlayClientSession::update_active_timestamp() { last_active_time_ = Utils::get_current_ms(); }
 
-void RtmpPlayClientSession::close() {
+void RtmpPlayClientSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;

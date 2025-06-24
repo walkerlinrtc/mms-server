@@ -4,16 +4,18 @@
 
 #include "server/session.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class WebSocketPacket;
 class SocketInterface;
 
-class WebSocketServerSession : public Session {
+class WebSocketServerSession : public Session, public ObjTracker<WebSocketServerSession> {
 public:
     WebSocketServerSession(std::shared_ptr<SocketInterface> sock);
     virtual ~WebSocketServerSession();
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 private:
     boost::asio::awaitable<int32_t> process_recv_buffer();
 private:

@@ -11,7 +11,7 @@
 #include "base/thread/thread_worker.hpp"
 #include "bridge/media_bridge.hpp"
 #include "config/app_config.h"
-#include "core/mp4_media_source.hpp"
+#include "core/m4s_media_source.hpp"
 #include "core/mpd_live_media_source.hpp"
 #include "core/source_manager.hpp"
 #include "protocol/http/http_request.hpp"
@@ -29,18 +29,21 @@ HttpMpdServerSession::HttpMpdServerSession(std::shared_ptr<HttpRequest> http_req
 
 HttpMpdServerSession::~HttpMpdServerSession() {}
 
-void HttpMpdServerSession::service() {
+void HttpMpdServerSession::start() {
     auto self(std::static_pointer_cast<HttpMpdServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(
         worker_->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
-            auto host = http_request_->get_header("Host");
-            auto pos = host.find_first_of(":");
-            if (pos != std::string::npos) {
-                host = host.substr(0, pos);
+            std::string domain = http_request_->get_query_param("domain");
+            if (domain.empty()) {
+                domain = http_request_->get_header("Host");
+                auto pos = domain.find(":");
+                if (pos != std::string::npos) {
+                    domain = domain.substr(0, pos);
+                }
             }
 
-            set_session_info(host, http_request_->get_path_param("app"),
+            set_session_info(domain, http_request_->get_path_param("app"),
                              http_request_->get_path_param("stream"));
             if (!find_and_set_app(domain_name_, app_name_, false)) {
                 CORE_DEBUG("could not find play app for domain:{}, app:{}", domain_name_, app_name_);
@@ -48,7 +51,7 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                close();
+                stop();
                 co_return;
             }
 
@@ -60,13 +63,13 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                close();
+                stop();
                 co_return;
             }
             auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" +
                                http_request_->get_path_param("stream");
             // 1.本机查找
-            auto source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(),
+            auto source = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(),
                                                                    get_stream_name());
             if (!source) {  // 2.本地配置查找外部回源
                 source = co_await publish_app->find_media_source(self);
@@ -83,35 +86,35 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
                 co_return;
             } else {
                 if (source->get_media_type() != "mpd") {
-                    auto mp4_bridge = source->get_or_create_bridge(source->get_media_type() + "-mp4",
+                    auto mp4_bridge = source->get_or_create_bridge(source->get_media_type() + "-m4s",
                                                                    publish_app, stream_name_);
                     if (!mp4_bridge) {
                         http_response_->add_header("Connection", "close");
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        close();
+                        stop();
                         co_return;
                     }
 
-                    auto mp4_source =
-                        std::static_pointer_cast<Mp4MediaSource>(mp4_bridge->get_media_source());
-                    if (!mp4_source) {
-                        close();
+                    auto m4s_source =
+                        std::static_pointer_cast<M4sMediaSource>(mp4_bridge->get_media_source());
+                    if (!m4s_source) {
+                        stop();
                         co_return;
                     }
-                    auto mpd_bridge = mp4_source->get_or_create_bridge(mp4_source->get_media_type() + "-mpd",
+                    auto mpd_bridge = m4s_source->get_or_create_bridge(m4s_source->get_media_type() + "-mpd",
                                                                        publish_app, stream_name_);
                     if (!mpd_bridge) {
                         http_response_->add_header("Connection", "close");
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        close();
+                        stop();
                         co_return;
                     }
                     mpd_source = std::static_pointer_cast<MpdLiveMediaSource>(mpd_bridge->get_media_source());
@@ -139,7 +142,7 @@ void HttpMpdServerSession::service() {
                     http_response_->add_header("Content-Length", std::to_string(mpd.size()));
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     if (!(co_await http_response_->write_header(200, "OK"))) {
-                        close();
+                        stop();
                         co_return;
                     }
                     co_await http_response_->write_data((uint8_t*)mpd.data(), mpd.size());
@@ -150,7 +153,7 @@ void HttpMpdServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
             }
 
             co_return;
@@ -158,7 +161,7 @@ void HttpMpdServerSession::service() {
         boost::asio::detached);
 }
 
-void HttpMpdServerSession::close() {
+void HttpMpdServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;

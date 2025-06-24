@@ -20,6 +20,7 @@
 #include "protocol/rtsp/rtsp_define.hpp"
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class SocketInterface;
@@ -30,13 +31,13 @@ class RtspMediaSource;
 class RtspMediaSink;
 class RtpPacket;
 
-class RtspServerSession : public StreamSession {
+class RtspServerSession : public StreamSession, public ObjTracker<RtspServerSession> {
 public:
     RtspServerSession(std::shared_ptr<SocketInterface> sock);
     virtual ~RtspServerSession();
     // session interface
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 
     boost::asio::awaitable<bool> on_rtsp_request(std::shared_ptr<RtspRequest> req);
     boost::asio::awaitable<bool> on_rtsp_response(std::shared_ptr<RtspResponse> req);

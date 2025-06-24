@@ -29,7 +29,7 @@ void TlsServer::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {//t
                                                                            server_name_handler_, 
                                                                            std::static_pointer_cast<TcpSocket>(tcp_socket));
     tcp_socket->set_session(tls_session);
-    tls_session->service();
+    tls_session->start();
 }
 
 void TlsServer::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
@@ -38,7 +38,7 @@ void TlsServer::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
     if (!s) {
         return;
     }
-    s->close();
+    s->stop();
 }
 
 bool TlsServer::init_ssl() {

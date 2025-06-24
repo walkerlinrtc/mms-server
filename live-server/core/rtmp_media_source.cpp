@@ -39,9 +39,8 @@ RtmpMediaSource::~RtmpMediaSource() {
     CORE_DEBUG("destroy RtmpMediaSource");
 }
 
-std::shared_ptr<Json::Value> RtmpMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value RtmpMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -64,7 +63,7 @@ std::shared_ptr<Json::Value> RtmpMediaSource::to_json() {
     if (session) {
         v["session"] = session->to_json();
     }
-    return d;
+    return v;
 }
 
 bool RtmpMediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {
@@ -145,7 +144,7 @@ bool RtmpMediaSource::on_audio_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     }
 
     latest_audio_timestamp_ = audio_pkt->timestamp_;
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);
@@ -226,7 +225,7 @@ bool RtmpMediaSource::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     latest_video_timestamp_ = video_pkt->timestamp_;
-    if (latest_frame_index_ <= 300 || latest_frame_index_%10 == 0) {
+    if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
         std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);

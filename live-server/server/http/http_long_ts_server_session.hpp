@@ -7,6 +7,7 @@
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
 #include "core/source_status.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class HttpRequest;
@@ -16,16 +17,16 @@ class TsSegment;
 class TsMediaSink;
 class PESPacket;
 
-class HttpLongTsServerSession : public StreamSession {
+class HttpLongTsServerSession : public StreamSession, public ObjTracker<HttpLongTsServerSession> {
 public:
     HttpLongTsServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpLongTsServerSession();
-    void service();
+    void start();
     boost::asio::awaitable<bool> send_ts_seg(std::vector<std::shared_ptr<PESPacket>> pkts);
     void start_send_coroutine();
     boost::asio::awaitable<void> process_source_status(SourceStatus status);
     void close(bool close_conn);
-    void close();
+    void stop();
 private:
     std::shared_ptr<HttpRequest> http_request_;
     std::shared_ptr<HttpResponse> http_response_;

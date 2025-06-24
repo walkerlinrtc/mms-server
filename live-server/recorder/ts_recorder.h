@@ -2,6 +2,7 @@
 #include <string>
 #include "recorder.h"
 #include "json/json.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -23,7 +24,7 @@ public:
     int64_t update_at_;
 };
 
-class TsRecorder : public Recorder {
+class TsRecorder : public Recorder, public ObjTracker<TsRecorder> {
 public:
     TsRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, 
                std::weak_ptr<MediaSource> source, const std::string & domain_name, const std::string & app_name, 
@@ -32,6 +33,7 @@ public:
 
     bool init() override;
     void close() override;
+    Json::Value to_json() override;
 private:
     void gen_m3u8();
     std::shared_ptr<TsMediaSink> ts_media_sink_;
@@ -43,5 +45,6 @@ private:
 
     std::string file_dir_;
     std::vector<TsRecordSeg> ts_segs_;
+    int64_t write_bytes_ = 0;
 };
 };

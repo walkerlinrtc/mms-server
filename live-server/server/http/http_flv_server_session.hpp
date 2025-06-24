@@ -24,6 +24,8 @@
 #include "base/wait_group.h"
 #include "core/source_status.h"
 
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class HttpRequest;
 class HttpResponse;
@@ -31,13 +33,13 @@ class FlvMediaSink;
 class FlvTag;
 class MediaEvent;
 
-class HttpFlvServerSession : public StreamSession {
+class HttpFlvServerSession : public StreamSession, public ObjTracker<HttpFlvServerSession> {
 public:
     HttpFlvServerSession(std::shared_ptr<HttpRequest> http_req, std::shared_ptr<HttpResponse> http_resp);
     virtual ~HttpFlvServerSession();
-    void service();
+    void start() override;
     void close(bool close_connection);
-    void close();
+    void stop() override;
 private:
     boost::asio::awaitable<bool> send_flv_tags(std::vector<std::shared_ptr<FlvTag>> tags);
     boost::asio::awaitable<void> process_source_status(SourceStatus status);

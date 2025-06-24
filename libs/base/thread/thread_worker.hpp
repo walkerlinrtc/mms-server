@@ -1,14 +1,13 @@
 #pragma once
 
 #include <atomic>
-#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/post.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <functional>
 #include <memory>
 #include <thread>
-
 
 namespace mms {
 class ThreadWorker;
@@ -41,7 +40,7 @@ public:
     private:
         ThreadWorker *worker_;
         std::function<void(Event *ev)> f_;
-        boost::asio::deadline_timer timer_;
+        boost::asio::steady_timer timer_;
     };
 
     Event *create_event(const std::function<void(Event *ev)> &f);

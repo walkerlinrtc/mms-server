@@ -18,11 +18,12 @@
 #include "rtmp_define.hpp"
 #include "../media_bridge.hpp"
 #include "core/rtmp_media_sink.hpp"
-#include "core/mp4_media_source.hpp"
+#include "core/m4s_media_source.hpp"
 #include "protocol/ts/ts_pat_pmt.hpp"
 #include "base/wait_group.h"
-#include "mp4/mp4_builder.h"
-#include "mp4/mp4_segment.h"
+// #include "mp4/mp4_builder.h"
+#include "mp4/m4s_segment.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -30,12 +31,12 @@ class Codec;
 class PublishApp;
 class Mp4Segment;
 class MoovBox;
-class Mp4MediaSource;
+class M4sMediaSource;
 
-class RtmpToMp4 : public MediaBridge {
+class RtmpToM4s : public MediaBridge, public ObjTracker<RtmpToM4s> {
 public:
-    RtmpToMp4(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
-    virtual ~RtmpToMp4();
+    RtmpToM4s(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
+    virtual ~RtmpToM4s();
 public:
     bool init() override;
     bool on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt);
@@ -46,7 +47,10 @@ private:
     bool process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt);
     bool process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt);
     bool generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt);
+    bool generate_h264_video_init_seg();
+    bool generate_h265_video_init_seg();
     bool generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt);
+    bool generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt);
     
     bool process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt);
     bool process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt);
@@ -54,9 +58,10 @@ private:
     void reap_audio_seg(int64_t dts);
 private:
     int32_t get_nalus(uint8_t *data, int32_t len, std::list<std::string_view> & nalus);
+    void on_stream_ready();
 
     std::shared_ptr<RtmpMediaSink> rtmp_media_sink_;
-    std::shared_ptr<Mp4MediaSource> mp4_media_source_;
+    std::shared_ptr<M4sMediaSource> mp4_media_source_;
     
     std::shared_ptr<RtmpMetaDataMessage> metadata_;
     std::shared_ptr<RtmpMessage> video_header_;
@@ -65,6 +70,7 @@ private:
     bool video_ready_ = false;
     bool has_audio_ = false;
     bool audio_ready_ = false;
+    bool stream_ready_ = false;
     std::shared_ptr<Codec> video_codec_;
     std::shared_ptr<Codec> audio_codec_;
     int32_t nalu_length_size_ = 4;
@@ -79,6 +85,7 @@ private:
 
     std::shared_ptr<Mp4Segment> init_video_mp4_seg_;
     std::shared_ptr<Mp4Segment> init_audio_mp4_seg_;
+    std::shared_ptr<Mp4Segment> combined_init_seg_;;
     
     std::vector<std::shared_ptr<RtmpMessage>> video_pkts_;
     int64_t video_bytes_ = 0;

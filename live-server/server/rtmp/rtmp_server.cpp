@@ -27,13 +27,13 @@ void RtmpServer::stop() {
 void RtmpServer::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<RtmpServerSession> s = std::make_shared<RtmpServerSession>(tcp_socket);
     tcp_socket->set_session(s);
-    s->service();
+    s->start();
 }
 
 void RtmpServer::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<RtmpServerSession> s = std::static_pointer_cast<RtmpServerSession>(tcp_socket->get_session());
     tcp_socket->clear_session();
     if (s) {
-        s->close();
+        s->stop();
     }
 }

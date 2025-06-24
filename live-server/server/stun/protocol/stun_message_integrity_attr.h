@@ -134,6 +134,7 @@ namespace mms
     {
         StunMessageIntegrityAttr(uint8_t *data, size_t len, bool has_finger_print, const std::string & pwd);
         StunMessageIntegrityAttr() = default;
+        virtual ~StunMessageIntegrityAttr() = default;
         size_t size();
 
         int32_t encode(uint8_t *data, size_t len);

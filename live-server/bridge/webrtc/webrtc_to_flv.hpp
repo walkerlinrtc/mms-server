@@ -2,6 +2,10 @@
 #include <memory>
 #include <map>
 #include <set>
+#include <list>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/experimental/channel.hpp>
+#include <boost/asio/experimental/concurrent_channel.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/steady_timer.hpp>
 
@@ -16,6 +20,7 @@ extern "C" {
 }
 
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -29,8 +34,9 @@ class RtpH264NALU;
 class RtpAACNALU;
 class AACEncoder;
 class PublishApp;
+class AACCodec;
 
-class WebRtcToFlv : public MediaBridge {
+class WebRtcToFlv : public MediaBridge, public ObjTracker<WebRtcToFlv> {
 public:
     WebRtcToFlv(ThreadWorker *worker, std::shared_ptr<PublishApp>, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~WebRtcToFlv();
@@ -42,6 +48,7 @@ public:
     void process_audio_packet(std::shared_ptr<RtpPacket> pkt);
     void close() override;
 private:
+    void on_status_ok();
     void process_h264_packet(std::shared_ptr<RtpPacket> pkt);
     void process_opus_packet(std::shared_ptr<RtpPacket> pkt);
     std::shared_ptr<FlvTag> generate_h264_flv_tag(uint32_t timestamp, std::shared_ptr<RtpH264NALU> & nalu);
@@ -66,6 +73,7 @@ private:
     bool has_audio_ = false;
     std::shared_ptr<Codec> video_codec_;
     std::shared_ptr<Codec> audio_codec_;
+    std::shared_ptr<AACCodec> my_audio_codec_;
     
     boost::asio::steady_timer check_closable_timer_;
     RtpH264Depacketizer rtp_h264_depacketizer_;
@@ -86,8 +94,8 @@ private:
     int32_t aac_bytes_ = 0;
     int32_t resampled_pcm_samples_ = 0;
     std::unique_ptr<AACEncoder> aac_encoder_;
+    bool stream_ready_ = false;
     bool header_ready_ = false;
-
     WaitGroup wg_;
 };
 };

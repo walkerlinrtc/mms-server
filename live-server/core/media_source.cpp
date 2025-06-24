@@ -44,9 +44,8 @@ std::shared_ptr<StreamSession> MediaSource::get_session() {
     return s;
 }
 
-std::shared_ptr<Json::Value> MediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value MediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -63,10 +62,10 @@ std::shared_ptr<Json::Value> MediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+    return v;
 }
 
-boost::asio::awaitable<std::shared_ptr<Json::Value>> MediaSource::sync_to_json() {
+boost::asio::awaitable<Json::Value> MediaSource::sync_to_json() {
     auto r = co_await sync_exec<Json::Value>([this]() {
         return to_json();
     });
@@ -120,7 +119,7 @@ bool MediaSource::remove_media_sink(std::shared_ptr<MediaSink> media_sink) {
             sinks_count_--;
             sinks_.erase(it);
             media_sink->set_source(nullptr);
-            CORE_DEBUG("remove sink from:{}/{}/{} type:{}, count:{}", domain_name_, app_name_, stream_name_, media_type_, sinks_.size());
+            CORE_DEBUG("remove sink from:{}/{}/{} type:{}", domain_name_, app_name_, stream_name_, media_type_);
             last_sinks_or_bridges_leave_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
             break;
         }
@@ -206,9 +205,24 @@ std::shared_ptr<Recorder> MediaSource::get_or_create_recorder(const std::string 
     if (!recorder->init()) {
         return nullptr;
     }
-    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
-    recorders_.insert(std::pair(record_type, recorder));
+    
+    source->add_recorder(record_type, recorder);
     return recorder;
+}
+
+void MediaSource::remove_recorder(std::shared_ptr<Recorder> recorder) {
+    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
+    for (auto it = recorders_.begin(); it != recorders_.end(); it++) {
+        if (it->second == recorder) {
+            recorders_.erase(it);
+            break;
+        }
+    }
+}
+
+void MediaSource::add_recorder(const std::string & type, std::shared_ptr<Recorder> recorder) {
+    std::unique_lock<std::shared_mutex> lck(recorder_mtx_);
+    recorders_[type] = recorder;
 }
 
 bool MediaSource::is_stream_ready() {
@@ -224,15 +238,14 @@ void MediaSource::close() {
     boost::asio::co_spawn(worker_->get_io_context(), [self, this]()->boost::asio::awaitable<void> {
         auto session = session_.lock();
         if (session) {
-            session->close(); 
+            session->stop(); 
         }
-
+        CORE_DEBUG("close source:{}/{}/{}, type:{}", domain_name_, app_name_, stream_name_, get_media_type());
         {// 关闭所有的播放
             std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
             for (auto sink : sinks_) {
-                auto sink_copy = sink;
-                boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink_copy]()->boost::asio::awaitable<void> {
-                    sink_copy->close();
+                boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink]()->boost::asio::awaitable<void> {
+                    sink->close();
                     co_return;
                 }, boost::asio::detached);
             }

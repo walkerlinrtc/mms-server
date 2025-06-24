@@ -168,12 +168,12 @@ void RtspServerSession::start_recv_coroutine() {
         },
         [this, self](std::exception_ptr exp) {
             (void)exp;
-            close();
+            stop();
             wg_.done();
         });
 }
 
-void RtspServerSession::service() {
+void RtspServerSession::start() {
     auto self(std::static_pointer_cast<RtspServerSession>(shared_from_this()));
     // todo:consider to wrap the conn as a bufio, and move parser to RtspRequest class.
     // 启动接收协程
@@ -201,7 +201,7 @@ void RtspServerSession::service() {
         [this, self](std::exception_ptr exp) {
             (void)exp;
             wg_.done();
-            close();
+            stop();
         });
 }
 
@@ -244,7 +244,7 @@ boost::asio::awaitable<bool> RtspServerSession::send_rtp_over_tcp_pkts(
     co_return true;
 }
 
-void RtspServerSession::close() {
+void RtspServerSession::stop() {
     if (closed_.test_and_set()) {
         return;
     }
@@ -562,7 +562,7 @@ boost::asio::awaitable<bool> RtspServerSession::process_describe_req(std::shared
     }
 
     rtsp_media_sink_ = std::make_shared<RtspMediaSink>(get_worker());
-    rtsp_media_sink_->on_close([this, self]() { close(); });
+    rtsp_media_sink_->on_close([this, self]() { stop(); });
 
     int32_t try_get_play_sdp_count = 0;
     std::shared_ptr<Sdp> source_sdp;

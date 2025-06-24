@@ -73,7 +73,10 @@ bool RtmpToRtsp::init() {
             wg_.done();
             close();
         });
-
+    
+    rtmp_media_sink_->on_close([this, self]() {
+        close();
+    });
     rtmp_media_sink_->set_on_source_status_changed_cb(
         [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
             rtsp_media_source_->set_status(status);
@@ -665,6 +668,8 @@ void RtmpToRtsp::close() {
 
             auto origin_source = origin_source_.lock();
             if (rtmp_media_sink_) {
+                rtmp_media_sink_->on_close({});
+                rtmp_media_sink_->set_on_source_status_changed_cb({});
                 rtmp_media_sink_->on_rtmp_message({});
                 rtmp_media_sink_->close();
                 if (origin_source) {

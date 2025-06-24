@@ -8,8 +8,8 @@
 #include "bridge/bridge_factory.hpp"
 #include "bridge/media_bridge.hpp"
 #include "base/utils/utils.h"
-#include "dtls/dtls_cert.h"
-#include "webrtc_server_session.hpp"
+#include "server/webrtc/dtls/dtls_cert.h"
+#include "server/webrtc/webrtc_server_session.hpp"
 #include "webrtc_media_source.hpp"
 #include "codec/opus/opus_codec.hpp"
 
@@ -19,9 +19,8 @@ using namespace mms;
 WebRtcMediaSource::WebRtcMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app) : RtpMediaSource("webrtc{rtp[es]}", session, app, worker) {
 }
 
-std::shared_ptr<Json::Value> WebRtcMediaSource::to_json() {
-    std::shared_ptr<Json::Value> d = std::make_shared<Json::Value>();
-    Json::Value & v = *d;
+Json::Value WebRtcMediaSource::to_json() {
+    Json::Value v;
     v["type"] = media_type_;
     v["domain"] = domain_name_;
     v["app"] = app_name_;
@@ -29,7 +28,6 @@ std::shared_ptr<Json::Value> WebRtcMediaSource::to_json() {
     v["sinks"] = sinks_count_.load();
     v["create_at"] = create_at_;
     v["stream_time"] = time(NULL) - create_at_;
-    v["client_ip"] = client_ip_;
     auto vcodec = video_codec_;
     if (vcodec) {
         v["vcodec"] = vcodec->to_json();
@@ -39,11 +37,18 @@ std::shared_ptr<Json::Value> WebRtcMediaSource::to_json() {
     if (acodec) {
         v["acodec"] = acodec->to_json();
     }
-    return d;
+
+    auto session = session_.lock();
+    if (session) {
+        v["session"] = session->to_json();
+    }
+    return v;
 }
 
 
 std::string WebRtcMediaSource::process_publish_sdp(const std::string & sdp) {
+    CORE_DEBUG("publish sdp:");
+    CORE_DEBUG("{}", sdp);
     auto session = session_.lock();
     std::shared_ptr<WebRtcServerSession> webrtc_session = std::static_pointer_cast<WebRtcServerSession>(session);
     if (!webrtc_session) {
@@ -105,12 +110,14 @@ std::string WebRtcMediaSource::process_publish_sdp(const std::string & sdp) {
         }
     }
 
-    if (0 != create_local_sdp()) {
-        spdlog::error("create local sdp failed");
+    ret = create_local_sdp();
+    if (0 != ret) {
+        spdlog::error("create local sdp failed, code:{}", ret);
         return "";
     }
 
     create_play_sdp();
+
     stream_ready_ = true;
     // RtpMediaSource::on_source_codec_ready();
     spdlog::debug("WebRtcMediaSource video_pt:{}, audio_pt:{}", video_pt_, audio_pt_);
@@ -181,7 +188,7 @@ int32_t WebRtcMediaSource::create_local_sdp()
             }
 
             audio_sdp.set_finger_print(FingerPrint("sha-1", webrtc_session->get_dtls_cert()->get_finger_print()));
-            auto remote_audio_payload = media.search_payload("opus");
+            auto remote_audio_payload = media.search_payload("OPUS");
             if (!remote_audio_payload.has_value())
             {
                 return -12;
@@ -236,7 +243,7 @@ int32_t WebRtcMediaSource::create_local_sdp()
                 for (auto &pair : fmtps)
                 {
                     auto &fmtp = pair.second;
-                    if (fmtp.get_param("packetization-mode") == "1" && fmtp.get_param("level-asymmetry-allowed") == "1" && fmtp.get_param("profile-level-id") == "42001f")
+                    if (fmtp.get_param("packetization-mode") == "1" && fmtp.get_param("level-asymmetry-allowed") == "1"/*&& fmtp.get_param("profile-level-id") == "42001f"*/)
                     {
                         match_video_payload = (Payload *)&p.second;
                         break;

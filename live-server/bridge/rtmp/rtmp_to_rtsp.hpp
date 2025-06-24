@@ -7,6 +7,7 @@
 #include "../media_bridge.hpp"
 #include "protocol/rtp/rtp_packer.h"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -18,7 +19,7 @@ class Codec;
 class PublishApp;
 class Sdp;
 class MediaSink;
-class RtmpToRtsp : public MediaBridge {
+class RtmpToRtsp : public MediaBridge, public ObjTracker<RtmpToRtsp> {
 public:
     RtmpToRtsp(ThreadWorker *worker, std::shared_ptr<PublishApp>, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~RtmpToRtsp();

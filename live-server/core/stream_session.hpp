@@ -7,6 +7,7 @@
 
 #include "server/session.hpp"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class AppConfig;
@@ -14,7 +15,7 @@ class App;
 class MediaSource;
 class BitrateMonitor;
 
-class StreamSession : public Session {
+class StreamSession : public Session, public ObjTracker<StreamSession> {
 public:
     StreamSession(ThreadWorker *worker);
     virtual ~StreamSession();

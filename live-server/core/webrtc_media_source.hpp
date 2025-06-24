@@ -3,7 +3,7 @@
 #include "core/rtp_media_source.hpp"
 #include "codec/codec.hpp"
 #include "protocol/rtp/rtp_h264_depacketizer.h"
-
+#include "base/obj_tracker.hpp"
 namespace mms {
 class ThreadWorker;
 class MediaSdp;
@@ -11,11 +11,11 @@ class DtlsCert;
 class WebRtcServerSession;
 class PublishApp;
 
-class WebRtcMediaSource : public RtpMediaSource {
+class WebRtcMediaSource : public RtpMediaSource, public ObjTracker<WebRtcMediaSource> {
 public:
     WebRtcMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);
 
-    std::shared_ptr<Json::Value> to_json() override;
+    Json::Value to_json() override;
     std::string process_publish_sdp(const std::string & sdp);
     bool process_play_sdp(const std::string & sdp);
 

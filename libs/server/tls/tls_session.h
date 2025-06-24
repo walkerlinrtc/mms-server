@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "server/session.hpp"
+#include "base/obj_tracker.hpp"
 namespace mms {
 class TcpSocket;
 class TlsSocketHandler;
@@ -9,14 +10,14 @@ class TlsServerNameHandler;
 class SocketInterfaceHandler;
 class TlsSocket;
 
-class TlsSession : public Session {
+class TlsSession : public Session, public ObjTracker<TlsSession> {
 public:
     TlsSession(bool mode, SocketInterfaceHandler *tls_handler, TlsServerNameHandler *server_name_handler, std::shared_ptr<TcpSocket> tcp_socket);
     virtual ~TlsSession();
     std::shared_ptr<TcpSocket> get_tcp_socket();
 
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
 protected:
     SocketInterfaceHandler *tls_socket_handler_ = nullptr;
     TlsServerNameHandler * server_name_handler_ = nullptr;

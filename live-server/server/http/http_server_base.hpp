@@ -33,9 +33,11 @@ public:
 protected:
     bool on_get(const std::string & path, const HTTP_HANDLER & handler);
     bool on_options(const std::string & path, const HTTP_HANDLER & handler);
-    bool on_static_fs(const std::string & path, const std::string & root_path);
     bool on_post(const std::string & path, const HTTP_HANDLER & handler);
+    bool on_patch(const std::string & path, const HTTP_HANDLER & handler);
+    bool on_delete(const std::string & path, const HTTP_HANDLER & handler);
     bool on_websocket(const std::string & path, const WS_HANDLER & handler);
+    bool on_static_fs(const std::string & path, const std::string & root_path);
     virtual bool register_route();
     // TcpServer interface
     void on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) override;
@@ -53,6 +55,7 @@ protected:
     TrieTree<HTTP_HANDLER> head_route_tree_;
     TrieTree<HTTP_HANDLER> delete_route_tree_;
     TrieTree<HTTP_HANDLER> options_route_tree_;
+    TrieTree<HTTP_HANDLER> patch_route_tree_;
     // websocket路由
     TrieTree<WS_HANDLER> websocket_route_tree_;
 };

@@ -15,6 +15,7 @@
 
 #include "protocol/rtmp/rtmp_handshake.hpp"
 #include "protocol/rtmp/rtmp_chunk_protocol.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class PublishApp;
@@ -23,7 +24,7 @@ class RtmpMediaSource;
 class RtmpMessage;
 class OriginPullConfig;
 
-class RtmpPlayClientSession : public StreamSession, public SocketInterfaceHandler {
+class RtmpPlayClientSession : public StreamSession, public SocketInterfaceHandler, public ObjTracker<RtmpPlayClientSession> {
 public:
     RtmpPlayClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker, 
                           const std::string &domain_name, const std::string & app_name, const std::string & stream_name);
@@ -31,8 +32,8 @@ public:
     void on_socket_open(std::shared_ptr<SocketInterface> sock) override;
     void on_socket_close(std::shared_ptr<SocketInterface> sock) override;
 
-    void service();
-    void close();
+    void start();
+    void stop();
     void set_url(const std::string & url);
     void set_pull_config(std::shared_ptr<OriginPullConfig> pull_config) {
         pull_config_ = pull_config;

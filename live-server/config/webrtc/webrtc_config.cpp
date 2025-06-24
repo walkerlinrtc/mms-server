@@ -23,7 +23,7 @@ int32_t WebrtcConfig::load(const YAML::Node & config) {
 
     auto ip = config["ip"];
     if (ip.IsDefined() && ip.IsScalar()) {
-        ip_ = udp_port.as<std::string>();
+        ip_ = ip.as<std::string>();
     }
 
     auto internal_ip = config["internal_ip"];

@@ -26,10 +26,10 @@ public:
     SidxBox();
     virtual ~SidxBox();
 public:
-    uint32_t reference_id_;
-    uint32_t timescale_;
-    uint64_t earliest_presentation_time_;
-    uint64_t first_offset_;
+    uint32_t reference_id_ = 0;
+    uint32_t timescale_ = 0;
+    uint64_t earliest_presentation_time_ = 0;
+    uint64_t first_offset_ = 0;
     std::vector<SegmentIndexEntry> entries;
 public:
     int64_t size() override;

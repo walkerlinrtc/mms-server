@@ -61,6 +61,10 @@ bool RtmpToFlv::init() {
             (void)(exp);
             wg_.done();
         });
+    
+    rtmp_media_sink_->on_close([this, self]() {
+        close();
+    });
 
     rtmp_media_sink_->set_on_source_status_changed_cb(
         [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
@@ -176,6 +180,8 @@ void RtmpToFlv::close() {
             auto origin_source = origin_source_.lock();
             if (rtmp_media_sink_) {
                 rtmp_media_sink_->on_rtmp_message({});
+                rtmp_media_sink_->on_close({});
+                rtmp_media_sink_->set_on_source_status_changed_cb({});
                 rtmp_media_sink_->close();
                 if (origin_source) {
                     origin_source->remove_media_sink(rtmp_media_sink_);

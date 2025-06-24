@@ -12,7 +12,7 @@
 #include "http_mpd_server_session.hpp"
 #include "http_m4s_server_session.hpp"
 
-#include "http_long_mp4_server_session.hpp"
+#include "http_long_m4s_server_session.hpp"
 #include "http_long_ts_server_session.hpp"
 
 #include "core/stream_session.hpp"
@@ -27,11 +27,6 @@
 #include "server/webrtc/webrtc_server.hpp"
 
 using namespace mms;
-
-HttpLiveServer::~HttpLiveServer() {
-
-}
-
 void HttpLiveServer::set_webrtc_server(std::shared_ptr<WebRtcServer> wrtc_server) {
     webrtc_server_ = wrtc_server;
 }
@@ -41,7 +36,7 @@ bool HttpLiveServer::register_route() {
     ret = on_get("/:app/:stream.flv", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_flv_session = std::make_shared<HttpFlvServerSession>(req, resp);
-        http_flv_session->service(); 
+        http_flv_session->start(); 
         co_return;
     });
     if (!ret) {
@@ -62,7 +57,7 @@ bool HttpLiveServer::register_route() {
     ret = on_get("/:app/:stream.ts", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_long_ts_session = std::make_shared<HttpLongTsServerSession>(req, resp);
-        http_long_ts_session->service();
+        http_long_ts_session->start();
         co_return;
     });
     if (!ret) {
@@ -72,7 +67,7 @@ bool HttpLiveServer::register_route() {
     ret = on_get("/:app/:stream.m3u8", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_m3u8_session = std::make_shared<HttpM3u8ServerSession>(req, resp);
-        http_m3u8_session->service();
+        http_m3u8_session->start();
         co_return;
     });
     if (!ret) {
@@ -82,44 +77,44 @@ bool HttpLiveServer::register_route() {
     ret = on_get("/:app/:stream/:seq.ts", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         auto http_ts_session = std::make_shared<HttpTsServerSession>(req, resp);
-        http_ts_session->service();
+        http_ts_session->start();
         co_return;
     });
     if (!ret) {
         return false;
     }
 
-    // ret = on_get("/:app/:stream.mp4", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-    //     (void)session;
-    //     auto http_long_mp4_session = std::make_shared<HttpLongMp4ServerSession>(req, resp);
-    //     http_long_mp4_session->service();
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
+    ret = on_get("/:app/:stream.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_long_m4s_session = std::make_shared<HttpLongM4sServerSession>(req, resp);
+        http_long_m4s_session->start();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
     
-    // ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-    //     (void)session;
-    //     auto http_mpd_session = std::make_shared<HttpMpdServerSession>(req, resp);
-    //     http_mpd_session->service();
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
+    ret = on_get("/:app/:stream.mpd", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_mpd_session = std::make_shared<HttpMpdServerSession>(req, resp);
+        http_mpd_session->start();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
 
-    // ret = on_get("/:app/:stream/:id.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
-    //     (void)session;
-    //     auto http_m4s_session = std::make_shared<HttpM4sServerSession>(req, resp);
-    //     http_m4s_session->service();
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
+    ret = on_get("/:app/:stream/:id.m4s", [](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        auto http_m4s_session = std::make_shared<HttpM4sServerSession>(req, resp);
+        http_m4s_session->start();
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
 
-    ret = on_post("/:app/:stream/whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_post("/:app/:stream.whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
             co_await webrtc_server_->on_whip(req, resp);
@@ -132,13 +127,66 @@ bool HttpLiveServer::register_route() {
         return false;
     }
 
-    ret = on_post("/:app/:stream/whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+    ret = on_delete("/:app/:stream.whip", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        if (webrtc_server_) {
+            co_await webrtc_server_->on_whip_delete(req, resp);
+        } else {
+            resp->close();
+        }
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_post("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
         (void)session;
         if (webrtc_server_) {
             co_await webrtc_server_->on_whep(req, resp);
         } else {
             resp->close();
         }
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_patch("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)session;
+        if (webrtc_server_) {
+            co_await webrtc_server_->on_whep_patch(req, resp);
+        } else {
+            resp->close();
+        }
+        co_return;
+    });
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_options("/:app/:stream.whep", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
+        (void)req;
+        (void)session;
+        resp->add_header("Access-Control-Allow-Origin", "*");
+        resp->add_header("Access-Control-Allow-Methods", "POST, PATCH, OPTIONS, GET, DELETE, HEAD");
+        resp->add_header("Access-Control-Max-Age", "86400");
+        std::vector<std::string> vheaders;
+        auto & headers = req->get_headers();
+        for (auto & p : headers) {
+            vheaders.push_back(p.first);
+        }
+        vheaders.push_back("Content-Type");
+        vheaders.push_back("If-Match");
+        
+        std::string allow_headers = boost::join(vheaders, ",");
+        resp->add_header("Access-Control-Allow-Headers", allow_headers);
+        if (!(co_await resp->write_header(204, "No Content"))) {
+            resp->close();
+            co_return;
+        }
+        resp->close();
         co_return;
     });
     if (!ret) {
@@ -155,19 +203,6 @@ bool HttpLiveServer::register_route() {
             }
         }
     }
-    
-
-    // ret = on_websocket("/:app/:stream/rtc_msg", [this](std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<WsConn> ws_conn)->boost::asio::awaitable<void> {
-    //     (void)req;
-    //     (void)session;
-    //     if (webrtc_server_) {
-    //         co_await webrtc_server_->on_ws_open(ws_conn);
-    //     }
-    //     co_return;
-    // });
-    // if (!ret) {
-    //     return false;
-    // }
 
     // ret = on_static_fs("/static/*", "/data/");
     // if (!ret) {

@@ -20,6 +20,7 @@
 #include "stun_unknown_attributes_attr.h"
 #include "stun_change_address_attr.h"
 #include "stun_error_code_attr.h"
+#include "stun_software_attr.h"
 
 // 7.3.  Receiving a STUN Message
 
@@ -208,10 +209,21 @@ int32_t StunMsg::decode(uint8_t *data, size_t len)
             attrs.emplace_back(std::move(ice_controlling_attr));
             break;
         }
+        case STUN_ATTR_SOFTWARE: {
+            auto software_attr = std::make_unique<StunSoftwareAttr>();
+            int32_t c = software_attr->decode(data, len);
+            if (c < 0)
+            {
+                return -10;
+            }
+            data += c;
+            len -= c;
+            break;
+        }
         default:
         {
             spdlog::error("decode attr failed, type:{0:x}", t);
-            return -10;
+            return -11;
         }
         }
 

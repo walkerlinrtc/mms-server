@@ -27,6 +27,7 @@ struct StunIcePriorityAttr : public StunMsgAttr
     }
 
     StunIcePriorityAttr() = default;
+    virtual ~StunIcePriorityAttr() = default;
 
     size_t size();
 

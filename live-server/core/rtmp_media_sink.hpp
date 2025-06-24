@@ -13,9 +13,10 @@
 
 #include "base/thread/thread_worker.hpp"
 #include "base/sequence_pkt_buf.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
-class RtmpMediaSink : public LazyMediaSink {
+class RtmpMediaSink : public LazyMediaSink, public ObjTracker<RtmpMediaSink> {
 public:
     RtmpMediaSink(ThreadWorker *worker);
     virtual bool init();
@@ -33,5 +34,6 @@ protected:
     bool stream_ready_;
     std::function<boost::asio::awaitable<bool>(const std::vector<std::shared_ptr<RtmpMessage>> & msgs)> rtmp_msg_cb_ = {};
     std::function<bool(std::shared_ptr<Codec> video_codec, std::shared_ptr<Codec> audio_codec)> ready_cb_;
+    std::vector<std::shared_ptr<RtmpMessage>> pkts_;
 };
 };

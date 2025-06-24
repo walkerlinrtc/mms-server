@@ -6,6 +6,8 @@
 #include <shared_mutex>
 
 #include "core/media_source.hpp"
+#include "base/obj_tracker.hpp"
+
 namespace mms
 {
     class TsSegment;
@@ -14,7 +16,7 @@ namespace mms
     class ThreadWorker;
     class StreamSession;
 
-    class HlsLiveMediaSource : public MediaSource
+    class HlsLiveMediaSource : public MediaSource, public ObjTracker<HlsLiveMediaSource>
     {
     public:
         HlsLiveMediaSource(ThreadWorker *worker, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app);

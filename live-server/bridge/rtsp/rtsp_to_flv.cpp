@@ -67,6 +67,10 @@ bool RtspToFlv::init() {
             wg_.done();
             close();
         });
+    
+    rtp_media_sink_->on_close([this, self]() {
+        close();
+    });
 
     rtp_media_sink_->set_source_codec_ready_cb(
         [this, self](std::shared_ptr<Codec> video_codec, std::shared_ptr<Codec> audio_codec) -> bool {
@@ -865,6 +869,7 @@ void RtspToFlv::close() {
 
             auto origin_source = origin_source_.lock();
             if (rtp_media_sink_) {
+                rtp_media_sink_->on_close({});
                 rtp_media_sink_->set_video_pkts_cb({});
                 rtp_media_sink_->set_audio_pkts_cb({});
                 rtp_media_sink_->set_source_codec_ready_cb({});

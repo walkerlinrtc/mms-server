@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include "webrtc_server.hpp"
 #include "webrtc_server_session.hpp"
 #include "config/config.h"
@@ -14,6 +15,10 @@
 #include "log/log.h"
 
 #include "base/thread/thread_pool.hpp"
+#include "base/utils/utils.h"
+#include "core/source_manager.hpp"
+#include "core/media_source.hpp"
+
 using namespace mms;
 
 std::shared_ptr<DtlsCert> WebRtcServer::default_dtls_cert_;
@@ -89,12 +94,12 @@ boost::asio::awaitable<void> WebRtcServer::on_udp_socket_recv(UdpSocket *sock, s
     if (UDP_MSG_STUN == msg_type) {
         std::shared_ptr<StunMsg> stun_msg = std::make_shared<StunMsg>();
         int32_t ret = stun_msg->decode(data.get(), len);
-        if (0 == ret) 
-        {// stun消息虽然最后交给session，但是可以在本协程内部处理，不需要在session内部处理
-            if (co_await process_stun_packet(stun_msg, std::move(data), len, sock, remote_ep)) 
-            {
+        if (0 == ret) {// stun消息虽然最后交给session，但是可以在本协程内部处理，不需要在session内部处理
+            if (co_await process_stun_packet(stun_msg, std::move(data), len, sock, remote_ep)) {
                 co_return;
             }
+        } else {
+            spdlog::error("decode stun msg failed, ret:{}", ret);
         }
     } else {
         // 找到session
@@ -124,43 +129,47 @@ boost::asio::awaitable<bool> WebRtcServer::process_stun_packet(std::shared_ptr<S
 {
     // 校验完整性
     auto username_attr = stun_msg->get_username_attr();
-    if (!username_attr)
-    {
+    if (!username_attr) {
+        spdlog::error("process_stun_packet failed, no username");
         co_return false;
     }
 
-    const std::string &local_user_name = username_attr.value().get_local_user_name();
-    if (local_user_name.empty())
-    {
+    const std::string & local_user_name = username_attr.value().get_local_user_name();
+    if (local_user_name.empty()) {
+        spdlog::error("process_stun_packet failed, no local_user_name");
         co_return false;
     }
 
-    std::shared_ptr<WebRtcServerSession> session;
+    std::shared_ptr<WebRtcServerSession> webrtc_session;
     {
         std::lock_guard<std::mutex> lck(session_map_mtx_);
         auto it_session = ufrag_session_map_.find(local_user_name);
-        if (it_session == ufrag_session_map_.end())
-        {
+        if (it_session == ufrag_session_map_.end()) {
             co_return false;
         }
-        spdlog::debug("stun msg, ufrag:{}", local_user_name);
-        session = it_session->second;
+
+        webrtc_session = it_session->second;
         uint64_t key = get_endpoint_hash(remote_ep);
-        endpoint_session_map_.insert(std::pair(key, session));
-        session_endpoint_map_.insert(std::pair(session.get(), key));
+
+        endpoint_session_map_.insert(std::pair(key, webrtc_session));
+        session_endpoint_map_.insert(std::pair(webrtc_session.get(), key));
     }
 
-    if (!session) // todo add log
+    if (!webrtc_session) // todo add log
     {
         CORE_ERROR("could not find session for ufrag:{}", local_user_name);
         co_return false;
     }
     
-    auto ret = co_await session->process_stun_packet(stun_msg, std::move(data), len, sock, remote_ep);
+    auto ret = co_await webrtc_session->process_stun_packet(stun_msg, std::move(data), len, sock, remote_ep);
+    if (!ret) {
+        CORE_ERROR("WebRtcServerSession process_stun_packet failed");
+    }
     co_return ret;
 }
 
 boost::asio::awaitable<void> WebRtcServer::on_whip(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
+    CORE_DEBUG("on whip");
     auto webrtc_session = std::make_shared<WebRtcServerSession>(thread_pool_inst::get_mutable_instance().get_worker(-1));
     webrtc_session->set_local_ip(extern_ip_);
     webrtc_session->set_udp_port(listen_udp_port_);
@@ -177,7 +186,34 @@ boost::asio::awaitable<void> WebRtcServer::on_whip(std::shared_ptr<HttpRequest> 
     if (!co_await webrtc_session->process_whip_req(req, resp)) {
         co_return;
     }
-    webrtc_session->service();
+    webrtc_session->start();
+    co_return;
+}
+
+boost::asio::awaitable<void> WebRtcServer::on_whip_delete(std::shared_ptr<HttpRequest> req,
+                                                            std::shared_ptr<HttpResponse> resp)
+{
+    std::string domain = req->get_query_param("domain");
+    if (domain.empty()) {
+        domain = req->get_header("Host");
+        auto pos = domain.find(":");
+        if (pos != std::string::npos) {
+            domain = domain.substr(0, pos);
+        }
+    }
+    
+    auto source = SourceManager::get_instance().get_source(domain, req->get_path_param("app"), req->get_path_param("stream"));
+    if (!source) {
+        resp->add_header("Connection", "Close");
+        co_await resp->write_header(404, "Not Found");
+        resp->close();
+        co_return;
+    }
+
+    source->close();
+    resp->add_header("Connection", "Close");
+    co_await resp->write_header(200, "Ok");
+    resp->close();
     co_return;
 }
 
@@ -190,15 +226,48 @@ boost::asio::awaitable<void> WebRtcServer::on_whep(std::shared_ptr<HttpRequest> 
     webrtc_session->set_send_socket(udp_socks_[using_udp_socket_index_]);
     {
         std::lock_guard<std::mutex> lck(session_map_mtx_);
+        auto etag = Utils::get_rand_str(16);
         ufrag_session_map_.insert(std::pair(webrtc_session->get_local_ice_ufrag(), webrtc_session));
     }
 
     webrtc_session->set_close_handler(this);
     webrtc_session->set_dtls_cert(default_dtls_cert_); // todo, find cert by domain
+    CORE_DEBUG("start process whep");
     if (!co_await webrtc_session->process_whep_req(req, resp)) {
         co_return;
     }
-    webrtc_session->service();
+    webrtc_session->start();
+    co_return;
+}
+
+std::string trim_quotes(const std::string& etag_raw) {
+    if (etag_raw.length() >= 2 && etag_raw.front() == '"' && etag_raw.back() == '"') {
+        return etag_raw.substr(1, etag_raw.length() - 2);
+    }
+    return etag_raw;
+}
+
+boost::asio::awaitable<void> WebRtcServer::on_whep_patch(std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
+    Sdp remote_sdp;
+    auto etag = trim_quotes(req->get_header("If-Match"));
+    std::shared_ptr<WebRtcServerSession> webrtc_session;
+    {
+        std::lock_guard<std::mutex> lck(session_map_mtx_);
+        auto it = ufrag_session_map_.find(etag);
+        if (it == ufrag_session_map_.end()) {
+            spdlog::error("could not find webrtc session for:{}", etag);
+            co_return;
+        }
+        webrtc_session = it->second;
+    }
+    
+    if (!webrtc_session) {
+        co_return;
+    } 
+
+    if (!co_await webrtc_session->process_whep_patch_req(req, resp)) {
+        co_return;
+    }
     co_return;
 }
 

@@ -32,6 +32,7 @@ bool Payload::parse(const std::string & line) {
         return false;
     }
     encoding_name_ = tmp[0];
+    boost::algorithm::to_upper(encoding_name_);
     clock_rate_ = std::atoi(tmp[1].c_str());
     for (size_t i = 2; i < tmp.size(); i++) {
         encoding_params_.emplace_back(tmp[i]);

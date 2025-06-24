@@ -21,6 +21,7 @@
 #include "protocol/ts/ts_pat_pmt.hpp"
 #include "base/wait_group.h"
 #include "../rtmp/rtmp_to_ts.hpp"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -29,7 +30,7 @@ class PublishApp;
 class TsSegment;
 class FlvTag;
 class FlvMediaSink;
-class FlvToTs : public MediaBridge {
+class FlvToTs : public MediaBridge, public ObjTracker<FlvToTs> {
 public:
     FlvToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~FlvToTs();

@@ -11,5 +11,7 @@ public:
         header.type = STUN_BINDING_RESPONSE;
         memcpy(header.transaction_id, stun_msg.header.transaction_id, 16);
     }
+
+    virtual ~StunBindingResponseMsg() = default;
 };
 };  // namespace mms

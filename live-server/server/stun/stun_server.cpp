@@ -25,8 +25,8 @@ boost::asio::awaitable<void> StunServer::on_udp_socket_recv(UdpSocket *sock, std
     }
 
     switch(stun_msg.type()) {
+        // 这里处理，只是为了让客户端可以获取到它的外网ip地址和端口
         case STUN_BINDING_REQUEST : {
-            spdlog::debug("process stun binding request");
             co_await process_bind_msg(stun_msg, sock, remote_ep);
             break;
         }
@@ -36,32 +36,17 @@ boost::asio::awaitable<void> StunServer::on_udp_socket_recv(UdpSocket *sock, std
 
 boost::asio::awaitable<void> StunServer::process_bind_msg(StunMsg &msg, UdpSocket *sock, const boost::asio::ip::udp::endpoint &remote_ep)
 {
-    // if (msg.attrs.size() <= 0) {// no message integrity  //不知道为什么，返回401，仍然不带message integrity
-    //     StunBindingErrorResponseMsg resp(msg, 401, "");
-    //     auto s = resp.size();
-
-    //     std::unique_ptr<uint8_t[]> data = std::unique_ptr<uint8_t[]>(new uint8_t[s]);
-    //     int32_t consumed = resp.encode(data.get(), s);
-    //     if (consumed < 0) {
-    //         return;
-    //     }
-    //     if (!sock->send_to(std::move(data), s, remote_ep, yield)) {//todo log error
-    //     }
-    //     return;
-    // }
     StunBindingResponseMsg binding_resp(msg);
     auto mapped_addr_attr = std::make_unique<StunMappedAddressAttr>(remote_ep.address().to_v4().to_uint(), remote_ep.port());
     binding_resp.add_attr(std::move(mapped_addr_attr));
     auto size = binding_resp.size();
     std::unique_ptr<uint8_t[]> data = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
     int32_t consumed = binding_resp.encode(data.get(), size);
-    if (consumed < 0)
-    { // todo:add log
+    if (consumed < 0) { // todo:add log
         co_return;
     }
 
-    if (!(co_await sock->send_to(data.get(), size, remote_ep)))
-    { // todo log error
+    if (!(co_await sock->send_to(data.get(), size, remote_ep))) { // todo log error
         spdlog::error("send bind response failed");
     }
     co_return;

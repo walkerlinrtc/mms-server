@@ -47,14 +47,14 @@ void HttpServerBase::stop() {
 void HttpServerBase::on_socket_open(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<HttpServerSession> s = std::make_shared<HttpServerSession>(this, tcp_socket);
     tcp_socket->set_session(s);
-    s->service();
+    s->start();
 }
 
 void HttpServerBase::on_socket_close(std::shared_ptr<SocketInterface> tcp_socket) {
     std::shared_ptr<HttpServerSession> s = std::static_pointer_cast<HttpServerSession>(tcp_socket->get_session());
     tcp_socket->clear_session();
     if (s) {
-        s->close();
+        s->stop();
     }
 }
 
@@ -68,6 +68,14 @@ bool HttpServerBase::on_get(const std::string & path, const HTTP_HANDLER & handl
 
 bool HttpServerBase::on_options(const std::string & path, const HTTP_HANDLER & handler) {
     return options_route_tree_.add_route(path, handler);
+}
+
+bool HttpServerBase::on_patch(const std::string & path, const HTTP_HANDLER & handler) {
+    return patch_route_tree_.add_route(path, handler);
+}
+
+bool HttpServerBase::on_delete(const std::string & path, const HTTP_HANDLER & handler) {
+    return delete_route_tree_.add_route(path, handler);
 }
 
 bool HttpServerBase::on_static_fs(const std::string & path, const std::string & root_path) {
@@ -140,8 +148,7 @@ boost::asio::awaitable<void> HttpServerBase::static_fs_handler(std::string root_
     co_return;
 }
 
-boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<HttpServerSession> session,                 std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
-    CORE_DEBUG("get new http request, path:{}", req->get_path());
+boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<HttpServerSession> session, std::shared_ptr<HttpRequest> req, std::shared_ptr<HttpResponse> resp) {
     switch(req->get_method()) {
         case GET : {
             if (is_websocket_req(req)) {
@@ -197,8 +204,30 @@ boost::asio::awaitable<bool> HttpServerBase::on_new_request(std::shared_ptr<Http
             }
             break;
         }
+        case PATCH : {
+            auto handler = patch_route_tree_.get_route(req->get_path(), req->path_params());
+            if (!handler.has_value()) {//404
+                resp->add_header("Connection", "close");
+                co_await resp->write_header(404, "Not Found");
+                resp->close();
+            } else {
+                co_await handler.value()(session, req, resp);
+            }
+            break;
+        }
         case OPTIONS : {
             auto handler = options_route_tree_.get_route(req->get_path(), req->path_params());
+            if (!handler.has_value()) {//404
+                resp->add_header("Connection", "close");
+                co_await resp->write_header(404, "Not Found");
+                resp->close();
+            } else {
+                co_await handler.value()(session, req, resp);
+            }
+            break;
+        }
+        case DELETE : {
+            auto handler = delete_route_tree_.get_route(req->get_path(), req->path_params());
             if (!handler.has_value()) {//404
                 resp->add_header("Connection", "close");
                 co_await resp->write_header(404, "Not Found");

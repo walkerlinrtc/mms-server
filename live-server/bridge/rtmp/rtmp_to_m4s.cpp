@@ -7,13 +7,13 @@
  * @FilePath: \mms\mms\server\transcode\rtmp_to_ts.cpp
  * Copyright (c) 2023 by jbl19860422@gitee.com, All Rights Reserved.
  */
-#include "rtmp_to_mp4.hpp"
+#include "rtmp_to_m4s.hpp"
 
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
 #include <boost/asio/redirect_error.hpp>
 #include <boost/asio/use_awaitable.hpp>
-#include <fstream>
+#include <string_view>
 
 #include "app/publish_app.h"
 #include "base/utils/utils.h"
@@ -25,7 +25,7 @@
 #include "codec/hevc/hevc_codec.hpp"
 #include "codec/mp3/mp3_codec.hpp"
 #include "config/app_config.h"
-#include "core/mp4_media_source.hpp"
+#include "core/m4s_media_source.hpp"
 #include "log/log.h"
 #include "mp4/audio_sample_entry.h"
 #include "mp4/avcc.h"
@@ -71,7 +71,7 @@
 
 
 using namespace mms;
-RtmpToMp4::RtmpToMp4(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
+RtmpToM4s::RtmpToM4s(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
                      std::weak_ptr<MediaSource> origin_source, const std::string &domain_name,
                      const std::string &app_name, const std::string &stream_name)
     : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name),
@@ -79,16 +79,18 @@ RtmpToMp4::RtmpToMp4(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
       wg_(worker) {
     sink_ = std::make_shared<RtmpMediaSink>(worker);
     rtmp_media_sink_ = std::static_pointer_cast<RtmpMediaSink>(sink_);
-    source_ = std::make_shared<Mp4MediaSource>(
+    source_ = std::make_shared<M4sMediaSource>(
         worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
-    mp4_media_source_ = std::static_pointer_cast<Mp4MediaSource>(source_);
+    mp4_media_source_ = std::static_pointer_cast<M4sMediaSource>(source_);
     CORE_DEBUG("create rtmp to mp4");
-    type_ = "rtmp-to-mp4";
+    type_ = "rtmp-to-m4s";
 }
 
-RtmpToMp4::~RtmpToMp4() {}
+RtmpToM4s::~RtmpToM4s() {
+    CORE_DEBUG("destroy RtmpToM4s");
+}
 
-bool RtmpToMp4::init() {
+bool RtmpToM4s::init() {
     auto self(shared_from_this());
 
     wg_.add(1);
@@ -108,7 +110,7 @@ bool RtmpToMp4::init() {
 
                 if (mp4_media_source_->has_no_sinks_for_time(
                         app_conf->bridge_config().no_players_timeout_ms())) {  // 已经30秒没人播放了
-                    CORE_DEBUG("close RtmpToMp4 because no players for {}ms",
+                    CORE_DEBUG("close RtmpToM4s because no players for {}ms",
                                app_conf->bridge_config().no_players_timeout_ms());
                     close();
                     break;
@@ -154,7 +156,7 @@ bool RtmpToMp4::init() {
     return true;
 }
 
-bool RtmpToMp4::on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt) {
+bool RtmpToM4s::on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt) {
     metadata_ = std::make_shared<RtmpMetaDataMessage>();
     if (metadata_->decode(metadata_pkt) <= 0) {
         return false;
@@ -187,7 +189,7 @@ bool RtmpToMp4::on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt) {
     return true;
 }
 
-bool RtmpToMp4::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
+bool RtmpToM4s::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     if (!video_codec_) {
         VideoTagHeader header;
         auto payload = video_pkt->get_using_data();
@@ -211,7 +213,7 @@ bool RtmpToMp4::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     return false;
 }
 
-bool RtmpToMp4::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
+bool RtmpToM4s::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     VideoTagHeader header;
     auto payload = video_pkt->get_using_data();
     int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
@@ -241,13 +243,20 @@ bool RtmpToMp4::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         return true;
     }
 
+    if (!stream_ready_) {
+        stream_ready_ = (metadata_ != nullptr) && (has_audio_?audio_ready_:true) && (has_video_?video_ready_:true);
+        if (stream_ready_) {
+            on_stream_ready();
+        }
+    }
+
     bool is_key = header.is_key_frame() && !header.is_seq_header();
     if (video_pkts_.size() <= 0 && !is_key) {  // 片段开始的帧，必须是关键帧
         return false;
     }
 
     if (video_pkts_.size() >= 2) {
-        int64_t duration = video_pkts_[video_pkts_.size() - 1]->timestamp_ - video_pkts_[0]->timestamp_;
+        int64_t duration = video_pkt->timestamp_ - video_pkts_[0]->timestamp_;
         if (publish_app_->can_reap_mp4(is_key, duration, video_bytes_)) {
             reap_video_seg(video_pkt->timestamp_);
             video_reaped_ = true;
@@ -263,23 +272,40 @@ bool RtmpToMp4::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     return true;
 }
 
-void RtmpToMp4::reap_video_seg(int64_t dts) {
+void RtmpToM4s::on_stream_ready() {
+    if (has_video_) {
+        if (!video_header_) {
+            return;
+        }
+    }
+
+    if (has_audio_) {
+        if (!audio_header_) {
+            return;
+        }
+    }
+
+    generate_combined_init_seg(video_header_, audio_header_);
+}
+
+void RtmpToM4s::reap_video_seg(int64_t dts) {
     video_data_mp4_seg_ = std::make_shared<Mp4Segment>();
     std::stringstream ss;
-    ss << "video-" << video_seq_no_ << ".m4s";
-    std::ofstream of(ss.str(), std::ios::out | std::ios::binary);
+    int64_t s = 0;
+    // styp
     StypBox styp;
     styp.major_brand_ = Mp4BoxBrandMSDH;
     styp.minor_version_ = 0;
+    styp.compatible_brands_.push_back(Mp4BoxBrandDASH);
     styp.compatible_brands_.push_back(Mp4BoxBrandMSDH);
     styp.compatible_brands_.push_back(Mp4BoxBrandMSIX);
-    size_t s = styp.size();
-    NetBuffer n(video_data_mp4_seg_->alloc_buffer(s));
+    int64_t styp_bytes = styp.size();
+    NetBuffer n(video_data_mp4_seg_->alloc_buffer(styp_bytes));
     styp.encode(n);
-
+    // sidx
     auto sidx = std::make_shared<SidxBox>();
     sidx->version_ = 1;
-    sidx->reference_id_ = 1;
+    sidx->reference_id_ = video_track_ID_;
     sidx->timescale_ = 1000;
     sidx->earliest_presentation_time_ = video_pkts_[0]->timestamp_;
     auto duration = video_pkts_[video_pkts_.size() - 1]->timestamp_ - sidx->earliest_presentation_time_;
@@ -289,6 +315,8 @@ void RtmpToMp4::reap_video_seg(int64_t dts) {
     entry.subsegment_duration = duration;
     entry.starts_with_SAP = 1;
     sidx->entries.push_back(entry);
+    int64_t sidx_bytes = sidx->size();
+    (void)sidx_bytes;
 
     auto moof = std::make_shared<MoofBox>();
 
@@ -305,7 +333,7 @@ void RtmpToMp4::reap_video_seg(int64_t dts) {
     traf->tfhd_ = tfhd;
 
     auto tfdt = std::make_shared<TfdtBox>();
-    tfdt->base_media_decode_time = 1;  // in ms
+    tfdt->base_media_decode_time = video_pkts_[0]->timestamp_;  // in ms
     tfdt->version_ = 1;
     traf->tfdt_ = tfdt;
 
@@ -345,11 +373,23 @@ void RtmpToMp4::reap_video_seg(int64_t dts) {
     }
 
     auto mdat = std::make_shared<MdatBox>();
+    // mdat
+    mdat->datas_.clear();
+    for (auto it = video_pkts_.begin(); it != video_pkts_.end(); it++) {
+        auto payload = (*it)->get_using_data();
+        VideoTagHeader header;
+        int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
+        std::string_view frame_data(payload.data() + header_consumed, payload.size() - header_consumed);
+        mdat->datas_.push_back(frame_data);
+    }
+
+    int64_t mdat_header_bytes = mdat->size() - mdat_bytes;
     int64_t moof_bytes = moof->size();
-    trun->data_offset_ = (int32_t)(moof_bytes + mdat->size());
+    trun->data_offset_ = (int32_t)(moof_bytes + mdat_header_bytes);
     // Update the size of sidx.
     SegmentIndexEntry *e = &sidx->entries[0];
-    e->referenced_size = moof_bytes + mdat->size() + mdat_bytes;
+    sidx->first_offset_ = 0;//styp_bytes + sidx_bytes;
+    e->referenced_size = moof_bytes + mdat_header_bytes + mdat_bytes;
     s = sidx->size();
     n = NetBuffer(video_data_mp4_seg_->alloc_buffer(s));
     sidx->encode(n);
@@ -358,37 +398,156 @@ void RtmpToMp4::reap_video_seg(int64_t dts) {
     n = NetBuffer(video_data_mp4_seg_->alloc_buffer(s));
     moof->encode(n);
 
-    {  // 写mdat
-        s = mdat->size();
-        n = NetBuffer(video_data_mp4_seg_->alloc_buffer(s));
-        mdat->encode(n);
-        for (auto it = video_pkts_.begin(); it != video_pkts_.end(); it++) {
-            auto payload = (*it)->get_using_data();
-            VideoTagHeader header;
-            int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
-            auto frame_bytes = payload.size() - header_consumed;
-            n = NetBuffer(video_data_mp4_seg_->alloc_buffer(frame_bytes));
-            memcpy((char *)n.get_curr_buf().data(), payload.data() + header_consumed, frame_bytes);
-        }
-    }
-    video_data_mp4_seg_->update_timestamp(video_pkts_[0]->timestamp_,
-                                          video_pkts_[video_pkts_.size() - 1]->timestamp_);
+    s = mdat->size();
+    n = NetBuffer(video_data_mp4_seg_->alloc_buffer(s));
+    mdat->encode(n);
+
+    video_data_mp4_seg_->update_timestamp(video_pkts_[0]->timestamp_, dts);
     video_data_mp4_seg_->set_seqno(video_seq_no_);
     video_data_mp4_seg_->set_filename("video-" + std::to_string(video_seq_no_++) + ".m4s");
-    auto used_buf = video_data_mp4_seg_->get_used_buf();
-    of.write(used_buf.data(), used_buf.size());
-    of.close();
 }
 
-bool RtmpToMp4::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) {
+void RtmpToM4s::reap_audio_seg(int64_t dts) {
+    audio_data_mp4_seg_ = std::make_shared<Mp4Segment>();
+    std::stringstream ss;
+    int64_t s = 0;
+    StypBox styp;
+    styp.major_brand_ = Mp4BoxBrandMSDH;
+    styp.minor_version_ = 0;
+    styp.compatible_brands_.push_back(Mp4BoxBrandDASH);
+    styp.compatible_brands_.push_back(Mp4BoxBrandMSDH);
+    styp.compatible_brands_.push_back(Mp4BoxBrandMSIX);
+    int64_t styp_bytes = styp.size();
+    NetBuffer n(audio_data_mp4_seg_->alloc_buffer(styp_bytes));
+    styp.encode(n);
+
+    auto sidx = std::make_shared<SidxBox>();
+    sidx->version_ = 1;
+    sidx->reference_id_ = audio_track_ID_;
+    sidx->timescale_ = 1000;
+    sidx->earliest_presentation_time_ = audio_pkts_[0]->timestamp_;
+    auto duration = dts - sidx->earliest_presentation_time_;
+
+    SegmentIndexEntry entry;
+    memset(&entry, 0, sizeof(entry));
+    entry.subsegment_duration = duration;
+    entry.starts_with_SAP = 1;
+    sidx->entries.push_back(entry);
+    int64_t sidx_bytes = sidx->size();
+    (void)sidx_bytes;
+
+    auto moof = std::make_shared<MoofBox>();
+
+    auto mfhd = std::make_shared<MfhdBox>();
+    mfhd->sequence_number_ = audio_seq_no_;
+    moof->mfhd_ = mfhd;
+
+    auto traf = std::make_shared<TrafBox>();
+    moof->traf_ = traf;
+
+    auto tfhd = std::make_shared<TfhdBox>(0);
+    tfhd->track_id_ = audio_track_ID_;
+    tfhd->flags_ = TfhdFlagsDefaultBaseIsMoof;
+    traf->tfhd_ = tfhd;
+
+    auto tfdt = std::make_shared<TfdtBox>();
+    tfdt->base_media_decode_time = audio_pkts_[0]->timestamp_;  // in ms
+    tfdt->version_ = 1;
+    traf->tfdt_ = tfdt;
+
+    auto trun = std::make_shared<TrunBox>(0);
+    trun->flags_ = TrunFlagsDataOffset | TrunFlagsSampleDuration | TrunFlagsSampleSize | TrunFlagsSampleFlag |
+                   TrunFlagsSampleCtsOffset;
+    traf->trun_ = trun;
+    trun->entries_.reserve(audio_pkts_.size());
+    std::shared_ptr<RtmpMessage> prev_pkt;
+    int64_t mdat_bytes = 0;
+    for (auto it = audio_pkts_.begin(); it != audio_pkts_.end(); it++) {
+        TrunEntry te(trun.get());
+        if (!prev_pkt) {
+            prev_pkt = *it;
+            te.sample_flags_ = 0x02000000;
+        } else {
+            te.sample_flags_ = 0x01000000;
+        }
+
+        auto it_next = it + 1;
+        if (it_next == audio_pkts_.end()) {
+            te.sample_duration_ = dts - (*it)->timestamp_;
+        } else {
+            te.sample_duration_ = (*it_next)->timestamp_ - (*it)->timestamp_;
+        }
+
+        auto payload = (*it)->get_using_data();
+        AudioTagHeader header;
+        int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
+        te.sample_size_ = payload.size() - header_consumed;
+        te.sample_composition_time_offset_ = 0;
+        if (te.sample_composition_time_offset_ < 0) {
+            trun->version_ = 1;
+        }
+        mdat_bytes += te.sample_size_;
+        trun->entries_.push_back(te);
+    }
+
+    // mdat
+    auto mdat = std::make_shared<MdatBox>();
+    mdat->datas_.clear();
+    for (auto it = audio_pkts_.begin(); it != audio_pkts_.end(); it++) {
+        auto payload = (*it)->get_using_data();
+        AudioTagHeader header;
+        int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
+        std::string_view frame_data(payload.data() + header_consumed, payload.size() - header_consumed);
+        mdat->datas_.push_back(frame_data);
+    }
+
+    int64_t mdat_header_bytes = mdat->size() - mdat_bytes;
+    int64_t moof_bytes = moof->size();
+    trun->data_offset_ = (int32_t)(moof_bytes + mdat_header_bytes);
+    // Update the size of sidx.
+    SegmentIndexEntry *e = &sidx->entries[0];
+    sidx->first_offset_ = 0;//styp_bytes + sidx_bytes;
+    e->referenced_size = moof_bytes + mdat_header_bytes + mdat_bytes;
+    s = sidx->size();
+    n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(s));
+    sidx->encode(n);
+
+    s = moof->size();
+    n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(s));
+    moof->encode(n);
+
+    s = mdat->size();
+    n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(s));
+    mdat->encode(n);
+
+    audio_data_mp4_seg_->set_seqno(audio_seq_no_);
+    audio_data_mp4_seg_->update_timestamp(audio_pkts_[0]->timestamp_, dts);
+    audio_data_mp4_seg_->set_filename("audio-" + std::to_string(audio_seq_no_++) + ".m4s");
+}
+
+bool RtmpToM4s::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) {
     (void)video_pkt;
-    std::ofstream of("./video-init.mp4", std::ios::out | std::ios::binary);
+    if (!video_codec_) {
+        return false;
+    }
+
+    if (video_codec_->get_codec_type() == CODEC_H264) {
+        return generate_h264_video_init_seg();
+    } else if (video_codec_->get_codec_type() == CODEC_HEVC) {
+        return generate_h265_video_init_seg();
+    }
+
+    return false;
+}
+
+bool RtmpToM4s::generate_h264_video_init_seg() {
     H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
 
     init_video_mp4_seg_ = std::make_shared<Mp4Segment>();
     FtypBox ftyp;
     ftyp.major_brand_ = Mp4BoxBrandISO5;
     ftyp.minor_version_ = 512;
+    ftyp.compatible_brands_.push_back(Mp4BoxBrandDASH);
     ftyp.compatible_brands_.push_back(Mp4BoxBrandISO6);
     ftyp.compatible_brands_.push_back(Mp4BoxBrandMP41);
     size_t s = ftyp.size();
@@ -397,7 +556,7 @@ bool RtmpToMp4::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
 
     video_moov_ = std::make_shared<MoovBox>();
     std::shared_ptr<MvhdBox> mvhd = std::make_shared<MvhdBox>();
-    mvhd->creation_time_ = time(NULL);
+    mvhd->creation_time_ = time(NULL) + 2082844800;
     mvhd->timescale_ = 1000;
     mvhd->duration_ = 0;
     mvhd->next_track_ID_ = video_track_ID_ + 1;
@@ -487,22 +646,144 @@ bool RtmpToMp4::generate_video_init_seg(std::shared_ptr<RtmpMessage> video_pkt) 
     auto trex = std::make_shared<TrexBox>();
     trex->track_ID_ = video_track_ID_;
     trex->default_sample_description_index_ = 1;
-    mvex->set_trex(trex);
+    mvex->add_box(trex);
     video_moov_->add_box(mvex);
 
     video_moov_->size();
     n = NetBuffer(init_video_mp4_seg_->alloc_buffer(video_moov_->size()));
     video_moov_->encode(n);
-    auto used_buf = init_video_mp4_seg_->get_used_buf();
-    of.write(used_buf.data(), used_buf.size());
-    of.close();
+
     init_video_mp4_seg_->set_filename("video-init.m4s");
     mp4_media_source_->on_video_init_segment(init_video_mp4_seg_);
     return true;
 }
 
-bool RtmpToMp4::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) {
-    std::ofstream of("./audio-init.mp4", std::ios::out | std::ios::binary);
+bool RtmpToM4s::generate_h265_video_init_seg() {
+    // HevcCodec *h265_codec = ((HevcCodec *)video_codec_.get());
+
+    // init_video_mp4_seg_ = std::make_shared<Mp4Segment>();
+    // FtypBox ftyp;
+    // ftyp.major_brand_ = Mp4BoxBrandISO5;
+    // ftyp.minor_version_ = 512;
+    // ftyp.compatible_brands_.push_back(Mp4BoxBrandDASH);
+    // ftyp.compatible_brands_.push_back(Mp4BoxBrandISO6);
+    // ftyp.compatible_brands_.push_back(Mp4BoxBrandMP41);
+    // size_t s = ftyp.size();
+    // NetBuffer n(init_video_mp4_seg_->alloc_buffer(s));
+    // ftyp.encode(n);
+
+    // video_moov_ = std::make_shared<MoovBox>();
+    // std::shared_ptr<MvhdBox> mvhd = std::make_shared<MvhdBox>();
+    // mvhd->creation_time_ = time(NULL) + 2082844800;
+    // mvhd->timescale_ = 1000;
+    // mvhd->duration_ = 0;
+    // mvhd->next_track_ID_ = video_track_ID_ + 1;
+    // video_moov_->add_box(mvhd);
+    // {
+    //     // trak
+    //     auto trak = std::make_shared<TrakBox>();
+    //     video_moov_->add_box(trak);
+    //     // tkhd
+    //     auto tkhd = std::make_shared<TkhdBox>(0, 0x03);
+    //     tkhd->track_ID_ = video_track_ID_;
+    //     tkhd->duration_ = 0;
+    //     uint32_t w, h;
+    //     h265_codec->get_wh(w, h);
+    //     tkhd->width_ = (w << 16);
+    //     tkhd->height_ = (h << 16);
+    //     trak->set_tkhd(tkhd);
+    //     // mdia
+    //     auto mdia = std::make_shared<MdiaBox>();
+    //     trak->set_mdia(mdia);
+    //     {
+    //         // mdhd
+    //         auto mdhd = std::make_shared<MdhdBox>();
+    //         mdhd->timescale_ = 1000;
+    //         mdhd->duration_ = 0;
+    //         mdhd->set_language0('u');
+    //         mdhd->set_language1('n');
+    //         mdhd->set_language2('d');
+    //         mdia->set_mdhd(mdhd);
+    //         // hdlr
+    //         auto hdlr = std::make_shared<HdlrBox>();
+    //         hdlr->handler_type_ = HANDLER_TYPE_VIDE;
+    //         hdlr->name_ = "VideoHandler";
+    //         mdia->set_hdlr(hdlr);
+    //         // minf
+    //         auto minf = std::make_shared<MinfBox>();
+    //         {
+    //             auto vmhd = std::make_shared<VmhdBox>();
+    //             minf->add_box(vmhd);
+    //             auto dinf = std::make_shared<DinfBox>();
+    //             minf->add_box(dinf);
+    //             {
+    //                 auto dref = std::make_shared<DrefBox>();
+    //                 auto url = std::make_shared<UrlBox>();
+    //                 // url->location_ = "same file";
+    //                 dref->entries_.push_back(url);
+    //                 dinf->set_dref(dref);
+    //             }
+
+    //             auto stbl = std::make_shared<StblBox>();
+    //             {
+    //                 auto stts = std::make_shared<SttsBox>();
+    //                 stbl->add_box(stts);
+    //                 auto stsc = std::make_shared<StscBox>();
+    //                 stbl->add_box(stsc);
+    //                 auto stsz = std::make_shared<StszBox>();
+    //                 stbl->add_box(stsz);
+    //                 auto stco = std::make_shared<StcoBox>();
+    //                 stbl->add_box(stco);
+
+    //                 auto stsd = std::make_shared<StsdBox>();
+    //                 {
+    //                     auto avc1 = std::make_shared<VisualSampleEntry>(BOX_TYPE_AVC1);
+    //                     stsd->entries_.push_back(avc1);
+    //                     avc1->width_ = w;
+    //                     avc1->height_ = h;
+    //                     avc1->data_reference_index_ = 1;
+
+    //                     auto avcc = std::make_shared<AvccBox>();
+    //                     auto &avc_config = h264_codec->get_avc_configuration();
+    //                     auto avc_size = avc_config.size();
+    //                     std::string avc_raw_data;
+    //                     avc_raw_data.resize(avc_size);
+    //                     avc_config.encode((uint8_t *)avc_raw_data.data(), avc_raw_data.size());
+    //                     avcc->avc_config_ = avc_raw_data;
+    //                     avc1->set_avcc_box(avcc);
+    //                 }
+    //                 stbl->add_box(stsd);
+    //             }
+    //             minf->add_box(stbl);
+    //         }
+    //         mdia->set_minf(minf);
+    //     }
+    // }
+
+    // auto mvex = std::make_shared<MvexBox>();
+    // auto trex = std::make_shared<TrexBox>();
+    // trex->track_ID_ = video_track_ID_;
+    // trex->default_sample_description_index_ = 1;
+    // mvex->add_box(trex);
+    // video_moov_->add_box(mvex);
+
+    // video_moov_->size();
+    // n = NetBuffer(init_video_mp4_seg_->alloc_buffer(video_moov_->size()));
+    // video_moov_->encode(n);
+
+    // init_video_mp4_seg_->set_filename("video-init.m4s");
+    // mp4_media_source_->on_video_init_segment(init_video_mp4_seg_);
+    return true;
+}
+
+bool RtmpToM4s::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) {
+    if (!audio_codec_) {
+        return false;
+    }
+
+    if (audio_codec_->get_codec_type() != CODEC_AAC) {
+        return false;
+    }
 
     init_audio_mp4_seg_ = std::make_shared<Mp4Segment>();
     FtypBox ftyp;
@@ -516,7 +797,7 @@ bool RtmpToMp4::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
 
     video_moov_ = std::make_shared<MoovBox>();
     std::shared_ptr<MvhdBox> mvhd = std::make_shared<MvhdBox>();
-    mvhd->creation_time_ = time(NULL);
+    mvhd->creation_time_ = time(NULL) + 2082844800; //使用从 1904 开始的时间戳：time(NULL) + 2082844800
     mvhd->timescale_ = 1000;
     mvhd->duration_ = 0;
     mvhd->next_track_ID_ = audio_track_ID_ + 1;
@@ -612,21 +893,219 @@ bool RtmpToMp4::generate_audio_init_seg(std::shared_ptr<RtmpMessage> audio_pkt) 
     auto trex = std::make_shared<TrexBox>();
     trex->track_ID_ = audio_track_ID_;
     trex->default_sample_description_index_ = 1;
-    mvex->set_trex(trex);
+    mvex->add_box(trex);
     video_moov_->add_box(mvex);
 
     video_moov_->size();
     n = NetBuffer(init_audio_mp4_seg_->alloc_buffer(video_moov_->size()));
     video_moov_->encode(n);
-    auto used_buf = init_audio_mp4_seg_->get_used_buf();
-    of.write(used_buf.data(), used_buf.size());
-    of.close();
-    init_video_mp4_seg_->set_filename("audio-init.m4s");
+
+    init_audio_mp4_seg_->set_filename("audio-init.m4s");
     mp4_media_source_->on_audio_init_segment(init_audio_mp4_seg_);
     return true;
 }
 
-bool RtmpToMp4::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
+bool RtmpToM4s::generate_combined_init_seg(std::shared_ptr<RtmpMessage> video_pkt, std::shared_ptr<RtmpMessage> audio_pkt) {
+    (void)video_pkt;
+    (void)audio_pkt;
+    if (video_codec_) {
+        if (video_codec_->get_codec_type() != CODEC_H264) {
+            return false;
+        }
+    }
+
+    if (audio_codec_) {
+        if (audio_codec_->get_codec_type() != CODEC_AAC) {
+            return false;
+        }
+    }
+
+    H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
+    AACCodec *aac_codec = ((AACCodec *)audio_codec_.get());
+
+    combined_init_seg_ = std::make_shared<Mp4Segment>();
+
+    // 写入 ftyp box
+    FtypBox ftyp;
+    ftyp.major_brand_ = Mp4BoxBrandISO5;
+    ftyp.minor_version_ = 512;
+    ftyp.compatible_brands_ = {Mp4BoxBrandDASH, Mp4BoxBrandISO6, Mp4BoxBrandMP41};
+    size_t ftyp_size = ftyp.size();
+    NetBuffer n(combined_init_seg_->alloc_buffer(ftyp_size));
+    ftyp.encode(n);
+
+    // 构造 moov box
+    auto moov = std::make_shared<MoovBox>();
+    {
+        auto mvhd = std::make_shared<MvhdBox>();
+        mvhd->creation_time_ = time(NULL) + 2082844800;
+        mvhd->timescale_ = 1000;
+        mvhd->duration_ = 0;
+        mvhd->next_track_ID_ = std::max(video_track_ID_, audio_track_ID_) + 1;
+        moov->add_box(mvhd);
+    }
+
+    // 添加 video track
+    {
+        auto trak = std::make_shared<TrakBox>();
+        moov->add_box(trak);
+        auto tkhd = std::make_shared<TkhdBox>(0, 0x03);
+        tkhd->track_ID_ = video_track_ID_;
+        tkhd->duration_ = 0;
+        uint32_t w, h;
+        h264_codec->get_wh(w, h);
+        tkhd->width_ = (w << 16);
+        tkhd->height_ = (h << 16);
+        trak->set_tkhd(tkhd);
+
+        auto mdia = std::make_shared<MdiaBox>();
+        trak->set_mdia(mdia);
+        {
+            auto mdhd = std::make_shared<MdhdBox>();
+            mdhd->timescale_ = 1000;
+            mdhd->duration_ = 0;
+            mdhd->set_language0('u');
+            mdhd->set_language1('n');
+            mdhd->set_language2('d');
+            mdia->set_mdhd(mdhd);
+
+            auto hdlr = std::make_shared<HdlrBox>();
+            hdlr->handler_type_ = HANDLER_TYPE_VIDE;
+            hdlr->name_ = "VideoHandler";
+            mdia->set_hdlr(hdlr);
+
+            auto minf = std::make_shared<MinfBox>();
+            minf->add_box(std::make_shared<VmhdBox>());
+            auto dinf = std::make_shared<DinfBox>();
+            auto dref = std::make_shared<DrefBox>();
+            dref->entries_.push_back(std::make_shared<UrlBox>());
+            dinf->set_dref(dref);
+            minf->add_box(dinf);
+
+            auto stbl = std::make_shared<StblBox>();
+            stbl->add_box(std::make_shared<SttsBox>());
+            stbl->add_box(std::make_shared<StscBox>());
+            stbl->add_box(std::make_shared<StszBox>());
+            stbl->add_box(std::make_shared<StcoBox>());
+
+            auto stsd = std::make_shared<StsdBox>();
+            auto avc1 = std::make_shared<VisualSampleEntry>(BOX_TYPE_AVC1);
+            avc1->width_ = w;
+            avc1->height_ = h;
+            avc1->data_reference_index_ = 1;
+
+            auto avcc = std::make_shared<AvccBox>();
+            auto &avc_config = h264_codec->get_avc_configuration();
+            std::string avc_raw_data(avc_config.size(), '\0');
+            avc_config.encode((uint8_t *)avc_raw_data.data(), avc_raw_data.size());
+            avcc->avc_config_ = avc_raw_data;
+            avc1->set_avcc_box(avcc);
+            stsd->entries_.push_back(avc1);
+            stbl->add_box(stsd);
+
+            minf->add_box(stbl);
+            mdia->set_minf(minf);
+        }
+    }
+
+    // 添加 audio track
+    {
+        auto trak = std::make_shared<TrakBox>();
+        moov->add_box(trak);
+        auto tkhd = std::make_shared<TkhdBox>(0, 0x03);
+        tkhd->track_ID_ = audio_track_ID_;
+        tkhd->duration_ = 0;
+        tkhd->volume_ = 0x0100;
+        trak->set_tkhd(tkhd);
+
+        auto mdia = std::make_shared<MdiaBox>();
+        trak->set_mdia(mdia);
+        {
+            auto mdhd = std::make_shared<MdhdBox>();
+            mdhd->timescale_ = 1000;
+            mdhd->duration_ = 0;
+            mdhd->set_language0('u');
+            mdhd->set_language1('n');
+            mdhd->set_language2('d');
+            mdia->set_mdhd(mdhd);
+
+            auto hdlr = std::make_shared<HdlrBox>();
+            hdlr->handler_type_ = HANDLER_TYPE_SOUN;
+            hdlr->name_ = "SoundHandler";
+            mdia->set_hdlr(hdlr);
+
+            auto minf = std::make_shared<MinfBox>();
+            auto dinf = std::make_shared<DinfBox>();
+            auto dref = std::make_shared<DrefBox>();
+            dref->entries_.push_back(std::make_shared<UrlBox>());
+            dinf->set_dref(dref);
+            minf->add_box(dinf);
+
+            auto stbl = std::make_shared<StblBox>();
+            stbl->add_box(std::make_shared<SttsBox>());
+            stbl->add_box(std::make_shared<StscBox>());
+            stbl->add_box(std::make_shared<StszBox>());
+            stbl->add_box(std::make_shared<StcoBox>());
+
+            auto stsd = std::make_shared<StsdBox>();
+            auto mp4a = std::make_shared<AudioSampleEntry>(BOX_TYPE_MP4A);
+            auto audio_config = aac_codec->get_audio_specific_config();
+            mp4a->data_reference_index_ = 1;
+            mp4a->channel_count_ = audio_config->channel_configuration;
+            mp4a->sample_size_ = 16;
+            mp4a->sample_rate_ = audio_config->sampling_frequency << 16;
+
+            auto esds = std::make_shared<EsdsBox>();
+            auto payload = audio_pkt->get_using_data();
+            AudioTagHeader header;
+            int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
+            Mp4ES_Descriptor &es = esds->es_;
+            es.ES_ID_ = 0x02;
+            auto &desc = es.decConfigDescr_;
+            desc.object_type_indication_ = Mp4ObjectTypeAac;
+            desc.stream_type_ = Mp4StreamTypeAudioStream;
+            desc.dec_specific_info_ = std::make_shared<Mp4DecoderSpecificInfo>();
+            desc.dec_specific_info_->asc_ = std::string(payload.data() + header_consumed, payload.size() - header_consumed);
+            mp4a->esds_ = esds;
+
+            stsd->entries_.push_back(mp4a);
+            stbl->add_box(stsd);
+
+            minf->add_box(stbl);
+            mdia->set_minf(minf);
+        }
+    }
+
+    // mvex
+    {
+        auto mvex = std::make_shared<MvexBox>();
+        {
+            auto trex_v = std::make_shared<TrexBox>();
+            trex_v->track_ID_ = video_track_ID_;
+            trex_v->default_sample_description_index_ = 1;
+            mvex->add_box(trex_v);
+        }
+        {
+            auto trex_a = std::make_shared<TrexBox>();
+            trex_a->track_ID_ = audio_track_ID_;
+            trex_a->default_sample_description_index_ = 1;
+            mvex->add_box(trex_a);
+        }
+        moov->add_box(mvex);
+    }
+
+    moov->size();
+    n = NetBuffer(combined_init_seg_->alloc_buffer(moov->size()));
+    moov->encode(n);
+
+    combined_init_seg_->set_filename("combined-init.m4s");
+    mp4_media_source_->on_combined_init_segment(combined_init_seg_);
+
+    return true;
+}
+
+
+bool RtmpToM4s::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     VideoTagHeader header;
     auto payload = video_pkt->get_using_data();
     int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
@@ -661,7 +1140,7 @@ bool RtmpToMp4::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     return true;
 }
 
-int32_t RtmpToMp4::get_nalus(uint8_t *data, int32_t len, std::list<std::string_view> &nalus) {
+int32_t RtmpToM4s::get_nalus(uint8_t *data, int32_t len, std::list<std::string_view> &nalus) {
     uint8_t *data_start = data;
     while (len > 0) {
         int32_t nalu_len = 0;
@@ -691,7 +1170,7 @@ int32_t RtmpToMp4::get_nalus(uint8_t *data, int32_t len, std::list<std::string_v
     return data - data_start;
 }
 
-bool RtmpToMp4::on_audio_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
+bool RtmpToM4s::on_audio_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     if (!audio_codec_) {
         return false;
     }
@@ -704,7 +1183,7 @@ bool RtmpToMp4::on_audio_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     return false;
 }
 
-bool RtmpToMp4::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
+bool RtmpToM4s::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     AudioTagHeader header;
     auto payload = audio_pkt->get_using_data();
     int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
@@ -734,8 +1213,15 @@ bool RtmpToMp4::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
         return false;
     }
 
+    if (!stream_ready_) {
+        stream_ready_ = (metadata_ != nullptr) && (has_audio_?audio_ready_:true) && (has_video_?video_ready_:true);
+        if (stream_ready_) {
+            on_stream_ready();
+        }
+    }
+
     if (audio_pkts_.size() >= 2) {
-        int64_t duration = audio_pkts_[audio_pkts_.size() - 1]->timestamp_ - audio_pkts_[0]->timestamp_;
+        int64_t duration = audio_pkt->timestamp_ - audio_pkts_[0]->timestamp_;
         if (publish_app_->can_reap_mp4(false, duration, audio_bytes_) || video_reaped_) {
             video_reaped_ = false;
             reap_audio_seg(audio_pkt->timestamp_);
@@ -751,133 +1237,18 @@ bool RtmpToMp4::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     return true;
 }
 
-void RtmpToMp4::reap_audio_seg(int64_t dts) {
-    audio_data_mp4_seg_ = std::make_shared<Mp4Segment>();
-    std::stringstream ss;
-    ss << "audio-" << audio_seq_no_ << ".m4s";
-    std::ofstream of(ss.str(), std::ios::out | std::ios::binary);
-    StypBox styp;
-    styp.major_brand_ = Mp4BoxBrandMSDH;
-    styp.minor_version_ = 0;
-    styp.compatible_brands_.push_back(Mp4BoxBrandMSDH);
-    styp.compatible_brands_.push_back(Mp4BoxBrandMSIX);
-    size_t s = styp.size();
-    NetBuffer n(audio_data_mp4_seg_->alloc_buffer(s));
-    styp.encode(n);
 
-    auto sidx = std::make_shared<SidxBox>();
-    sidx->version_ = 1;
-    sidx->reference_id_ = 1;
-    sidx->timescale_ = 1000;
-    sidx->earliest_presentation_time_ = audio_pkts_[0]->timestamp_;
-    auto duration = audio_pkts_[audio_pkts_.size() - 1]->timestamp_ - sidx->earliest_presentation_time_;
-
-    SegmentIndexEntry entry;
-    memset(&entry, 0, sizeof(entry));
-    entry.subsegment_duration = duration;
-    entry.starts_with_SAP = 1;
-    sidx->entries.push_back(entry);
-
-    auto moof = std::make_shared<MoofBox>();
-
-    auto mfhd = std::make_shared<MfhdBox>();
-    mfhd->sequence_number_ = audio_seq_no_;
-    moof->mfhd_ = mfhd;
-
-    auto traf = std::make_shared<TrafBox>();
-    moof->traf_ = traf;
-
-    auto tfhd = std::make_shared<TfhdBox>(0);
-    tfhd->track_id_ = audio_track_ID_;
-    tfhd->flags_ = TfhdFlagsDefaultBaseIsMoof;
-    traf->tfhd_ = tfhd;
-
-    auto tfdt = std::make_shared<TfdtBox>();
-    tfdt->base_media_decode_time = 1;  // in ms
-    tfdt->version_ = 1;
-    traf->tfdt_ = tfdt;
-
-    auto trun = std::make_shared<TrunBox>(0);
-    trun->flags_ = TrunFlagsDataOffset | TrunFlagsSampleDuration | TrunFlagsSampleSize | TrunFlagsSampleFlag |
-                   TrunFlagsSampleCtsOffset;
-    traf->trun_ = trun;
-    trun->entries_.reserve(audio_pkts_.size());
-    std::shared_ptr<RtmpMessage> prev_pkt;
-    int64_t mdat_bytes = 0;
-    for (auto it = audio_pkts_.begin(); it != audio_pkts_.end(); it++) {
-        TrunEntry te(trun.get());
-        if (!prev_pkt) {
-            prev_pkt = *it;
-            te.sample_flags_ = 0x02000000;
-        } else {
-            te.sample_flags_ = 0x01000000;
-        }
-
-        auto it_next = it + 1;
-        if (it_next == audio_pkts_.end()) {
-            te.sample_duration_ = dts - (*it)->timestamp_;
-        } else {
-            te.sample_duration_ = (*it_next)->timestamp_ - (*it)->timestamp_;
-        }
-
-        auto payload = (*it)->get_using_data();
-        AudioTagHeader header;
-        int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
-        te.sample_size_ = payload.size() - header_consumed;
-        te.sample_composition_time_offset_ = 0;
-        if (te.sample_composition_time_offset_ < 0) {
-            trun->version_ = 1;
-        }
-        mdat_bytes += te.sample_size_;
-        trun->entries_.push_back(te);
-    }
-
-    auto mdat = std::make_shared<MdatBox>();
-    int64_t moof_bytes = moof->size();
-    trun->data_offset_ = (int32_t)(moof_bytes + mdat->size());
-    // Update the size of sidx.
-    SegmentIndexEntry *e = &sidx->entries[0];
-    e->referenced_size = moof_bytes + mdat->size() + mdat_bytes;
-    s = sidx->size();
-    n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(s));
-    sidx->encode(n);
-
-    s = moof->size();
-    n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(s));
-    moof->encode(n);
-
-    {  // 写mdat
-        s = mdat->size();
-        n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(s));
-        mdat->encode(n);
-        for (auto it = audio_pkts_.begin(); it != audio_pkts_.end(); it++) {
-            auto payload = (*it)->get_using_data();
-            AudioTagHeader header;
-            int32_t header_consumed = header.decode((uint8_t *)payload.data(), payload.size());
-            auto frame_bytes = payload.size() - header_consumed;
-            n = NetBuffer(audio_data_mp4_seg_->alloc_buffer(frame_bytes));
-            memcpy((char *)n.get_curr_buf().data(), payload.data() + header_consumed, frame_bytes);
-        }
-    }
-    audio_data_mp4_seg_->set_seqno(audio_seq_no_);
-    audio_data_mp4_seg_->update_timestamp(audio_pkts_[0]->timestamp_,
-                                          audio_pkts_[audio_pkts_.size() - 1]->timestamp_);
-    audio_data_mp4_seg_->set_filename("audio-" + std::to_string(audio_seq_no_++) + ".m4s");
-    auto used_buf = audio_data_mp4_seg_->get_used_buf();
-    of.write(used_buf.data(), used_buf.size());
-    of.close();
-}
-
-bool RtmpToMp4::process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
+bool RtmpToM4s::process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     (void)audio_pkt;
     return true;
 }
 
-void RtmpToMp4::close() {
+void RtmpToM4s::close() {
     if (closed_.test_and_set(std::memory_order_acquire)) {
         return;
     }
 
+    CORE_DEBUG("close RtmpToM4s");
     auto self(shared_from_this());
     boost::asio::co_spawn(
         worker_->get_io_context(),
@@ -893,6 +1264,8 @@ void RtmpToMp4::close() {
             auto origin_source = origin_source_.lock();
             if (rtmp_media_sink_) {
                 rtmp_media_sink_->on_rtmp_message({});
+                rtmp_media_sink_->on_close({});
+                rtmp_media_sink_->set_on_source_status_changed_cb({});
                 rtmp_media_sink_->close();
                 if (origin_source) {
                     origin_source->remove_media_sink(rtmp_media_sink_);

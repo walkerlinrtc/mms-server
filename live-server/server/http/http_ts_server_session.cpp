@@ -31,7 +31,7 @@ HttpTsServerSession::~HttpTsServerSession() {
     CORE_INFO("destroy HttpTsServerSession");
 }
 
-void HttpTsServerSession::service() {
+void HttpTsServerSession::start() {
     auto self(std::static_pointer_cast<HttpTsServerSession>(this->shared_from_this()));
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
         auto host = http_request_->get_header("Host");
@@ -47,7 +47,7 @@ void HttpTsServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -59,7 +59,7 @@ void HttpTsServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            close();
+            stop();
             co_return;
         }
 
@@ -73,7 +73,7 @@ void HttpTsServerSession::service() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(404, "Not Found");
-            close();
+            stop();
             co_return;
         } else {
             if (source->get_media_type() != "hls") {
@@ -83,7 +83,7 @@ void HttpTsServerSession::service() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    close();
+                    stop();
                     co_return;
                 }
 
@@ -94,7 +94,7 @@ void HttpTsServerSession::service() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    close();
+                    stop();
                     co_return;
                 }
                 hls_source = std::static_pointer_cast<HlsLiveMediaSource>(hls_bridge->get_media_source());
@@ -109,7 +109,7 @@ void HttpTsServerSession::service() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                close();
+                stop();
                 co_return;
             }
             
@@ -124,7 +124,7 @@ void HttpTsServerSession::service() {
 
             http_response_->add_header("Content-Length", std::to_string(total_bytes));
             if (!co_await http_response_->write_header(200, "Ok")) {
-                close();
+                stop();
                 co_return;
             }
             
@@ -139,7 +139,7 @@ void HttpTsServerSession::service() {
     }, boost::asio::detached);
 }
 
-void HttpTsServerSession::close() {
+void HttpTsServerSession::stop() {
     // todo: how to record 404 error to log.
     if (closed_.test_and_set()) {
         return;

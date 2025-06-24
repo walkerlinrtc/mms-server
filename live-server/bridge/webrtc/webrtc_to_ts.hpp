@@ -28,6 +28,7 @@ extern "C" {
 }
 #include "opus/opus.h"
 #include "base/wait_group.h"
+#include "base/obj_tracker.hpp"
 
 namespace mms {
 class RtmpMetaDataMessage;
@@ -45,8 +46,9 @@ class RtmpMetaDataMessage;
 class RtpH264NALU;
 class RtpAACNALU;
 class AACEncoder;
+class AACCodec;
 
-class WebRtcToTs : public MediaBridge {
+class WebRtcToTs : public MediaBridge, public ObjTracker<WebRtcToTs> {
 public:
     WebRtcToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string & domain_name, const std::string & app_name, const std::string & stream_name);
     virtual ~WebRtcToTs();
@@ -69,12 +71,14 @@ private:
     bool audio_ready_ = false;
     std::shared_ptr<Codec> video_codec_;
     std::shared_ptr<Codec> audio_codec_;
+    std::shared_ptr<AACCodec> my_audio_codec_;
     
     int16_t audio_pid_ = -1;
     int16_t video_pid_ = -1;
     int16_t PCR_PID = -1;
     TsStream video_type_;
     TsStream audio_type_;
+    void on_status_ok();
     void generate_h264_ts(int64_t timestamp, std::shared_ptr<RtpH264NALU> & nalu);
     void process_opus_packet(std::shared_ptr<RtpPacket> pkt, int64_t timestamp);
     void create_pat(std::string_view & pat_seg);

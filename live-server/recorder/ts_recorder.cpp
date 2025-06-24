@@ -18,6 +18,7 @@
 #include "json/json.h"
 
 #include "base/thread/thread_pool.hpp"
+#include "recorder_manager.h"
 
 using namespace mms;
 
@@ -38,7 +39,7 @@ bool TsRecordSeg::load(const Json::Value & v) {
 
 TsRecorder::TsRecorder(ThreadWorker *worker, std::shared_ptr<PublishApp> app, 
                       std::weak_ptr<MediaSource> source, const std::string & domain_name, 
-                      const std::string & app_name, const std::string & stream_name) : Recorder(worker, app, source, domain_name, app_name, stream_name) {
+                      const std::string & app_name, const std::string & stream_name) : Recorder("ts", worker, app, source, domain_name, app_name, stream_name) {
     sink_ = std::make_shared<TsMediaSink>(worker);
     ts_media_sink_ = std::static_pointer_cast<TsMediaSink>(sink_);
     CORE_DEBUG("create TsRecorder");
@@ -81,6 +82,7 @@ bool TsRecorder::init() {
             auto ts_datas = ts_seg->get_ts_data();
             for (auto & ts_data : ts_datas) {
                 ts_file.write(ts_data.data(), ts_data.size());
+                write_bytes_ += ts_data.size();
             }
             ts_file.close();
             
@@ -116,6 +118,7 @@ bool TsRecorder::init() {
     if (!ret) {
         return false;
     }
+    RecorderManager::get_instance().add_recorder(self);
 
     return true;
 }
@@ -128,19 +131,36 @@ void TsRecorder::close() {
     CORE_DEBUG("close TsRecorder");
     auto self(shared_from_this());
     boost::asio::co_spawn(worker_->get_io_context(), [this, self]()->boost::asio::awaitable<void> {
-        auto s = source_.lock();
-        if (s) {
-            s->remove_media_sink(ts_media_sink_);
-        }
         ts_media_sink_->on_close({});
         ts_media_sink_->on_ts_segment({});
         ts_media_sink_->close();
+        
+        auto s = source_.lock();
+        if (s) {
+            s->remove_media_sink(ts_media_sink_);
+            s->remove_recorder(self);
+        }
 
         if (!file_dir_.empty()) {
             gen_m3u8();
         }
         co_return;
     }, boost::asio::detached);
+    RecorderManager::get_instance().remove_recorder(self);
+}
+
+Json::Value TsRecorder::to_json() {
+    Json::Value v;
+    v["type"] = type_;
+    v["domain"] = domain_name_;
+    v["app"] = app_name_;
+    v["stream"] = stream_name_;
+    v["create_at"] = create_at_;
+    v["file_dir"] = file_dir_;
+    v["duration"] = record_duration_;
+    v["write_bytes"] = write_bytes_;
+    v["record_seg_count"] = record_seg_count_;
+    return v;
 }
 
 void TsRecorder::gen_m3u8() {
@@ -148,6 +168,7 @@ void TsRecorder::gen_m3u8() {
         return;
     }
 
+    CORE_DEBUG("generate ts record m3u8");
     std::stringstream ss;
     ss << "#EXTM3U\r\n";
     ss << "#EXT-X-VERSION:3\r\n";

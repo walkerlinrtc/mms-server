@@ -43,17 +43,19 @@
 #include "rtmp/rtmp_message/command_message/rtmp_access_sample_message.hpp"
 #include "rtmp/rtmp_message/data_message/rtmp_metadata_message.hpp"
 
+#include "base/obj_tracker.hpp"
+
 namespace mms {
 class SocketInterface;
 class RtmpMediaSource;
 class RtmpMediaSink;
 
-class RtmpServerSession : public StreamSession {
+class RtmpServerSession : public StreamSession, public ObjTracker<RtmpServerSession> {
 public:
     RtmpServerSession(std::shared_ptr<SocketInterface> conn);
     virtual ~RtmpServerSession();
-    void service() override;
-    void close() override;
+    void start() override;
+    void stop() override;
     Json::Value to_json() override;
 protected:
     // 同步方式发送rtmp消息，发送完成后会等待

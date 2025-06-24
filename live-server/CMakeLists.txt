@@ -45,6 +45,7 @@ add_dependencies(mms-live-server
     libaac
     libfaad2
     libzlib
+    libjemalloc
 )
 
 target_link_libraries(mms-live-server
@@ -80,7 +81,8 @@ target_link_libraries(mms-live-server
     boost_program_options.a
     dl
     pthread
-    asan
+    # asan
+    jemalloc.a
 )
 link_directories("/usr/lib64")
 target_link_options(mms-live-server PRIVATE "-Wl,--no-gc-sections")

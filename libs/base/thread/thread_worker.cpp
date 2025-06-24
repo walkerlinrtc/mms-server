@@ -3,7 +3,6 @@
 #include <sys/prctl.h>
 
 #include <atomic>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/system/error_code.hpp>
 #include <functional>
 #include <thread>
@@ -61,7 +60,7 @@ ThreadWorker::Event::Event(ThreadWorker *worker, const std::function<void(Event 
 ThreadWorker::Event::~Event() { timer_.cancel(); }
 
 void ThreadWorker::Event::invoke_after(uint32_t ms) {
-    timer_.expires_from_now(boost::posix_time::milliseconds(ms));
+    timer_.expires_after(std::chrono::milliseconds(ms));
     timer_.async_wait([this](const boost::system::error_code &ec) {
         if (ec != boost::asio::error::operation_aborted) {
             f_(this);
