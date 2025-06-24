@@ -73,6 +73,10 @@ boost::asio::awaitable<void> RtmpMediaSink::do_work() {
     auto rtmp_source = std::static_pointer_cast<RtmpMediaSource>(source_);
     do {
         pkts_ = rtmp_source->get_pkts(last_send_pkt_index_, 20);
+        if (pkts_.size() <= 0) {
+            break;
+        }
+        
         if (!co_await rtmp_msg_cb_(pkts_)) {
             close();
             break;
