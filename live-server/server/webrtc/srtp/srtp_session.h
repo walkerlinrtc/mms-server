@@ -2,6 +2,7 @@
 #include <mutex>
 #include "srtp2/srtp.h"
 #include "../dtls/define.h"
+#include <string>
 
 #define SRTP_MAX_BUFFER_SIZE 65535
 namespace mms

@@ -68,7 +68,8 @@ std::string EdgePushConfig::gen_url(std::shared_ptr<StreamSession> s) {
     }
 
     if (test_index_ != -1) {
-        url += "_" + std::to_string(test_index_);
+        static std::string s = "_";
+        url += s + std::to_string(test_index_);
     }
     return url;
 }

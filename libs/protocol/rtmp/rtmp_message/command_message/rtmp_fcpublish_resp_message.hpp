@@ -25,6 +25,7 @@ SOFTWARE.
 #include <string>
 #include "amf0/amf0_inc.hpp"
 #include "rtmp_define.hpp"
+#include "rtmp_fcpublish_message.hpp"
 namespace mms {
 class RtmpFCPublishRespMessage {
 public:

@@ -8,7 +8,7 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CMAKE_CXX_FLAGS "-g -O0 -Werror -Wall -pipe")
     add_compile_definitions(DEBUG_BUILD)
 else()
-    set(CMAKE_CXX_FLAGS "-g -O2 -minline-all-stringops -pipe -Wall -Wextra -Werror -fno-strict-aliasing -fno-lto")
+    set(CMAKE_CXX_FLAGS "-g -O2 -minline-all-stringops -pipe -Wall -Wextra -Werror -fno-strict-aliasing -fno-lto -Wno-restrict")
     add_compile_definitions(RELEASE_BUILD)
 endif()
 

@@ -3,6 +3,7 @@
 #include <boost/asio/experimental/channel.hpp>
 #include <boost/asio/experimental/concurrent_channel.hpp>
 #include <boost/asio/awaitable.hpp>
+#include <boost/asio/buffer.hpp>
 
 #include "core/stream_session.hpp"
 #include "base/wait_group.h"
