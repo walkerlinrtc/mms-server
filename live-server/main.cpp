@@ -23,6 +23,7 @@
 #include "service/conn/http_conn_pools.h"
 #include "service/dns/dns_service.hpp"
 #include "version.h"
+#include "recorder/recorder_db.h"
 
 using namespace mms;
 
@@ -100,9 +101,8 @@ int main(int argc, char *argv[]) {
     }
 
     thread_pool_inst::get_mutable_instance().start(std::thread::hardware_concurrency());
-    HttpConnPools::get_instance().set_worker(
-        thread_pool_inst::get_mutable_instance().get_worker(RAND_WORKER));
-
+    HttpConnPools::get_instance().set_worker(thread_pool_inst::get_mutable_instance().get_worker(RAND_WORKER));
+    
     std::string config_path = vm["config"].as<std::string>();
     auto config = Config::get_instance();
     try {
@@ -126,6 +126,12 @@ int main(int argc, char *argv[]) {
     } else if (config->get_log_level() == "warn") {
         spdlog::set_level(spdlog::level::warn);
     }
+
+    if (!RecorderDb::get_instance().init()) {
+        CORE_ERROR("init recorder db failed");
+        return -1;
+    }
+    
     // start dns service
     DnsService &dns_service = DnsService::get_instance();
     dns_service.start();
