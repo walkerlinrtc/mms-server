@@ -130,11 +130,12 @@ protected:
     std::string media_type_;//rtmp,rtsp,flv,hls,ts,gb28181,webrtc,srt...
     bool stream_ready_ = false;
     std::atomic<uint32_t> sinks_count_{0};
+    std::atomic<uint32_t> bridge_count_{0};
     std::weak_ptr<StreamSession> session_;
     std::shared_ptr<PublishApp> app_;
     ThreadWorker *worker_ = nullptr;
 
-    std::recursive_mutex sinks_mtx_;
+    std::shared_mutex sinks_mtx_;
     std::set<std::shared_ptr<MediaSink>> sinks_;//需要唤醒，才会到数据源取数据的sink
     std::shared_mutex bridges_mtx_;
     std::unordered_map<std::string, std::shared_ptr<MediaBridge>> bridges_;//桥接类型的sink，意味着这只是一个桥，没人的时候要拆掉，而且桥可以转换格式之类的   

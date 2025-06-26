@@ -33,7 +33,7 @@ RtpMediaSource::~RtpMediaSource() {
 
 boost::asio::awaitable<bool> RtpMediaSource::on_audio_packets(std::vector<std::shared_ptr<RtpPacket>> audio_pkts) 
 {    
-    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    std::shared_lock<std::shared_mutex> lck(sinks_mtx_);
     for (auto & sink : sinks_) {
         co_await (std::static_pointer_cast<RtpMediaSink>(sink))->on_audio_packets(audio_pkts);
     }
@@ -43,7 +43,7 @@ boost::asio::awaitable<bool> RtpMediaSource::on_audio_packets(std::vector<std::s
 
 boost::asio::awaitable<bool> RtpMediaSource::on_video_packets(std::vector<std::shared_ptr<RtpPacket>> video_pkts) 
 {
-    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    std::shared_lock<std::shared_mutex> lck(sinks_mtx_);
     for (auto & sink : sinks_) {
         co_await (std::static_pointer_cast<RtpMediaSink>(sink))->on_video_packets(video_pkts);
     }

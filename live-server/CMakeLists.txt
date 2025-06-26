@@ -13,7 +13,6 @@ configure_file(
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-gc-sections")
 
 #source files
 file(GLOB_RECURSE LIVE_SERVER_SOURCES   "${CMAKE_CURRENT_SOURCE_DIR}/*.h" 
@@ -46,6 +45,7 @@ add_dependencies(mms-live-server
     libfaad2
     libzlib
     libjemalloc
+    libleveldb
 )
 
 target_link_libraries(mms-live-server
@@ -83,8 +83,9 @@ target_link_libraries(mms-live-server
     pthread
     # asan
     jemalloc.a
+    leveldb.a
 )
-link_directories("/usr/lib64")
+
 target_link_options(mms-live-server PRIVATE "-Wl,--no-gc-sections")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

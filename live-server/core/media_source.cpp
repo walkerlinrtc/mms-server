@@ -82,7 +82,7 @@ void MediaSource::set_status(SourceStatus status) {
 }
 
 void MediaSource::notify_status(SourceStatus status) {
-    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    std::shared_lock<std::shared_mutex> lck(sinks_mtx_);
     for (auto s : sinks_) {
         s->on_source_status_changed(status);
     }
@@ -102,7 +102,7 @@ void MediaSource::set_source_info(const std::string & domain, const std::string 
 }
 
 bool MediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {
-    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    std::unique_lock<std::shared_mutex> lck(sinks_mtx_);
     sinks_.insert(media_sink);
     media_sink->set_source(this->shared_from_this());
     if (get_status() != E_SOURCE_STATUS_INIT) {
@@ -113,7 +113,7 @@ bool MediaSource::add_media_sink(std::shared_ptr<MediaSink> media_sink) {
 }
 
 bool MediaSource::remove_media_sink(std::shared_ptr<MediaSink> media_sink) {
-    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    std::unique_lock<std::shared_mutex> lck(sinks_mtx_);
     for (auto it = sinks_.begin(); it != sinks_.end(); it++) {
         if (*it == media_sink) {
             sinks_count_--;
@@ -156,9 +156,8 @@ bool MediaSource::remove_bridge(const std::string & id) {
 }
 
 bool MediaSource::has_no_sinks_for_time(uint32_t milli_secs) {
-    std::lock_guard<std::recursive_mutex> lck1(sinks_mtx_);
     std::shared_lock<std::shared_mutex> lck2(bridges_mtx_);
-    if (sinks_.size() > 0 || bridges_.size() > 0) {
+    if (sinks_count_ > 0 || bridges_.size() > 0) {
         return false;
     }
 
@@ -242,8 +241,13 @@ void MediaSource::close() {
         }
         CORE_DEBUG("close source:{}/{}/{}, type:{}", domain_name_, app_name_, stream_name_, get_media_type());
         {// 关闭所有的播放
-            std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+            std::unique_lock<std::shared_mutex> lck(sinks_mtx_);
             for (auto sink : sinks_) {
+                spdlog::debug("Closing sink ptr: {}, use_count: {}, worker: {}",
+                                (void*)sink.get(),
+                                sink.use_count(),
+                                sink->get_worker() ? "ok" : "nullptr"
+                            );
                 boost::asio::co_spawn(sink->get_worker()->get_io_context(), [this, self, sink]()->boost::asio::awaitable<void> {
                     sink->close();
                     co_return;

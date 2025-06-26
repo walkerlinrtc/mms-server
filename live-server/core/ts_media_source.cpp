@@ -57,7 +57,7 @@ bool TsMediaSource::init() {
 }
 
 bool TsMediaSource::on_ts_segment(std::shared_ptr<TsSegment> ts_seg) {
-    std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+    std::shared_lock<std::shared_mutex> lck(sinks_mtx_);
     for (auto sink : sinks_) {
         auto s = std::static_pointer_cast<TsMediaSink>(sink);
         s->recv_ts_segment(ts_seg);
@@ -66,9 +66,8 @@ bool TsMediaSource::on_ts_segment(std::shared_ptr<TsSegment> ts_seg) {
 }
 
 bool TsMediaSource::has_no_sinks_for_time(uint32_t milli_secs) {
-    std::lock_guard<std::recursive_mutex> lck1(sinks_mtx_);
     std::shared_lock<std::shared_mutex> lck2(bridges_mtx_);
-    if (sinks_.size() > 0 || bridges_.size() > 0) {
+    if (sinks_count_ > 0 || bridges_.size() > 0) {
         return false;
     }
 
@@ -94,7 +93,7 @@ bool TsMediaSource::on_pes_packet(std::shared_ptr<PESPacket> pes_packet) {
     }
     
     if (latest_frame_index_ <= 300 || latest_frame_index_%20 == 0) {
-        std::lock_guard<std::recursive_mutex> lck(sinks_mtx_);
+        std::shared_lock<std::shared_mutex> lck(sinks_mtx_);
         for (auto sink : sinks_) {
             auto lazy_sink = std::static_pointer_cast<LazyMediaSink>(sink);
             lazy_sink->wakeup();

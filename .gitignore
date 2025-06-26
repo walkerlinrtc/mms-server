@@ -3,6 +3,7 @@ build/
 .xmake/
 compile_commands.json
 bin/mms-live-server
+bin/db/
 .vscode/
 lib/
 console/
