@@ -99,14 +99,17 @@ void RtmpServerSession::start_statistic_timer() {
 void RtmpServerSession::update_active_timestamp() { last_active_time_ = Utils::get_current_ms(); }
 
 void RtmpServerSession::start_send_coroutine() {
-    // 启动发送协程
     auto self(shared_from_this());
     wg_.add(1);
+    // 在worker线程中启动发送协程
     boost::asio::co_spawn(
         conn_->get_worker()->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
             while (1) {
+                // 挂起，等待接收RTMP消息
+                // rtmp_msgs: 通道中接收到的消息，类型为T
+                // ch: 通道自身的引用
                 auto [rtmp_msgs, ch] = co_await rtmp_msgs_channel_.async_receive(
                     boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
@@ -135,8 +138,11 @@ void RtmpServerSession::start_send_coroutine() {
 }
 
 void RtmpServerSession::start_recv_coroutine() {
+    // 确保RtmpServerSession生命周期比异步操作长
     auto self(shared_from_this());
+    // 增加等待组计数器
     wg_.add(1);
+    // 在worker线程中启动接收协程
     boost::asio::co_spawn(
         conn_->get_worker()->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
@@ -157,6 +163,7 @@ void RtmpServerSession::start_recv_coroutine() {
                 std::bind(&RtmpServerSession::on_recv_rtmp_message, this, std::placeholders::_1));
             co_return;
         },
+        // 协程异常或结束时调用
         [this, self](std::exception_ptr exp) {
             (void)exp;
             stop();
