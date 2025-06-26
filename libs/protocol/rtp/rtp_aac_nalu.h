@@ -1,6 +1,9 @@
 #pragma once
 #include <map>
 #include <memory>
+
+#include "rtp_packet.h"
+
 namespace mms {
 class RtpAACNALU {
 public:

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 namespace mms {
 struct Timing {
 public:
