@@ -21,8 +21,8 @@ add_requires("faac 1.30")
 add_requires("faad2 2.10.0")
 add_requires("ffmpeg 7.1")
 add_requires("srtp 2.7")
-add_requires("hiredis 1.3.0")
-add_requires("redis-plus-plus 1.3.14")
+add_requires("leveldb 1.23")
+add_requires("jemalloc 5.3.0")
 
 -- 添加头文件包含路径
 add_includedirs("libs")

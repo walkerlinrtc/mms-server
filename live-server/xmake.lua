@@ -27,7 +27,7 @@ target("mms-live-server", function ()
         "faad2",
         "ffmpeg",
         "srtp",
-        "hiredis",
-        "redis-plus-plus"
+        "jemalloc",
+        "leveldb"
     )
 end)
