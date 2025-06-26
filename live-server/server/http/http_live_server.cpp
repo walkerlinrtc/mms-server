@@ -5,7 +5,7 @@
 #include <string>
 
 #include "http_live_server.hpp"
-#include "http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "http_flv_server_session.hpp"
 #include "http_ts_server_session.hpp"
 #include "http_m3u8_server_session.hpp"

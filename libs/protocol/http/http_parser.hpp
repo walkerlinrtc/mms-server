@@ -25,11 +25,11 @@ enum HTTP_STATE {
 class HttpParser {
 public:
     boost::asio::awaitable<int32_t> read(const std::string_view & buf);
-    void on_http_request(const std::function<boost::asio::awaitable<void>(std::shared_ptr<HttpRequest>)> & cb);
+    void on_http_request(const std::function<void(std::shared_ptr<HttpRequest>)> & cb);
     virtual ~HttpParser();
 private:
     std::shared_ptr<HttpRequest> http_req_;
-    std::function<boost::asio::awaitable<void>(std::shared_ptr<HttpRequest>)> req_cb_;
+    std::function<void(std::shared_ptr<HttpRequest>)> req_cb_;
     HTTP_STATE state_ = HTTP_STATE_WAIT_REQUEST_LINE;
 };
 

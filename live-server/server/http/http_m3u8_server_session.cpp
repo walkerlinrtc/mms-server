@@ -48,7 +48,6 @@ void HttpM3u8ServerSession::start() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                stop();
                 co_return;
             }
 
@@ -60,7 +59,6 @@ void HttpM3u8ServerSession::start() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(403, "Forbidden");
-                stop();
                 co_return;
             }
             auto source_name = publish_app->get_domain_name() + "/" + app_name_ + "/" +
@@ -83,7 +81,6 @@ void HttpM3u8ServerSession::start() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                stop();
                 co_return;
             } else {
                 if (source->get_media_type() != "hls") {
@@ -94,7 +91,6 @@ void HttpM3u8ServerSession::start() {
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        stop();
                         co_return;
                     }
 
@@ -106,7 +102,6 @@ void HttpM3u8ServerSession::start() {
                         http_response_->add_header("Content-Length", "0");
                         http_response_->add_header("Access-Control-Allow-Origin", "*");
                         co_await http_response_->write_header(415, "Unsupported Media Type");
-                        stop();
                         co_return;
                     }
                     hls_source = std::static_pointer_cast<HlsLiveMediaSource>(hls_bridge->get_media_source());
@@ -116,12 +111,11 @@ void HttpM3u8ServerSession::start() {
                 }
 
                 int try_count = 0;
-                while (try_count <= 400) {
+                while (try_count <= 2000) {// 起播3个切片，有的切片很大，保险点最好等个20秒，todo:加上可配置选项
                     hls_source->update_last_access_time();
                     auto status = hls_source->get_status();
                     bool ret = co_await process_source_status(status);
                     if (!ret) {
-                        stop();
                         co_return;
                     }
 
@@ -141,9 +135,9 @@ void HttpM3u8ServerSession::start() {
                     http_response_->add_header("Content-Length", std::to_string(m3u8.size()));
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     if (!(co_await http_response_->write_header(200, "OK"))) {
-                        stop();
                         co_return;
                     }
+
                     co_await http_response_->write_data((uint8_t*)m3u8.data(), m3u8.size());
                     co_return;
                 }
@@ -151,12 +145,14 @@ void HttpM3u8ServerSession::start() {
                 http_response_->add_header("Connection", "close");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                stop();
             }
 
             co_return;
         },
-        boost::asio::detached);
+        [this, self](std::exception_ptr exp) {
+            (void)exp;
+            stop();
+        });
 }
 
 boost::asio::awaitable<bool> HttpM3u8ServerSession::process_source_status(SourceStatus status) {
@@ -209,6 +205,7 @@ void HttpM3u8ServerSession::stop() {
     if (closed_.test_and_set()) {
         return;
     }
-    http_response_->close();
+
+    http_response_->close(true);
     return;
 }

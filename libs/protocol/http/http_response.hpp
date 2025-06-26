@@ -13,8 +13,13 @@
 namespace mms {
 class ThreadWorker;
 class SocketInterface;
+class HttpServerSession;
+
 class HttpResponse {
 public:
+    // 服务器模式
+    HttpResponse(std::shared_ptr<SocketInterface> conn, std::weak_ptr<HttpServerSession> session, size_t buffer_size = 8192);
+    // 客户端模式
     HttpResponse(std::shared_ptr<SocketInterface> conn, size_t buffer_size = 8192);
     virtual ~HttpResponse();
     std::shared_ptr<SocketInterface> get_conn();
@@ -38,7 +43,7 @@ public:
 private:
     int32_t extract_chunks(const std::string_view & buf, bool & last_chunk);
 public:
-    void close();
+    void close(bool keep_alive = true);
     ThreadWorker *get_worker();
     const std::string & get_header(const std::string & key);
 private:
@@ -55,5 +60,6 @@ private:
     std::unique_ptr<char[]> recv_chunk_buf_;
     int32_t recv_chunk_buf_size_ = 0;
     int32_t buffer_size_ = 8192;
+    std::weak_ptr<HttpServerSession> session_;
 };
 };

@@ -22,10 +22,8 @@
 #include "protocol/http/http_define.h"
 #include "protocol/http/http_request.hpp"
 #include "server/session.hpp"
-#include "core/rtmp_media_sink.hpp"
 #include "protocol/http/http_response.hpp"
-#include "websocket_server_session.hpp"
-#include "log/log.h"
+#include "./websocket/websocket_server_session.hpp"
 #include "base/wait_group.h"
 #include "base/obj_tracker.hpp"
 
@@ -49,9 +47,9 @@ public:
     void start() override;
     void stop() override;
 
-    boost::asio::awaitable<void> on_http_request(std::shared_ptr<HttpRequest> req);
-    boost::asio::awaitable<void> process_one_req(std::shared_ptr<HttpRequest> req);
-    boost::asio::awaitable<void> close_or_do_next_req();
+    void on_http_request(std::shared_ptr<HttpRequest> req);
+    void process_one_req(std::shared_ptr<HttpRequest> req);
+    void close_or_do_next_req();
 protected:
     boost::asio::awaitable<void> cycle_recv();
     boost::asio::awaitable<std::pair<bool,int32_t>> parse_recv_buf(const char *buf, int32_t len);

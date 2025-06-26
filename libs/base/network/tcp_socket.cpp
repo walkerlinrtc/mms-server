@@ -35,7 +35,7 @@ TcpSocket::TcpSocket(SocketInterfaceHandler *handler, ThreadWorker *worker)
 
 void TcpSocket::set_socket_inactive_timeout_ms(uint32_t ms) { socket_inactive_timeout_ms_ = ms; }
 
-TcpSocket::~TcpSocket() { spdlog::debug("destroy TcpSocket"); }
+TcpSocket::~TcpSocket() { spdlog::debug("destroy TcpSocket:{}", get_id()); }
 
 void TcpSocket::open() {
     auto self(shared_from_this());

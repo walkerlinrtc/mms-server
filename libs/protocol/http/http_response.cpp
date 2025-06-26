@@ -1,10 +1,19 @@
 #include <sstream>
 #include "http_response.hpp"
 #include "base/network/socket_interface.hpp"
+#include "http_server_session.hpp"
 #include "spdlog/spdlog.h"
 
 using namespace mms;
-HttpResponse::HttpResponse(std::shared_ptr<SocketInterface> conn, size_t buffer_size) : conn_(conn) {
+HttpResponse::HttpResponse(std::shared_ptr<SocketInterface> conn, 
+                           std::weak_ptr<HttpServerSession> session, 
+                           size_t buffer_size) : conn_(conn), session_(session) {
+    recv_buf_ = std::make_unique<char[]>(buffer_size);
+    buffer_size_ = buffer_size;
+}
+
+HttpResponse::HttpResponse(std::shared_ptr<SocketInterface> conn, 
+                           size_t buffer_size) : conn_(conn) {
     recv_buf_ = std::make_unique<char[]>(buffer_size);
     buffer_size_ = buffer_size;
 }
@@ -386,8 +395,16 @@ int32_t HttpResponse::extract_chunks(const std::string_view & buf, bool & last_c
     return total_consumed;
 }
 
-void HttpResponse::close() {
-    conn_->close();
+void HttpResponse::close(bool keep_alive) {
+    if (!keep_alive) {
+        conn_->close();
+    } else {
+        auto session = session_.lock();
+        if (session) {
+            session->close_or_do_next_req();
+        }
+    }
+    
     return;
 }
 
