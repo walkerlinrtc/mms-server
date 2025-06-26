@@ -10,6 +10,7 @@
 #pragma once
 #include <memory>
 #include <functional>
+#include <boost/asio/awaitable.hpp>
 
 #include "http_define.h"
 #include "http_request.hpp"
