@@ -19,7 +19,7 @@
 
 #include "base/thread/thread_pool.hpp"
 #include "recorder_manager.h"
-
+#include "recorder_db.h"
 using namespace mms;
 
 TsRecordSeg::TsRecordSeg() {
@@ -86,7 +86,9 @@ bool TsRecorder::init() {
             }
             ts_file.close();
             
-            
+            auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/ts/" + std::to_string(record_start_time_) + "/" + std::to_string(seq_no);
+            RecorderDb::get_instance().safe_put(key, file_name);
+
             TsRecordSeg seg;
             seg.create_at_ = ts_seg->get_create_at();
             seg.seq_no_ = seq_no_++;
@@ -193,4 +195,7 @@ void TsRecorder::gen_m3u8() {
     std::ofstream m3u8_file(file_dir_ + "/" + file_name, std::ios::out);
     m3u8_file << m3u8;
     m3u8_file.close();
+
+    auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/ts/" + std::to_string(record_start_time_) + "/m3u8";
+    RecorderDb::get_instance().safe_put(key, file_name);
 }

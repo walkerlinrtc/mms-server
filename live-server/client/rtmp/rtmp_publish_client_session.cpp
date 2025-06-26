@@ -262,7 +262,7 @@ void RtmpPublishClientSession::set_url(const std::string &url) { url_ = url; }
 
 boost::asio::awaitable<bool> RtmpPublishClientSession::send_acknowledge_msg_if_required() {
     int64_t delta = conn_->get_in_bytes() - chunk_protocol_->get_last_ack_bytes();
-    if (delta >= chunk_protocol_->get_in_window_acknowledge_size() / 2) {  // acknowledge
+    if (delta >= chunk_protocol_->get_in_window_acknowledge_size()) {  // acknowledge
         RtmpAcknwledgeMessage ack_msg(conn_->get_in_bytes());
         if (!co_await send_rtmp_message(ack_msg)) {
             co_return false;

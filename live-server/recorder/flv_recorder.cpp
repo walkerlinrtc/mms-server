@@ -19,6 +19,7 @@
 
 #include "base/thread/thread_pool.hpp"
 #include "recorder_manager.h"
+#include "recorder_db.h"
 
 using namespace mms;
 
@@ -76,7 +77,7 @@ bool FlvRecorder::init() {
     });
 
     record_start_time_ = time(NULL);
-    file_name_ = get_stream_name() + "_" + std::to_string(time(NULL)) + ".flv";
+    file_name_ = get_stream_name() + "_" + std::to_string(record_start_time_) + ".flv";
     file_dir_ = Config::get_instance()->get_record_root_path() + "/" + domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/flv";
     std::filesystem::create_directories(file_dir_);
     flv_file_ = open((file_dir_ + "/" + file_name_).c_str(), O_WRONLY | O_CREAT, 0644);
@@ -172,7 +173,8 @@ void FlvRecorder::close() {
         flv_media_sink_->on_close({});
         flv_media_sink_->on_flv_tag({});
         flv_media_sink_->close();
-        
+        auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/flv/" + std::to_string(record_start_time_);
+        RecorderDb::get_instance().safe_put(key, file_name_);
         auto s = source_.lock();
         if (s) {
             s->remove_media_sink(flv_media_sink_);

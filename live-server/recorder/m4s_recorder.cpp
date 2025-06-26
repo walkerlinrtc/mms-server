@@ -17,6 +17,7 @@
 #include "log/log.h"
 #include "protocol/mp4/m4s_segment.h"
 #include "recorder_manager.h"
+#include "recorder_db.h"
 
 using namespace mms;
 
@@ -98,6 +99,8 @@ bool M4sRecorder::on_audio_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     auto mp4_data = m4s_seg->get_used_buf();
     m4s_file.write(mp4_data.data(), mp4_data.size());
     m4s_file.close();
+    auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/dash/" + std::to_string(record_start_time_) + "/m4s";
+    RecorderDb::get_instance().safe_put(key, m4s_seg->get_filename());
     // update_mpd();
     return true;
 }
@@ -114,6 +117,8 @@ bool M4sRecorder::on_video_init_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     m4s_file.write(mp4_data.data(), mp4_data.size());
     m4s_file.close();
     write_bytes_ += mp4_data.size();
+    auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/dash/" + std::to_string(record_start_time_) + "/m4s";
+    RecorderDb::get_instance().safe_put(key, m4s_seg->get_filename());
     // update_mpd();
     return true;
 }
@@ -141,6 +146,8 @@ bool M4sRecorder::on_audio_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     record_audio_seg_count_++;
     auto now = time(NULL);
     record_duration_ = now - record_start_time_;
+    auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/dash/" + std::to_string(record_start_time_) + "/m4s";
+    RecorderDb::get_instance().safe_put(key, m4s_seg->get_filename());
     return true;
 }
 
@@ -167,6 +174,9 @@ bool M4sRecorder::on_video_segment(std::shared_ptr<Mp4Segment> m4s_seg) {
     record_video_seg_count_++;
     auto now = time(NULL);
     record_duration_ = now - record_start_time_;
+
+    auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/dash/" + std::to_string(record_start_time_) + "/m4s";
+    RecorderDb::get_instance().safe_put(key, m4s_seg->get_filename());
     return true;
 }
 
@@ -350,4 +360,7 @@ void M4sRecorder::gen_mpd() {
     } else {
         spdlog::error("Failed to write MPD to: {}", mpd_path);
     }
+
+    auto key = domain_name_ + "/" + app_name_ + "/" + stream_name_ + "/dash/" + std::to_string(record_start_time_) + "/mpd";
+    RecorderDb::get_instance().safe_put(key, "manifest.mpd");
 }

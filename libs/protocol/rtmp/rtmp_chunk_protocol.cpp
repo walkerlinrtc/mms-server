@@ -20,7 +20,7 @@ RtmpChunkProtocol::RtmpChunkProtocol(std::shared_ptr<SocketInterface> conn):conn
         recv_chunk_cache_[cid] = std::make_shared<RtmpChunk>();
     }
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 200; i++) {
         chunk_headers_.push_back(std::make_unique<char[]>(40));
     }
 
@@ -79,6 +79,10 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
         // 将一个 RTMP 消息按照 chunk 尺寸拆分成一个或多个 chunk
         while (left_size > 0) {
             // 2.1 根据与上一次同 stream 的 chunk 对比，判断 fmt 类型
+            if (curr_chunk_header >= 200) {// 检查chunk header是否越界，一般上不可能越界，除非异常数据
+                co_return false;
+            }
+
             size_t buf_pos = 0;
             auto prev_chunk = send_chunk_streams_[rtmp_msg->chunk_stream_id_];
             if (prev_chunk) {
@@ -122,7 +126,6 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
             // Chunk stream IDs 2-63 can be encoded in the 1-byte version of this field.
             if (rtmp_msg->chunk_stream_id_ >= 2 && rtmp_msg->chunk_stream_id_ <= 63) {
                 uint8_t d = ((fmt&0x03)<<6) | (rtmp_msg->chunk_stream_id_&0x3f);
-                // memcpy(send_buffer_ + buf_pos, &d, sizeof(d));
                 memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, &d, sizeof(d));
                 buf_pos++;
             } else if (rtmp_msg->chunk_stream_id_ >= 64 && rtmp_msg->chunk_stream_id_ <= 319) {
@@ -130,10 +133,6 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                 uint8_t *p = (uint8_t*)chunk_headers_[curr_chunk_header].get() + buf_pos;
                 p[0] = ((fmt&0x03)<<6) | 0x00;
                 p[1] = (rtmp_msg->chunk_stream_id_ - 64) & 0xff;
-                // buf[0] = ((fmt&0x03)<<6) | 0x00;
-                // buf[1] = (rtmp_msg->chunk_stream_id_ - 64) & 0xff;
-                // memcpy(send_buffer_ + buf_pos, buf, sizeof(buf));
-                // memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, buf, sizeof(buf));
                 buf_pos += 2;
             } else if (rtmp_msg->chunk_stream_id_ >= 64 && rtmp_msg->chunk_stream_id_ <= 65599) {
                 // uint8_t buf[3];
@@ -142,8 +141,6 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                 auto csid = rtmp_msg->chunk_stream_id_ - 64;
                 p[1] = (csid%256) & 0xff;
                 p[2] = (csid/256) & 0xff;
-                // memcpy(send_buffer_ + buf_pos, buf, sizeof(buf));
-                // memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, buf, sizeof(buf));
                 buf_pos += 3;
             }
             // 发送 message header
@@ -156,31 +153,25 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                 
                 if (!has_extend_timestamp) {
                     uint32_t t = htonl(rtmp_msg->timestamp_&0xffffff);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t+1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, (uint8_t*)&t+1, 3);
                 } else {
                     uint32_t t = 0xffffffff;
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t+1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, (uint8_t*)&t+1, 3);
                 }
                 
                 buf_pos += 3;
 
                 int32_t t = htonl(rtmp_msg->get_using_data().size());
-                // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t+1, 3);
                 memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, (uint8_t*)&t+1, 3);
                 buf_pos += 3;
-                // memcpy(send_buffer_ + buf_pos, &rtmp_msg->message_type_id_, 1);
                 memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, &rtmp_msg->message_type_id_, 1);
                 buf_pos += 1;
 
                 t = htonl(rtmp_msg->message_stream_id_);
-                // memcpy(send_buffer_ + buf_pos, &t, 4);
                 memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, &t, 4);
                 buf_pos += 4;
                 if (has_extend_timestamp) {
                     uint32_t t = htonl(rtmp_msg->timestamp_);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t, 4);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos,(uint8_t*)&t, 4);
                     buf_pos += 4;
                 }
@@ -192,7 +183,6 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
 
                 if (!has_extend_timestamp) {
                     uint32_t t = htonl(timestamp_delta);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, (uint8_t*)&t + 1, 3);
                 } else {
                     uint32_t t = 0xffffffff;
@@ -202,16 +192,13 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                 buf_pos += 3;
 
                 int32_t t = htonl(rtmp_msg->get_using_data().size());
-                // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                 memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, (uint8_t*)&t + 1, 3);
                 buf_pos += 3;
 
-                // memcpy(send_buffer_ + buf_pos, &rtmp_msg->message_type_id_, 1);
                 memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, &rtmp_msg->message_type_id_, 1);
                 buf_pos += 1;
                 if (has_extend_timestamp) {
                     uint32_t t = htonl(timestamp_delta);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos, (uint8_t*)&t, 4);
                     buf_pos += 4;
                 }
@@ -223,18 +210,15 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
 
                 if (!has_extend_timestamp) {
                     uint32_t t = htonl(timestamp_delta);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos,(uint8_t*)&t + 1, 3);
                 } else {
                     uint32_t t = 0xffffffff;
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos,(uint8_t*)&t + 1, 3);
                 }
                 buf_pos += 3;
 
                 if (has_extend_timestamp) {
                     uint32_t t = htonl(timestamp_delta);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos,(uint8_t*)&t, 4);
                     buf_pos += 4;
                 }
@@ -246,7 +230,6 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
 
                 if (has_extend_timestamp) {
                     uint32_t t = htonl(timestamp_delta);
-                    // memcpy(send_buffer_ + buf_pos, (uint8_t*)&t + 1, 3);
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos,(uint8_t*)&t, 4);
                     buf_pos += 4;
                 }
