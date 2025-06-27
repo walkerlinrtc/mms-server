@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 namespace mms {
 // 5.8.  Bandwidth ("b=")
 //       b=<bwtype>:<bandwidth>

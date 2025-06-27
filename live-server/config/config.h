@@ -99,7 +99,7 @@ private:
     // std::string webrtc_ip_ = "";
     // std::string webrtc_internal_bind_ip_ = "";
     std::string cert_root_ = "certs";
-    uint32_t socket_inactive_timeout_ms_ = 10000;// 默认10秒超时
+    uint32_t socket_inactive_timeout_ms_ = 60000;// 默认60秒超时
 
     std::string record_root_path_;
     std::shared_mutex mutex_;

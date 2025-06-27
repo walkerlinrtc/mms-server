@@ -15,7 +15,7 @@
 
 #include "base/utils/utils.h"
 #include "http_server_base.hpp"
-#include "http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "ws_conn.hpp"
 #include "config/config.h"
 

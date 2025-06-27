@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 // 5.2.  Origin ("o=")
 namespace mms {
 struct Origin {

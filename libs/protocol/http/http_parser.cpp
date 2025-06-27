@@ -29,11 +29,11 @@ boost::asio::awaitable<int32_t> HttpParser::read(const std::string_view & buf) {
                     // content-len 得到长度
                     if (http_req_->get_method() == GET) {
                         state_ = HTTP_STATE_WAIT_REQUEST_LINE;
-                        co_await req_cb_(http_req_);
+                        req_cb_(http_req_);
                         co_return pos + 2;
                     } else {
                         if (http_req_->get_header("Content-Length") == "") {
-                            co_await req_cb_(http_req_);
+                            req_cb_(http_req_);
                             co_return pos + 2;
                         } 
 
@@ -60,7 +60,7 @@ boost::asio::awaitable<int32_t> HttpParser::read(const std::string_view & buf) {
                     state_ = HTTP_STATE_REQUEST_ERROR;
                     co_return -5;
                 }
-                co_await req_cb_(std::move(http_req_));
+                req_cb_(std::move(http_req_));
                 state_ = HTTP_STATE_WAIT_REQUEST_LINE;
                 co_return consumed;
             } catch(std::exception & e) {
@@ -75,7 +75,7 @@ boost::asio::awaitable<int32_t> HttpParser::read(const std::string_view & buf) {
     co_return 0;
 }
 
-void HttpParser::on_http_request(const std::function<boost::asio::awaitable<void>(std::shared_ptr<HttpRequest>)> & cb) {
+void HttpParser::on_http_request(const std::function<void(std::shared_ptr<HttpRequest>)> & cb) {
     req_cb_ = cb;
 }
 
