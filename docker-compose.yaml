@@ -1,11 +1,9 @@
-version: "3.8"
-
 services:
-  mms:
+  <container name>:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mms
+    container_name: <container name>
     ports:
       - "80:80"
       - "1935:1935"
@@ -16,6 +14,6 @@ services:
       - "8080:8080"
       - "8878:8878"
     volumes:
-      - ~/workspace/0__repo/mms-server:/mnt/workspace/mms-server
+      - <local mms-server path>:/mnt/workspace/mms-server
     stdin_open: true      # 等价于 -it，支持交互
     tty: true
