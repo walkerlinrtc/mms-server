@@ -159,8 +159,7 @@ void RtmpServerSession::start_recv_coroutine() {
                 co_return;
             }
             // 循环接收chunk层收到的rtmp消息
-            co_await chunk_protocol_.cycle_recv_rtmp_message(
-                std::bind(&RtmpServerSession::on_recv_rtmp_message, this, std::placeholders::_1));
+            co_await chunk_protocol_.cycle_recv_rtmp_message(std::bind(&RtmpServerSession::on_recv_rtmp_message, this, std::placeholders::_1));
             co_return;
         },
         // 协程异常或结束时调用
@@ -221,11 +220,6 @@ void RtmpServerSession::stop() {
                 rtmp_media_source_->set_session(nullptr);  // 解除绑定
                 start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
                 co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
-                rtmp_media_source_ = nullptr;
-            }
-
-            if (conn_) {
-                conn_.reset();
             }
 
             CORE_DEBUG("close RtmpServerSession {} done", get_session_name());
@@ -454,6 +448,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
     } else {
         auto old_session = std::static_pointer_cast<RtmpServerSession>(rtmp_media_source->get_session());
         if (old_session) {
+            old_session->stop();
             co_return false; //老的还没关闭
         }
         rtmp_media_source_ = std::static_pointer_cast<RtmpMediaSource>(rtmp_media_source);
@@ -494,10 +489,6 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
     publish_app->on_create_source(get_domain_name(), get_app_name(), get_stream_name(), rtmp_media_source_);
     start_alive_checker();
     co_return true;
-}
-
-void RtmpServerSession::detach_source() { 
-    rtmp_media_source_ = nullptr; 
 }
 
 boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(
