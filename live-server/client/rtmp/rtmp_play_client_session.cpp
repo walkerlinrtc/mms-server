@@ -38,13 +38,8 @@
 #include "service/dns/dns_service.hpp"
 
 using namespace mms;
-RtmpPlayClientSession::RtmpPlayClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker,
-                                             const std::string &domain_name, const std::string &app_name,
-                                             const std::string &stream_name)
-    : StreamSession(worker),
-      rtmp_msgs_channel_(get_worker()->get_io_context(), 1024),
-      check_closable_timer_(worker->get_io_context()),
-      wg_(worker) {
+RtmpPlayClientSession::RtmpPlayClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker, const std::string &domain_name, const std::string &app_name, const std::string &stream_name)
+    : StreamSession(worker), rtmp_msgs_channel_(get_worker()->get_io_context(), 1024), check_closable_timer_(worker->get_io_context()), wg_(worker) {
     app_ = app;
     set_session_type("rtmp");
     set_session_info(domain_name, app_name, stream_name);
@@ -58,8 +53,7 @@ void RtmpPlayClientSession::on_socket_close(std::shared_ptr<SocketInterface> soc
 
 void RtmpPlayClientSession::start() {
     auto self(std::static_pointer_cast<RtmpPlayClientSession>(shared_from_this()));
-    auto media_source =
-        SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+    auto media_source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
     if (media_source) {
         return;
     }
@@ -70,8 +64,7 @@ void RtmpPlayClientSession::start() {
     rtmp_media_source_->set_session(self);
     rtmp_media_source_->set_source_info(get_domain_name(), get_app_name(), get_stream_name());
 
-    if (!SourceManager::get_instance().add_source(get_domain_name(), get_app_name(), get_stream_name(),
-                                                  rtmp_media_source_)) {
+    if (!SourceManager::get_instance().add_source(get_domain_name(), get_app_name(), get_stream_name(), rtmp_media_source_)) {
         return;
     }
 
@@ -81,7 +74,7 @@ void RtmpPlayClientSession::start() {
     uint16_t port;
     std::string path;
     std::unordered_map<std::string, std::string> params;
-    if (!Utils::parse_url(url_, protocol, domain, port, path, params)) {  // todo:add log
+    if (!Utils::parse_url(url_, protocol, domain, port, path, params)) { // todo:add log
         CORE_ERROR("parse url:{} failed", url_);
         return;
     }
@@ -105,10 +98,8 @@ void RtmpPlayClientSession::start() {
             boost::system::error_code ec;
             auto publish_app = std::static_pointer_cast<PublishApp>(app_);
             while (1) {
-                check_closable_timer_.expires_after(
-                    std::chrono::milliseconds(pull_config_->no_players_timeout_ms() / 2));  // 10s检查一次
-                co_await check_closable_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                check_closable_timer_.expires_after(std::chrono::milliseconds(pull_config_->no_players_timeout_ms() / 2)); // 10s检查一次
+                co_await check_closable_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (boost::asio::error::operation_aborted == ec) {
                     break;
                 }
@@ -117,8 +108,7 @@ void RtmpPlayClientSession::start() {
                     break;
                 }
 
-                if (rtmp_media_source_->has_no_sinks_for_time(
-                        pull_config_->no_players_timeout_ms())) {  // 已经30秒没人播放了
+                if (rtmp_media_source_->has_no_sinks_for_time(pull_config_->no_players_timeout_ms())) { // 已经30秒没人播放了
                     CORE_DEBUG("close RtmpPlayClientSession because no players for 10s");
                     break;
                 }
@@ -154,7 +144,7 @@ void RtmpPlayClientSession::start() {
                 CORE_ERROR("rtmp:connect to {}:{} failed", server_ip, port);
                 co_return;
             }
-            
+
             // 启动握手
             if (!co_await handshake_->do_client_handshake()) {
                 CORE_ERROR("rtmp:do_client_handshake failed");
@@ -168,8 +158,7 @@ void RtmpPlayClientSession::start() {
                 [this, self]() -> boost::asio::awaitable<void> {
                     boost::system::error_code ec;
                     while (1) {
-                        auto [rtmp_msgs, ch] = co_await rtmp_msgs_channel_.async_receive(
-                            boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                        auto [rtmp_msgs, ch] = co_await rtmp_msgs_channel_.async_receive(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                         if (ec) {
                             break;
                         }
@@ -221,8 +210,7 @@ void RtmpPlayClientSession::start() {
             }
 
             // 循环接收chunk层收到的rtmp消息
-            co_await chunk_protocol_->cycle_recv_rtmp_message(
-                std::bind(&RtmpPlayClientSession::on_recv_rtmp_message, this, std::placeholders::_1));
+            co_await chunk_protocol_->cycle_recv_rtmp_message(std::bind(&RtmpPlayClientSession::on_recv_rtmp_message, this, std::placeholders::_1));
             co_return;
         },
         [this, self](std::exception_ptr exp) {
@@ -247,7 +235,7 @@ void RtmpPlayClientSession::stop() {
         [this, self]() -> boost::asio::awaitable<void> {
             CORE_DEBUG("closing RtmpPlayClientSession...");
             check_closable_timer_.cancel();
-            if (rtmp_msgs_channel_.is_open()) {  // 结束发送协程
+            if (rtmp_msgs_channel_.is_open()) { // 结束发送协程
                 rtmp_msgs_channel_.close();
             }
 
@@ -257,20 +245,17 @@ void RtmpPlayClientSession::stop() {
 
             co_await wg_.wait();
 
-        if (rtmp_media_source_) {// 如果是推流的session
-            auto publish_app = rtmp_media_source_->get_app();
-            rtmp_media_source_->set_session(nullptr);//解除绑定
-            start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
-            co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
-            rtmp_media_source_ = nullptr;
-        }
+            if (rtmp_media_source_) { // 如果是推流的session
+                auto publish_app = rtmp_media_source_->get_app();
+                rtmp_media_source_->set_session(nullptr); // 解除绑定
+                start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
+                co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+            }
 
-        if (conn_) {
-            conn_.reset();
-        }
-        CORE_DEBUG("RtmpPlayClientSession closed");
-        co_return;
-    }, boost::asio::detached);
+            CORE_DEBUG("RtmpPlayClientSession closed");
+            co_return;
+        },
+        boost::asio::detached);
 }
 
 void RtmpPlayClientSession::set_url(const std::string &url) { url_ = url; }
@@ -279,7 +264,7 @@ std::shared_ptr<RtmpMediaSource> RtmpPlayClientSession::get_rtmp_media_source() 
 
 boost::asio::awaitable<bool> RtmpPlayClientSession::send_acknowledge_msg_if_required() {
     int64_t delta = conn_->get_in_bytes() - chunk_protocol_->get_last_ack_bytes();
-    if (delta >= chunk_protocol_->get_in_window_acknowledge_size()) {  // acknowledge
+    if (delta >= chunk_protocol_->get_in_window_acknowledge_size()) { // acknowledge
         RtmpAcknwledgeMessage ack_msg(conn_->get_in_bytes());
         if (!co_await send_rtmp_message(ack_msg)) {
             co_return false;
@@ -290,8 +275,7 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::send_acknowledge_msg_if_requ
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpPlayClientSession::on_recv_rtmp_message(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPlayClientSession::on_recv_rtmp_message(std::shared_ptr<RtmpMessage> rtmp_msg) {
     if (!co_await send_acknowledge_msg_if_required()) {
         co_return false;
     }
@@ -332,15 +316,12 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::on_recv_rtmp_message(
     co_return true;
 }
 // 异步方式发送rtmp消息
-boost::asio::awaitable<bool> RtmpPlayClientSession::send_rtmp_message(
-    const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs) {
-    co_await rtmp_msgs_channel_.async_send(boost::system::error_code{}, rtmp_msgs, nullptr,
-                                           boost::asio::use_awaitable);
+boost::asio::awaitable<bool> RtmpPlayClientSession::send_rtmp_message(const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs) {
+    co_await rtmp_msgs_channel_.async_send(boost::system::error_code{}, rtmp_msgs, nullptr, boost::asio::use_awaitable);
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
     Amf0String command_name;
     auto payload = rtmp_msg->get_using_data();
     int32_t consumed = command_name.decode((uint8_t *)payload.data(), payload.size());
@@ -358,8 +339,7 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_command(
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
     RtmpOnStatusMessage status_command;
     auto consumed = status_command.decode(rtmp_msg);
     if (consumed < 0) {
@@ -388,26 +368,21 @@ boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_status_command(
     } else if (code.value() == RTMP_RESULT_CONNECT_REJECTED) {
         rtmp_media_source_->set_status(E_SOURCE_STATUS_FORBIDDEN);
         co_return false;
-    } 
+    }
 
     co_return false;
 }
 
-boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_result_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPlayClientSession::handle_amf0_result_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
     (void)rtmp_msg;
     co_return true;
 }
 
-bool RtmpPlayClientSession::handle_video_msg(std::shared_ptr<RtmpMessage> msg) {
-    return rtmp_media_source_->on_video_packet(msg);
-}
+bool RtmpPlayClientSession::handle_video_msg(std::shared_ptr<RtmpMessage> msg) { return rtmp_media_source_->on_video_packet(msg); }
 
-bool RtmpPlayClientSession::handle_audio_msg(std::shared_ptr<RtmpMessage> msg) {
-    return rtmp_media_source_->on_audio_packet(msg);
-}
+bool RtmpPlayClientSession::handle_audio_msg(std::shared_ptr<RtmpMessage> msg) { return rtmp_media_source_->on_audio_packet(msg); }
 
-bool RtmpPlayClientSession::handle_amf0_data(std::shared_ptr<RtmpMessage> rtmp_msg) {  // usually is metadata
+bool RtmpPlayClientSession::handle_amf0_data(std::shared_ptr<RtmpMessage> rtmp_msg) { // usually is metadata
     Amf0String command_name;
     auto payload = rtmp_msg->get_using_data();
     int32_t consumed = command_name.decode((uint8_t *)payload.data(), payload.size());

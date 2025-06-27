@@ -37,15 +37,9 @@
 #include "protocol/rtmp/rtmp_message/data_message/rtmp_metadata_message.hpp"
 #include "service/dns/dns_service.hpp"
 
-
 using namespace mms;
-RtmpPublishClientSession::RtmpPublishClientSession(std::weak_ptr<RtmpMediaSource> source,
-                                                   std::shared_ptr<PublishApp> app, ThreadWorker *worker)
-    : StreamSession(worker),
-      rtmp_msgs_channel_(get_worker()->get_io_context(), 1024),
-      check_closable_timer_(worker->get_io_context()),
-      alive_timeout_timer_(worker->get_io_context()),
-      wg_(worker) {
+RtmpPublishClientSession::RtmpPublishClientSession(std::weak_ptr<RtmpMediaSource> source, std::shared_ptr<PublishApp> app, ThreadWorker *worker)
+    : StreamSession(worker), rtmp_msgs_channel_(get_worker()->get_io_context(), 1024), check_closable_timer_(worker->get_io_context()), alive_timeout_timer_(worker->get_io_context()), wg_(worker) {
     rtmp_source_ = source;
     app_ = app;
     rtmp_media_sink_ = std::make_shared<RtmpMediaSink>(worker_);
@@ -68,7 +62,7 @@ void RtmpPublishClientSession::start() {
     uint16_t port;
     std::string path;
     std::unordered_map<std::string, std::string> params;
-    if (!Utils::parse_url(url_, protocol, domain, port, path, params)) {  // todo:add log
+    if (!Utils::parse_url(url_, protocol, domain, port, path, params)) { // todo:add log
         spdlog::error("parse url:{} failed", url_);
         return;
     }
@@ -121,8 +115,7 @@ void RtmpPublishClientSession::start() {
                 [this, self]() -> boost::asio::awaitable<void> {
                     boost::system::error_code ec;
                     while (1) {
-                        auto [rtmp_msgs, ch] = co_await rtmp_msgs_channel_.async_receive(
-                            boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                        auto [rtmp_msgs, ch] = co_await rtmp_msgs_channel_.async_receive(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                         if (ec) {
                             break;
                         }
@@ -153,8 +146,7 @@ void RtmpPublishClientSession::start() {
             boost::asio::co_spawn(
                 conn_->get_worker()->get_io_context(),
                 [this, self]() -> boost::asio::awaitable<void> {
-                    int32_t ret = co_await chunk_protocol_->cycle_recv_rtmp_message(std::bind(
-                        &RtmpPublishClientSession::on_recv_rtmp_message, this, std::placeholders::_1));
+                    int32_t ret = co_await chunk_protocol_->cycle_recv_rtmp_message(std::bind(&RtmpPublishClientSession::on_recv_rtmp_message, this, std::placeholders::_1));
                     spdlog::debug("RtmpPublishClientSession cycle_recv_rtmp_message return, ret:{}", ret);
                 },
                 [this, self](std::exception_ptr exp) {
@@ -199,13 +191,10 @@ void RtmpPublishClientSession::start() {
                 co_return;
             }
 
-            rtmp_media_sink_->on_rtmp_message(
-                [this](const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs)
-                    -> boost::asio::awaitable<bool> {
-                    co_await rtmp_msgs_channel_.async_send(boost::system::error_code{}, rtmp_msgs, nullptr,
-                                                           boost::asio::use_awaitable);
-                    co_return true;
-                });
+            rtmp_media_sink_->on_rtmp_message([this](const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs) -> boost::asio::awaitable<bool> {
+                co_await rtmp_msgs_channel_.async_send(boost::system::error_code{}, rtmp_msgs, nullptr, boost::asio::use_awaitable);
+                co_return true;
+            });
 
             co_return;
         },
@@ -229,15 +218,14 @@ void RtmpPublishClientSession::stop() {
                 conn_->close();
             }
 
-            if (rtmp_msgs_channel_.is_open()) {  // 结束发送协程
+            if (rtmp_msgs_channel_.is_open()) { // 结束发送协程
                 rtmp_msgs_channel_.close();
             }
 
             co_await wg_.wait();
 
             if (rtmp_media_sink_) {
-                auto s = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(),
-                                                                  get_stream_name());
+                auto s = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
                 if (s) {
                     s->remove_media_sink(rtmp_media_sink_);
                 }
@@ -249,9 +237,6 @@ void RtmpPublishClientSession::stop() {
                 }
             }
 
-            if (conn_) {
-                conn_.reset();
-            }
             spdlog::debug("close RtmpPublishClientSession done");
             co_return;
         },
@@ -262,7 +247,7 @@ void RtmpPublishClientSession::set_url(const std::string &url) { url_ = url; }
 
 boost::asio::awaitable<bool> RtmpPublishClientSession::send_acknowledge_msg_if_required() {
     int64_t delta = conn_->get_in_bytes() - chunk_protocol_->get_last_ack_bytes();
-    if (delta >= chunk_protocol_->get_in_window_acknowledge_size()) {  // acknowledge
+    if (delta >= chunk_protocol_->get_in_window_acknowledge_size()) { // acknowledge
         RtmpAcknwledgeMessage ack_msg(conn_->get_in_bytes());
         if (!co_await send_rtmp_message(ack_msg)) {
             co_return false;
@@ -282,16 +267,14 @@ void RtmpPublishClientSession::start_alive_checker() {
             boost::system::error_code ec;
             while (1) {
                 alive_timeout_timer_.expires_after(std::chrono::seconds(10));
-                co_await alive_timeout_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                co_await alive_timeout_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (ec) {
                     co_return;
                 }
 
                 int64_t now_ms = Utils::get_current_ms();
-                if (now_ms - last_active_time_ >= 5000) {  // 5秒没数据，超时
-                    spdlog::warn("rtmp session:{} is not alive, last_active_time:{}", get_session_name(),
-                                 last_active_time_);
+                if (now_ms - last_active_time_ >= 5000) { // 5秒没数据，超时
+                    spdlog::warn("rtmp session:{} is not alive, last_active_time:{}", get_session_name(), last_active_time_);
                     co_return;
                 }
             }
@@ -306,8 +289,7 @@ void RtmpPublishClientSession::start_alive_checker() {
 
 void RtmpPublishClientSession::update_active_timestamp() { last_active_time_ = Utils::get_current_ms(); }
 
-boost::asio::awaitable<bool> RtmpPublishClientSession::on_recv_rtmp_message(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPublishClientSession::on_recv_rtmp_message(std::shared_ptr<RtmpMessage> rtmp_msg) {
     update_active_timestamp();
     if (!co_await send_acknowledge_msg_if_required()) {
         co_return false;
@@ -341,15 +323,12 @@ boost::asio::awaitable<bool> RtmpPublishClientSession::on_recv_rtmp_message(
 }
 
 // 异步方式发送rtmp消息
-boost::asio::awaitable<bool> RtmpPublishClientSession::send_rtmp_message(
-    const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs) {
-    co_await rtmp_msgs_channel_.async_send(boost::system::error_code{}, rtmp_msgs, nullptr,
-                                           boost::asio::use_awaitable);
+boost::asio::awaitable<bool> RtmpPublishClientSession::send_rtmp_message(const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs) {
+    co_await rtmp_msgs_channel_.async_send(boost::system::error_code{}, rtmp_msgs, nullptr, boost::asio::use_awaitable);
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
     Amf0String command_name;
     auto payload = rtmp_msg->get_using_data();
     int32_t consumed = command_name.decode((uint8_t *)payload.data(), payload.size());
@@ -368,8 +347,7 @@ boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_command(
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_status_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_status_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
     RtmpOnStatusMessage status_command;
     auto consumed = status_command.decode(rtmp_msg);
     if (consumed < 0) {
@@ -396,8 +374,7 @@ boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_status_comman
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_result_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpPublishClientSession::handle_amf0_result_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
     (void)rtmp_msg;
     co_return true;
 }

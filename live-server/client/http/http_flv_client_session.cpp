@@ -27,48 +27,38 @@
 
 using namespace mms;
 
-HttpFlvClientSession::HttpFlvClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker,
-                                           const std::string &domain_name, const std::string &app_name,
-                                           const std::string &stream_name)
+HttpFlvClientSession::HttpFlvClientSession(std::shared_ptr<PublishApp> app, ThreadWorker *worker, const std::string &domain_name, const std::string &app_name, const std::string &stream_name)
     : StreamSession(worker), flv_tags_(2048), check_closable_timer_(worker->get_io_context()), wg_(worker) {
     set_app(app);
     set_session_type("flv");
     set_session_info(domain_name, app_name, stream_name);
 }
 
-HttpFlvClientSession::~HttpFlvClientSession() {
-    CORE_DEBUG("destroy HttpFlvClientSession:{}", get_session_name());
-}
+HttpFlvClientSession::~HttpFlvClientSession() { CORE_DEBUG("destroy HttpFlvClientSession:{}", get_session_name()); }
 
 void HttpFlvClientSession::set_url(const std::string &url) { url_ = url; }
 
-void HttpFlvClientSession::set_pull_config(std::shared_ptr<OriginPullConfig> pull_config) {
-    pull_config_ = pull_config;
-}
+void HttpFlvClientSession::set_pull_config(std::shared_ptr<OriginPullConfig> pull_config) { pull_config_ = pull_config; }
 
 std::shared_ptr<FlvMediaSource> HttpFlvClientSession::get_flv_media_source() { return flv_media_source_; }
 
 void HttpFlvClientSession::start() {
     auto self(std::static_pointer_cast<HttpFlvClientSession>(shared_from_this()));
     auto publish_app = std::static_pointer_cast<PublishApp>(app_);
-    auto media_source =
-        SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
+    auto media_source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
     if (!media_source) {
-        media_source =
-            std::make_shared<FlvMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
+        media_source = std::make_shared<FlvMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), publish_app);
     }
 
     if (media_source->get_media_type() != "flv") {
-        CORE_ERROR("source:{} is already exist and type is:{}", get_session_name(),
-                   media_source->get_media_type());
+        CORE_ERROR("source:{} is already exist and type is:{}", get_session_name(), media_source->get_media_type());
         return;
     }
 
     flv_media_source_ = std::static_pointer_cast<FlvMediaSource>(media_source);
     flv_media_source_->set_source_info(get_domain_name(), get_app_name(), get_stream_name());
     flv_media_source_->set_session(self);
-    if (!SourceManager::get_instance().add_source(get_domain_name(), get_app_name(), get_stream_name(),
-                                                  flv_media_source_)) {
+    if (!SourceManager::get_instance().add_source(get_domain_name(), get_app_name(), get_stream_name(), flv_media_source_)) {
         CORE_ERROR("source:{} is already exist", get_session_name());
         return;
     }
@@ -79,10 +69,8 @@ void HttpFlvClientSession::start() {
         [this, self]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
             while (1) {
-                check_closable_timer_.expires_after(
-                    std::chrono::milliseconds(pull_config_->no_players_timeout_ms() / 2));  // 10s检查一次
-                co_await check_closable_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                check_closable_timer_.expires_after(std::chrono::milliseconds(pull_config_->no_players_timeout_ms() / 2)); // 10s检查一次
+                co_await check_closable_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (boost::asio::error::operation_aborted == ec) {
                     break;
                 }
@@ -91,10 +79,8 @@ void HttpFlvClientSession::start() {
                     break;
                 }
 
-                if (flv_media_source_->has_no_sinks_for_time(
-                        pull_config_->no_players_timeout_ms())) {  // 已经10秒没人播放了
-                    CORE_DEBUG("close HttpFlvClientSession:{} because no players for {}s", get_session_name(),
-                               pull_config_->no_players_timeout_ms() / 1000);
+                if (flv_media_source_->has_no_sinks_for_time(pull_config_->no_players_timeout_ms())) { // 已经10秒没人播放了
+                    CORE_DEBUG("close HttpFlvClientSession:{} because no players for {}s", get_session_name(), pull_config_->no_players_timeout_ms() / 1000);
                     break;
                 }
             }
@@ -117,7 +103,7 @@ void HttpFlvClientSession::start() {
             std::string path;
             std::unordered_map<std::string, std::string> params;
 
-            if (!Utils::parse_url(url_, protocol, domain, port, path, params)) {  // todo:add log
+            if (!Utils::parse_url(url_, protocol, domain, port, path, params)) { // todo:add log
                 CORE_ERROR("HttpFlvClientSession:{} parse url:{} failed", get_session_name(), url_);
                 co_return;
             }
@@ -132,8 +118,7 @@ void HttpFlvClientSession::start() {
             // 获取域名ip
             auto ip = DnsService::get_instance().get_ip(domain);
             if (!ip) {
-                CORE_ERROR("HttpFlvClientSession:{} could not find ip for:%s", get_session_name(),
-                           domain.c_str());
+                CORE_ERROR("HttpFlvClientSession:{} could not find ip for:%s", get_session_name(), domain.c_str());
                 flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
                 co_return;
             }
@@ -143,7 +128,6 @@ void HttpFlvClientSession::start() {
             } else if (protocol == "https") {
                 http_client_ = std::make_shared<HttpClient>(get_worker(), true);
             } else {
-                stop();
                 co_return;
             }
 
@@ -154,7 +138,7 @@ void HttpFlvClientSession::start() {
             http_req.set_version("1.1");
             http_req.add_header("Content-Length", "0");
             http_req.add_header("Accept", "*/*");
-            http_req.add_header("Connection", "close");  // 表示发送完就结束，不是默认的keep-alive
+            http_req.add_header("Connection", "close"); // 表示发送完就结束，不是默认的keep-alive
             http_req.add_header("Host", domain);
             http_req.add_header("User-Agent", "mms-server");
             http_client_->set_buffer_size(1024 * 1024);
@@ -176,9 +160,8 @@ void HttpFlvClientSession::start() {
                 http_client_->close();
                 http_client_.reset();
                 auto location = resp->get_header("Location");
-                CORE_DEBUG("HttpFlvClientSession:{} http response 302, redirect to:", get_session_name(),
-                           location.c_str());
-                if (!Utils::parse_url(location, protocol, domain, port, path, params)) {  // todo:add log
+                CORE_DEBUG("HttpFlvClientSession:{} http response 302, redirect to:", get_session_name(), location.c_str());
+                if (!Utils::parse_url(location, protocol, domain, port, path, params)) { // todo:add log
                     CORE_ERROR("parse http url failed, url:%s", location.c_str());
                     flv_media_source_->set_status(E_SOURCE_STATUS_CONN_FAIL);
                     co_return;
@@ -202,14 +185,14 @@ void HttpFlvClientSession::start() {
                 redirect_http_req.add_header("Content-Length", "0");
                 redirect_http_req.add_header("Accept", "*/*");
                 redirect_http_req.add_header("Connection",
-                                             "close");  // 表示发送完就结束，不是默认的keep-alive
+                                             "close"); // 表示发送完就结束，不是默认的keep-alive
                 redirect_http_req.add_header("Host", domain);
                 redirect_http_req.add_header("User-Agent", "mms-server");
                 http_client_->set_buffer_size(1024 * 1024);
                 resp = co_await http_client_->do_req(server_ip, port, redirect_http_req);
             }
             flv_media_source_->set_status(SourceStatus(resp->get_status_code()));
-            if (resp->get_status_code() != 200) {  // todo: notify media event
+            if (resp->get_status_code() != 200) { // todo: notify media event
                 CORE_ERROR("http code error, code:{}", resp->get_status_code());
                 co_return;
             }
@@ -228,30 +211,29 @@ void HttpFlvClientSession::start() {
 boost::asio::awaitable<void> HttpFlvClientSession::cycle_pull_flv_tag(std::shared_ptr<HttpResponse> resp) {
     bool flv_header_received = false;
     // todo : 这里session已经在函数hold住了，lambda没必要传值，传值会导致内存异常
-    co_await resp->cycle_recv_body(
-        [this, &flv_header_received](const std::string_view &recv_data) -> boost::asio::awaitable<int32_t> {
-            if (!flv_header_received) {
-                FlvHeader flv_header;
-                int32_t consumed = flv_header.decode((uint8_t *)recv_data.data(), recv_data.size());
-                if (consumed < 0) {
-                    co_return -1;
-                } else if (consumed == 0) {
-                    co_return 0;
-                }
-
-                if (cache_tag_->get_tag_type() == FlvTagHeader::VideoTag) {
-                    flv_media_source_->on_video_packet(cache_tag_);
-                    cache_tag_ = nullptr;
-                } else if (cache_tag_->get_tag_type() == FlvTagHeader::AudioTag) {
-                    flv_media_source_->on_audio_packet(cache_tag_);
-                    cache_tag_ = nullptr;
-                } else {
-                    flv_media_source_->on_metadata(cache_tag_);
-                    cache_tag_ = nullptr;
-                }
-                co_return consumed + 4;
+    co_await resp->cycle_recv_body([this, &flv_header_received](const std::string_view &recv_data) -> boost::asio::awaitable<int32_t> {
+        if (!flv_header_received) {
+            FlvHeader flv_header;
+            int32_t consumed = flv_header.decode((uint8_t *)recv_data.data(), recv_data.size());
+            if (consumed < 0) {
+                co_return -1;
+            } else if (consumed == 0) {
+                co_return 0;
             }
-        });
+
+            if (cache_tag_->get_tag_type() == FlvTagHeader::VideoTag) {
+                flv_media_source_->on_video_packet(cache_tag_);
+                cache_tag_ = nullptr;
+            } else if (cache_tag_->get_tag_type() == FlvTagHeader::AudioTag) {
+                flv_media_source_->on_audio_packet(cache_tag_);
+                cache_tag_ = nullptr;
+            } else {
+                flv_media_source_->on_metadata(cache_tag_);
+                cache_tag_ = nullptr;
+            }
+            co_return consumed + 4;
+        }
+    });
     co_return;
 }
 void HttpFlvClientSession::stop() {
@@ -276,15 +258,10 @@ void HttpFlvClientSession::stop() {
             if (flv_media_source_) {
                 flv_media_source_->set_session(nullptr);
                 auto publish_app = flv_media_source_->get_app();
-                start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(),
-                                                      flv_media_source_);
-                co_await publish_app->on_unpublish(
-                    std::static_pointer_cast<StreamSession>(shared_from_this()));
+                start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), flv_media_source_);
+                co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
             }
 
-            if (http_client_) {
-                http_client_.reset();
-            }
             CORE_DEBUG("HttpFlvClientSession closed");
             co_return;
         },
