@@ -103,8 +103,6 @@ private:
     // 启动一个发送 RTMP 消息的协程
     void start_send_coroutine();
 private:
-    void detach_source();// 将数据迁移到其他session，可能是重推
-private:
     std::shared_ptr<SocketInterface> conn_;
     RtmpHandshake handshake_;
     RtmpChunkProtocol chunk_protocol_;

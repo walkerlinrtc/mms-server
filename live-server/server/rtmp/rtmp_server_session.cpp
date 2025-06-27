@@ -221,6 +221,7 @@ void RtmpServerSession::stop() {
                 rtmp_media_source_->set_session(nullptr);  // 解除绑定
                 start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
                 co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+                rtmp_media_source_ = nullptr;
             }
 
             if (conn_) {
@@ -427,8 +428,8 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_createstream_command
     co_return true;
 }
 
-boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
-    std::shared_ptr<RtmpMessage> rtmp_msg) {
+boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std::shared_ptr<RtmpMessage> rtmp_msg) {
+    assert(rtmp_msg != nullptr); 
     auto self(std::static_pointer_cast<RtmpServerSession>(shared_from_this()));
     RtmpPublishMessage publish_cmd;
     auto consumed = publish_cmd.decode(rtmp_msg);
@@ -449,13 +450,11 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
     is_player_ = false;
     auto rtmp_media_source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
     if (!rtmp_media_source || rtmp_media_source->get_media_type() != "rtmp") {
-        rtmp_media_source_ = std::make_shared<RtmpMediaSource>(
-            get_worker(), std::weak_ptr<StreamSession>(self), std::static_pointer_cast<PublishApp>(app_));
+        rtmp_media_source_ = std::make_shared<RtmpMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), std::static_pointer_cast<PublishApp>(app_));
     } else {
         auto old_session = std::static_pointer_cast<RtmpServerSession>(rtmp_media_source->get_session());
         if (old_session) {
-            old_session->detach_source();
-            old_session->stop();  // 关闭老的推流端
+            co_return false; //老的还没关闭
         }
         rtmp_media_source_ = std::static_pointer_cast<RtmpMediaSource>(rtmp_media_source);
     }
@@ -497,7 +496,9 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(
     co_return true;
 }
 
-void RtmpServerSession::detach_source() { rtmp_media_source_ = nullptr; }
+void RtmpServerSession::detach_source() { 
+    rtmp_media_source_ = nullptr; 
+}
 
 boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_play_command(
     std::shared_ptr<RtmpMessage> rtmp_msg) {
