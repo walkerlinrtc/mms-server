@@ -122,7 +122,8 @@ Please refer to [xmake_guide.md](xmake_guide.md) for more information.
 ---
 
 ## Docker Compose Quick Deployment Guide
-本项目提供基于 Docker Compose 的一键部署方式，目前 docker 镜像使用 Ubuntu24.04，适合 mac 等非 Linux 平台用户进行环境部署。
+
+This project supports one-click deployment using Docker Compose. It is currently based on the Ubuntu 24.04 Docker image and is suitable for macOS and other non-Linux platforms to set up the environment conveniently.
 
 ### 1. Modify Configuration Files
 
