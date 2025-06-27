@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include "base/wait_group.h"
 #include "base/network/socket_interface.hpp"
 #include "core/rtmp_media_sink.hpp"
 #include "core/rtmp_media_source.hpp"
@@ -242,7 +243,6 @@ Json::Value RtmpServerSession::to_json() {
         v["abitrate"] = audio_bitrate_monitor_->to_json();
     }
 
-
     return v;
 }
 
@@ -447,9 +447,8 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
         rtmp_media_source_ = std::make_shared<RtmpMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), std::static_pointer_cast<PublishApp>(app_));
     } else {
         auto old_session = std::static_pointer_cast<RtmpServerSession>(rtmp_media_source->get_session());
-        if (old_session) {
-            old_session->stop();
-            co_return false; //老的还没关闭
+        if (old_session) {//    todo：根据配置，实现策略：1.踢掉老的session；2. 拒绝新的推流
+            co_return false; // 允许重推，但是得等老的还没关闭
         }
         rtmp_media_source_ = std::static_pointer_cast<RtmpMediaSource>(rtmp_media_source);
     }
