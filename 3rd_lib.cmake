@@ -105,9 +105,9 @@ ExternalProject_Add(libfaad2
     EXCLUDE_FROM_ALL 1
     GIT_REPOSITORY https://gitee.com/jbl19860422/faad2.git
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND cmake -B build -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR} -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
-    BUILD_COMMAND make -C build -j4
-    INSTALL_COMMAND make -C build -j4 install
+    CONFIGURE_COMMAND cmake . -DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR} -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
+    BUILD_COMMAND make -j4
+    INSTALL_COMMAND make install
 )
 
 ExternalProject_Add(libav-5.1.4
