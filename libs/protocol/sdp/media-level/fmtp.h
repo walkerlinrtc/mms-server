@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <cstdint>
 // a=fmtp:<format> <format specific parameters>
 
 // This attribute allows parameters that are specific to a

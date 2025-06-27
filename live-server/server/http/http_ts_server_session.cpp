@@ -28,7 +28,7 @@ HttpTsServerSession::HttpTsServerSession(std::shared_ptr<HttpRequest> http_req, 
 }
 
 HttpTsServerSession::~HttpTsServerSession() {
-    CORE_INFO("destroy HttpTsServerSession");
+    // CORE_DEBUG("destroy HttpTsServerSession");
 }
 
 void HttpTsServerSession::start() {
@@ -47,7 +47,6 @@ void HttpTsServerSession::start() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            stop();
             co_return;
         }
 
@@ -59,7 +58,6 @@ void HttpTsServerSession::start() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(403, "Forbidden");
-            stop();
             co_return;
         }
 
@@ -73,7 +71,6 @@ void HttpTsServerSession::start() {
             http_response_->add_header("Content-Length", "0");
             http_response_->add_header("Access-Control-Allow-Origin", "*");
             co_await http_response_->write_header(404, "Not Found");
-            stop();
             co_return;
         } else {
             if (source->get_media_type() != "hls") {
@@ -83,7 +80,6 @@ void HttpTsServerSession::start() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    stop();
                     co_return;
                 }
 
@@ -94,7 +90,6 @@ void HttpTsServerSession::start() {
                     http_response_->add_header("Content-Length", "0");
                     http_response_->add_header("Access-Control-Allow-Origin", "*");
                     co_await http_response_->write_header(415, "Unsupported Media Type");
-                    stop();
                     co_return;
                 }
                 hls_source = std::static_pointer_cast<HlsLiveMediaSource>(hls_bridge->get_media_source());
@@ -109,7 +104,6 @@ void HttpTsServerSession::start() {
                 http_response_->add_header("Content-Length", "0");
                 http_response_->add_header("Access-Control-Allow-Origin", "*");
                 co_await http_response_->write_header(404, "Not Found");
-                stop();
                 co_return;
             }
             
@@ -124,7 +118,6 @@ void HttpTsServerSession::start() {
 
             http_response_->add_header("Content-Length", std::to_string(total_bytes));
             if (!co_await http_response_->write_header(200, "Ok")) {
-                stop();
                 co_return;
             }
             
@@ -136,7 +129,10 @@ void HttpTsServerSession::start() {
         }
 
         co_return;
-    }, boost::asio::detached);
+    }, [this, self](std::exception_ptr exp) {
+        (void)exp;
+        stop();
+    });
 }
 
 void HttpTsServerSession::stop() {

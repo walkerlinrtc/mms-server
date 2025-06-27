@@ -7,9 +7,10 @@
  * @FilePath: \mms\mms\server\http\http_server_session.hpp
  * Copyright (c) 2023 by jbl19860422@gitee.com, All Rights Reserved. 
  */
-#include "http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "base/network/socket_interface.hpp"
-
+#include "spdlog/spdlog.h"
+#include "base/thread/thread_worker.hpp"
 using namespace mms;
 
 HttpServerSession::HttpServerSession(HttpRequestHandler *request_handler, std::shared_ptr<SocketInterface> sock):
@@ -19,7 +20,7 @@ HttpServerSession::HttpServerSession(HttpRequestHandler *request_handler, std::s
 }
 
 HttpServerSession::~HttpServerSession() {
-    CORE_DEBUG("destroy HttpServerSession");
+    // spdlog::debug("destroy HttpServerSession");
 }
 
 std::shared_ptr<SocketInterface> HttpServerSession::get_sock() {
@@ -125,51 +126,48 @@ boost::asio::awaitable<std::pair<bool,int32_t>> HttpServerSession::parse_recv_bu
     co_return std::make_pair(true, total_consumed);
 }
 
-boost::asio::awaitable<void> HttpServerSession::on_http_request(std::shared_ptr<HttpRequest> req) {
+void HttpServerSession::on_http_request(std::shared_ptr<HttpRequest> req) {
     if (curr_req_) {
         reqs_.push_back(req);
-        co_return;
+        return;
     }
     curr_req_ = req;
-    co_await process_one_req(curr_req_);
-    co_return;
+    process_one_req(curr_req_);
+    return;
 }
 
-boost::asio::awaitable<void> HttpServerSession::process_one_req(std::shared_ptr<HttpRequest> req) {
+void HttpServerSession::process_one_req(std::shared_ptr<HttpRequest> req) {
     auto self(shared_from_this());
     if (is_websocket_req(req)) {
         is_websocket_ = true;//升级为websocket处理
     }
 
     boost::asio::co_spawn(get_worker()->get_io_context(), [this, self, req]()->boost::asio::awaitable<void> {
-        std::shared_ptr<HttpResponse> resp = std::make_shared<HttpResponse>(sock_);
-        co_await request_handler_->on_new_request(std::static_pointer_cast<HttpServerSession>(shared_from_this()), req, resp); 
+        std::shared_ptr<HttpResponse> resp = std::make_shared<HttpResponse>(sock_, 
+                                                std::weak_ptr<HttpServerSession>(std::static_pointer_cast<HttpServerSession>(self)));
+        co_await request_handler_->on_new_request(std::static_pointer_cast<HttpServerSession>(self), req, resp); 
         co_return;
     }, boost::asio::detached);
-    co_return;
 }
 
-boost::asio::awaitable<void> HttpServerSession::close_or_do_next_req() {
+void HttpServerSession::close_or_do_next_req() {
     if (!curr_req_) {
-        co_return;
-    }
-    
-    if (curr_req_->get_header("Connection") != "keep-alive") {// 非长连接，关闭
-        sock_->close();
-        co_return;
+        return;
     }
 
+    if (curr_req_->get_header("Connection") != "Keep-Alive") {// 非长连接，关闭
+        sock_->close();
+        return;
+    }
     // 必然在最前面，去掉最前面的请求
     if (reqs_.size() <= 0) {
         curr_req_ = nullptr;
-        co_return;
+        return;
     }
-
     curr_req_ = reqs_.front();
     reqs_.pop_front();
-    
-    co_await process_one_req(curr_req_);
-    co_return;
+    process_one_req(curr_req_);
+    return;
 }
 
 bool HttpServerSession::is_websocket_req(std::shared_ptr<HttpRequest> req) {

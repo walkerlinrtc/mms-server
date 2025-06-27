@@ -5,7 +5,7 @@
 #include <string>
 
 #include "http_api_server.hpp"
-#include "http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "http_flv_server_session.hpp"
 #include "http_ts_server_session.hpp"
 #include "http_m3u8_server_session.hpp"
@@ -17,6 +17,7 @@
 
 #include "core/stream_session.hpp"
 #include "core/source_manager.hpp"
+#include "core/media_source.hpp"
 
 #include "config/config.h"
 #include "config/app_config.h"

@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "https_live_server.hpp"
-#include "http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "http_m3u8_server_session.hpp"
 #include "http_ts_server_session.hpp"
 #include "http_long_ts_server_session.hpp"
@@ -15,6 +15,7 @@
 #include "server/webrtc/webrtc_server.hpp"
 #include "config/config.h"
 #include "config/http_config.h"
+#include "log/log.h"
 
 using namespace mms;
 

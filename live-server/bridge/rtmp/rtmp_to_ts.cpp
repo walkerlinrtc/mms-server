@@ -238,11 +238,11 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {
+            curr_seg_->set_reaped();
+            on_ts_segment(curr_seg_);
             HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", get_session_name(),
                      curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
                      curr_seg_->get_duration());
-            curr_seg_->set_reaped();
-            on_ts_segment(curr_seg_);
             curr_seg_ = nullptr;
         }
     }
@@ -474,11 +474,11 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {
+            curr_seg_->set_reaped();
+            on_ts_segment(curr_seg_);
             HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", get_session_name(),
                      curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
                      curr_seg_->get_duration());
-            curr_seg_->set_reaped();
-            on_ts_segment(curr_seg_);
             curr_seg_ = nullptr;
         }
     }
@@ -1091,10 +1091,10 @@ bool RtmpToTs::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(false, curr_seg_)) {
+            on_ts_segment(curr_seg_);
             HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", get_session_name(),
                      curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
                      curr_seg_->get_duration());
-            on_ts_segment(curr_seg_);
             curr_seg_ = nullptr;
         }
     }
@@ -1278,10 +1278,10 @@ bool RtmpToTs::process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(false, curr_seg_)) {
+            on_ts_segment(curr_seg_);
             HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", get_session_name(),
                      curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
                      curr_seg_->get_duration());
-            on_ts_segment(curr_seg_);
             curr_seg_ = nullptr;
         }
     }

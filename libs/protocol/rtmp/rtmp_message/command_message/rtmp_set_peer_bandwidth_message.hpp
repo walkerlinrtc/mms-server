@@ -1,7 +1,9 @@
 #pragma once
 #include <stdint.h>
-namespace mms {
+#include <memory>
 
+namespace mms {
+class RtmpMessage;
 class RtmpSetPeerBandwidthMessage {
 public:
     // 0 - Hard: The peer SHOULD limit its output bandwidth to the

@@ -11,7 +11,7 @@
 #include "core/rtmp_media_sink.hpp"
 #include "core/rtmp_media_source.hpp"
 #include "core/source_manager.hpp"
-#include "http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "log/log.h"
 
 using namespace mms;

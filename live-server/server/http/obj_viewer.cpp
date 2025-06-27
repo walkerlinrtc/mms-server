@@ -9,7 +9,7 @@ using namespace mms;
 #include "core/webrtc_media_source.hpp"
 #include "core/rtp_media_sink.hpp"
 
-#include "server/http/http_server_session.hpp"
+#include "protocol/http/http_server_session.hpp"
 #include "server/rtmp/rtmp_server_session.hpp"
 #include "server/http/http_flv_server_session.hpp"
 #include "server/webrtc/webrtc_server_session.hpp"
