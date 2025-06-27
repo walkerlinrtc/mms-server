@@ -64,6 +64,7 @@ public:
         return in_chunk_size_;
     }
 
+    // 异步发送多个 rtmp 消息
     boost::asio::awaitable<bool> send_rtmp_messages(const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs);
 
     int64_t get_last_ack_bytes() {
@@ -92,9 +93,11 @@ private:
     bool handle_abort(std::shared_ptr<RtmpMessage> msg);
     bool handle_window_acknowledge_size(std::shared_ptr<RtmpMessage> msg);
 private:
+    // 底层Socket连接
     std::shared_ptr<SocketInterface> conn_;
     std::function<boost::asio::awaitable<bool>(std::shared_ptr<RtmpMessage>)> recv_handler_ = {};
 
+    // 接收缓冲
     uint8_t *recv_buffer_ = nullptr;
     uint32_t recv_len_ = 0;
 
@@ -104,8 +107,10 @@ private:
     int64_t in_window_acknowledge_size_ = 5*1024*1024;
     int64_t last_ack_bytes_ = 0;
     
+    // 上次发送的chunk流，用于下次判断chunk fmt
     std::unordered_map<uint32_t, std::shared_ptr<RtmpChunk>> send_chunk_streams_;
     std::vector<std::unique_ptr<char[]>> chunk_headers_;
+    // 发送缓冲
     std::vector<boost::asio::const_buffer> send_sv_bufs_;
 
     std::unordered_map<uint32_t, std::shared_ptr<RtmpChunk>> recv_chunk_streams_;

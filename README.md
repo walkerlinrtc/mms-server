@@ -121,6 +121,64 @@ Please refer to [xmake_guide.md](xmake_guide.md) for more information.
 
 ---
 
+## Docker Compose Quick Deployment Guide
+
+This project supports one-click deployment using Docker Compose. It is currently based on the Ubuntu 24.04 Docker image and is suitable for macOS and other non-Linux platforms to set up the environment conveniently.
+
+### 1. Modify Configuration Files
+
+In the `docker-compose.yaml` file, update the mount path `<local mms-server path>` and container name `<container name>` to your local directory and desired container name:
+
+```yaml
+services:
+  <container name>:
+...
+    container_name: <container name>
+...
+    volumes:
+      - <local mms-server path>:/mnt/workspace/mms-server
+...
+```
+
+(Optional) In the `Dockerfile`, you may change the default Ubuntu username `myuser` and password `password` to your custom credentials:
+
+```dockerfile
+...
+# Add a non-root user and grant sudo permissions
+RUN useradd -ms /bin/bash myuser && \
+    echo "myuser:password" | chpasswd && \
+    usermod -aG sudo myuser
+
+# Install xmake (as root)
+RUN add-apt-repository -y ppa:xmake-io/xmake && \
+    apt update && \
+    apt install -y xmake
+
+# Switch to the non-root user
+USER myuser
+WORKDIR /home/myuser
+...
+```
+
+---
+
+### 2. Build and Run the Container
+
+Run the following commands in the project root directory:
+
+```bash
+# Start the container in the background (will build on first run)
+docker compose up -d
+# Enter the container shell
+docker exec -it <container name> bash
+# Stop the container
+docker compose stop
+```
+
+Once inside the container, you can run `xmake -j8` to automatically install project dependencies and build the project.
+
+---
+
 ## 📦 Deploying the Web Console with `mms-server`
 
 The `mms-server` includes a built-in static file server, allowing you to host the standalone Vue-based web console directly within the same server environment.

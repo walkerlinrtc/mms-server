@@ -98,7 +98,9 @@ private:
     void start_alive_checker();
     void start_statistic_timer();
     void update_active_timestamp();
+    // 启动一个接收 RTMP 消息的协程
     void start_recv_coroutine();
+    // 启动一个发送 RTMP 消息的协程
     void start_send_coroutine();
 private:
     void detach_source();// 将数据迁移到其他session，可能是重推

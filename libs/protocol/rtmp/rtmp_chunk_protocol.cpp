@@ -68,14 +68,17 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::cycle_recv_rtmp_message(const
 }
 
 boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::vector<std::shared_ptr<RtmpMessage>> & rtmp_msgs) {
+    // 1. 清空发送缓冲区
     send_sv_bufs_.clear();
     int curr_chunk_header = 0;
+    // 2. 遍历每个待发送的rtmp消息
     for (auto rtmp_msg : rtmp_msgs) {
         int32_t left_size = rtmp_msg->get_using_data().size();
         size_t cur_pos = 0;
         uint8_t fmt = RTMP_CHUNK_FMT_TYPE0;
+        // 将一个 RTMP 消息按照 chunk 尺寸拆分成一个或多个 chunk
         while (left_size > 0) {
-            // 判断fmt类型
+            // 2.1 根据与上一次同 stream 的 chunk 对比，判断 fmt 类型
             if (curr_chunk_header >= 200) {// 检查chunk header是否越界，一般上不可能越界，除非异常数据
                 co_return false;
             }
@@ -86,25 +89,30 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                 if (prev_chunk->chunk_message_header_.message_stream_id_ == rtmp_msg->message_stream_id_ &&
                     prev_chunk->chunk_message_header_.message_type_id_ == rtmp_msg->message_type_id_ &&
                     prev_chunk->chunk_message_header_.message_length_ == (int32_t)rtmp_msg->get_using_data().size() &&
-                    prev_chunk->chunk_message_header_.timestamp_delta_ == (rtmp_msg->timestamp_ - prev_chunk->chunk_message_header_.timestamp_)) {// fmt3
+                    prev_chunk->chunk_message_header_.timestamp_delta_ == (rtmp_msg->timestamp_ - prev_chunk->chunk_message_header_.timestamp_)) {//fmt3
+                    // 完全一样，只变 timestamp delta
                     fmt = RTMP_CHUNK_FMT_TYPE3;
                 } else if (prev_chunk->chunk_message_header_.message_stream_id_ == rtmp_msg->message_stream_id_ &&
                            prev_chunk->chunk_message_header_.message_type_id_ == rtmp_msg->message_type_id_ &&
                            prev_chunk->chunk_message_header_.message_length_ == (int32_t)rtmp_msg->get_using_data().size()) {//fmt2
+                    // 变了 timestamp
                     fmt = RTMP_CHUNK_FMT_TYPE2;            
                 } else if (prev_chunk->chunk_message_header_.message_stream_id_ == rtmp_msg->message_stream_id_) {//fmt1
+                    // 变了 message type
                     fmt = RTMP_CHUNK_FMT_TYPE1;
                 } else {
+                    // 全部不同，必须 type 0
                     fmt = RTMP_CHUNK_FMT_TYPE0;
                 }
             } else {
                 fmt = RTMP_CHUNK_FMT_TYPE0;
             }
 
+            // 2.2 根据 fmt 类型，发送 chunk header 和 chunk data 到缓冲区
             //  +--------------+----------------+--------------------+--------------+
             //  | Basic Header | Message Header | Extended Timestamp | Chunk Data |
             //  +--------------+----------------+--------------------+--------------+
-            // 发送basic header
+            // 发送 basic header
             std::shared_ptr<RtmpChunk> chunk = std::make_shared<RtmpChunk>();
             chunk->chunk_message_header_.message_stream_id_ = rtmp_msg->message_stream_id_;
             chunk->chunk_message_header_.message_type_id_ = rtmp_msg->message_type_id_;
@@ -135,7 +143,7 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                 p[2] = (csid/256) & 0xff;
                 buf_pos += 3;
             }
-            // 发送message header
+            // 发送 message header
             int this_chunk_payload_size = std::min(out_chunk_size_, left_size);
             bool has_extend_timestamp = false;
             if (fmt == RTMP_CHUNK_FMT_TYPE0) {
@@ -214,7 +222,7 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
                     memcpy(chunk_headers_[curr_chunk_header].get() + buf_pos,(uint8_t*)&t, 4);
                     buf_pos += 4;
                 }
-            } else if (fmt == RTMP_CHUNK_FMT_TYPE3) {// no header
+            } else if (fmt == RTMP_CHUNK_FMT_TYPE3) {  // no header
                 uint32_t timestamp_delta = rtmp_msg->timestamp_ - prev_chunk->rtmp_message_->timestamp_;
                 if (timestamp_delta >= 0xffffff) {
                     has_extend_timestamp = true;
@@ -228,16 +236,17 @@ boost::asio::awaitable<bool> RtmpChunkProtocol::send_rtmp_messages(const std::ve
             }
 
             send_sv_bufs_.push_back(boost::asio::const_buffer((char*)chunk_headers_[curr_chunk_header].get(), buf_pos));
-            // 发送chunk data
+            // 发送 chunk data
             send_sv_bufs_.push_back(boost::asio::const_buffer((char*)rtmp_msg->get_using_data().data() + cur_pos, this_chunk_payload_size));
             curr_chunk_header++;
             left_size -= this_chunk_payload_size;
             cur_pos += this_chunk_payload_size;
-            // 发送结束，记录本次发送的chunk
+            // 2.3 发送结束，记录本次发送的 chunk 作为上次的 chunk
             send_chunk_streams_[rtmp_msg->chunk_stream_id_] = chunk;
         }
     }
 
+    // 3. 发送缓冲区数据
     if (!(co_await conn_->send(send_sv_bufs_))) {
         co_return false;
     }

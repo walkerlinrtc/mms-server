@@ -121,6 +121,63 @@ mms-live-server -c ./config -d
 
 ---
 
+## Docker Compose 一键部署指南
+本项目提供基于 Docker Compose 的一键部署方式，目前 docker 镜像使用 Ubuntu24.04，适合 mac 等非 Linux 平台用户进行环境部署。
+
+### 1. 修改配置文件
+
+在 `docker-compose.yaml` 中修改挂载 volume 路径 `<local mms-server path>` 和 docker 容器名称 `<container name>` 为你的路径和名称：
+
+```yaml
+services:
+  <container name>:
+...
+    container_name: <container name>
+...
+    volumes:
+      - <local mms-server path>:/mnt/workspace/mms-server
+...
+```
+
+（可选）在 `Dockerfile` 中修改Ubuntu用户名 `myuser` 和密码 `password` 为你自定义的用户名和密码：
+
+```dockerfile
+...
+# 添加非 root 用户 myuser 并设置密码和 sudo 权限
+RUN useradd -ms /bin/bash myuser && \
+    echo "myuser:password" | chpasswd && \
+    usermod -aG sudo myuser
+
+# 安装 xmake（在 root 用户下添加 PPA）
+RUN add-apt-repository -y ppa:xmake-io/xmake && \
+    apt update && \
+    apt install -y xmake
+
+# 切换到非 root 用户
+USER myuser
+WORKDIR /home/myuser
+...
+```
+
+---
+
+### 2. 容器的构建与运行
+
+在项目根目录运行以下命令实现相应操作：
+
+```bash
+# 后台启动容器，第一次会构建
+docker compose up -d
+# 进入容器终端
+docker exec -it <container name> bash
+# 停止容器
+docker compose stop
+```
+
+在进入容器终端后，使用 `xmake -j8` 自动安装项目依赖并构建项目。
+
+---
+
 ## 📦 使用 `mms-server` 部署 Web 控制台
 
 `mms-server` 内置静态文件服务器，可直接在服务中部署基于 Vue 的 Web 控制台。

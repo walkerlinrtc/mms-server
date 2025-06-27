@@ -30,20 +30,24 @@ using namespace mms;
 void wait_exit() {
     std::atomic_bool exit(false);
     boost::asio::io_context io;
+    // 设置信号集捕获SIGINT/SIGTERM
     boost::asio::signal_set sigset(io, SIGINT, SIGTERM);
+    // 异步等待目标信号并设置退出标志
     sigset.async_wait([&exit](const boost::system::error_code &err, int signal) {
+        // 忽略signal和err(避免未使用变量警告)
         ((void)signal);
         ((void)err);
         exit = true;
     });
 
     boost::system::error_code ec;
+    // 开始事件循环(阻塞直到捕获SIGINT/SIGTERM)
     io.run();
     while (1) {
         if (exit) {
             break;
         }
-        sleep(1000);
+        sleep(1);
     }
 }
 
