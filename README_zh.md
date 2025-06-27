@@ -117,10 +117,6 @@ mms-live-server -c ./config -d
 
 ---
 
-### 单实例服务控制台
-
----
-
 ## Docker Compose 一键部署指南
 本项目提供基于 Docker Compose 的一键部署方式，目前 docker 镜像使用 Ubuntu24.04，适合 mac 等非 Linux 平台用户进行环境部署。
 
@@ -177,6 +173,8 @@ docker compose stop
 在进入容器终端后，使用 `xmake -j8` 自动安装项目依赖并构建项目。
 
 ---
+
+### 单实例服务控制台
 
 ## 📦 使用 `mms-server` 部署 Web 控制台
 

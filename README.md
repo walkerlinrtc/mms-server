@@ -117,10 +117,6 @@ Please refer to [xmake_guide.md](xmake_guide.md) for more information.
 
 ---
 
-### Single Server Console
-
----
-
 ## Docker Compose Quick Deployment Guide
 
 This project supports one-click deployment using Docker Compose. It is currently based on the Ubuntu 24.04 Docker image and is suitable for macOS and other non-Linux platforms to set up the environment conveniently.
@@ -178,6 +174,8 @@ docker compose stop
 Once inside the container, you can run `xmake -j8` to automatically install project dependencies and build the project.
 
 ---
+
+### Single Server Console
 
 ## 📦 Deploying the Web Console with `mms-server`
 
