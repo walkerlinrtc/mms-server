@@ -32,27 +32,20 @@
 #include "protocol/ts/ts_pat_pmt.hpp"
 #include "protocol/ts/ts_segment.hpp"
 
-
 using namespace mms;
-RtmpToTs::RtmpToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app,
-                   std::weak_ptr<MediaSource> origin_source, const std::string &domain_name,
-                   const std::string &app_name, const std::string &stream_name)
-    : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name),
-      check_closable_timer_(worker->get_io_context()),
-      wg_(worker) {
+RtmpToTs::RtmpToTs(ThreadWorker *worker, std::shared_ptr<PublishApp> app, std::weak_ptr<MediaSource> origin_source, const std::string &domain_name, const std::string &app_name,
+                   const std::string &stream_name)
+    : MediaBridge(worker, app, origin_source, domain_name, app_name, stream_name), check_closable_timer_(worker->get_io_context()), wg_(worker) {
     sink_ = std::make_shared<RtmpMediaSink>(worker);
     rtmp_media_sink_ = std::static_pointer_cast<RtmpMediaSink>(sink_);
-    source_ = std::make_shared<TsMediaSource>(
-        worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
+    source_ = std::make_shared<TsMediaSource>(worker, std::weak_ptr<StreamSession>(std::shared_ptr<StreamSession>(nullptr)), publish_app_);
     ts_media_source_ = std::static_pointer_cast<TsMediaSource>(source_);
     video_pes_segs_.reserve(1024);
     type_ = "rtmp-to-ts";
     CORE_DEBUG("create RtmpToTs");
 }
 
-RtmpToTs::~RtmpToTs() {
-    CORE_DEBUG("destroy RtmpToTs");
-}
+RtmpToTs::~RtmpToTs() { CORE_DEBUG("destroy RtmpToTs"); }
 
 bool RtmpToTs::init() {
     auto self(shared_from_this());
@@ -63,18 +56,14 @@ bool RtmpToTs::init() {
             boost::system::error_code ec;
             auto app_conf = publish_app_->get_conf();
             while (1) {
-                check_closable_timer_.expires_after(std::chrono::milliseconds(
-                    app_conf->bridge_config().no_players_timeout_ms() / 2));  // 30s检查一次
-                co_await check_closable_timer_.async_wait(
-                    boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+                check_closable_timer_.expires_after(std::chrono::milliseconds(app_conf->bridge_config().no_players_timeout_ms() / 2)); // 30s检查一次
+                co_await check_closable_timer_.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
                 if (boost::asio::error::operation_aborted == ec) {
                     break;
                 }
 
-                if (ts_media_source_->has_no_sinks_for_time(
-                        app_conf->bridge_config().no_players_timeout_ms())) {  // 已经30秒没人播放了
-                    CORE_DEBUG("close RtmpToTs because no players for {}ms",
-                               app_conf->bridge_config().no_players_timeout_ms());
+                if (ts_media_source_->has_no_sinks_for_time(app_conf->bridge_config().no_players_timeout_ms())) { // 已经30秒没人播放了
+                    CORE_DEBUG("close RtmpToTs because no players for {}ms", app_conf->bridge_config().no_players_timeout_ms());
                     close();
                     break;
                 }
@@ -86,36 +75,35 @@ bool RtmpToTs::init() {
             wg_.done();
         });
 
-    rtmp_media_sink_->on_close([this, self]() { close(); });
+    rtmp_media_sink_->on_close([this, self]() { 
+        close(); 
+    });
 
-    rtmp_media_sink_->set_on_source_status_changed_cb(
-        [this, self](SourceStatus status) -> boost::asio::awaitable<void> {
-            ts_media_source_->set_status(status);
-            if (status == E_SOURCE_STATUS_OK) {
-                rtmp_media_sink_->on_rtmp_message(
-                    [this, self](const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs)
-                        -> boost::asio::awaitable<bool> {
-                        for (auto rtmp_msg : rtmp_msgs) {
-                            if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_AUDIO) {
-                                if (!this->on_audio_packet(rtmp_msg)) {
-                                    co_return false;
-                                }
-                            } else if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_VIDEO) {
-                                if (!this->on_video_packet(rtmp_msg)) {
-                                    co_return false;
-                                }
-                            } else {
-                                if (!this->on_metadata(rtmp_msg)) {
-                                    co_return false;
-                                }
-                            }
+    rtmp_media_sink_->set_on_source_status_changed_cb([this, self](SourceStatus status) -> boost::asio::awaitable<void> {
+        ts_media_source_->set_status(status);
+        if (status == E_SOURCE_STATUS_OK) {
+            rtmp_media_sink_->on_rtmp_message([this, self](const std::vector<std::shared_ptr<RtmpMessage>> &rtmp_msgs) -> boost::asio::awaitable<bool> {
+                for (auto rtmp_msg : rtmp_msgs) {
+                    if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_AUDIO) {
+                        if (!this->on_audio_packet(rtmp_msg)) {
+                            co_return false;
                         }
+                    } else if (rtmp_msg->get_message_type() == RTMP_MESSAGE_TYPE_VIDEO) {
+                        if (!this->on_video_packet(rtmp_msg)) {
+                            co_return false;
+                        }
+                    } else {
+                        if (!this->on_metadata(rtmp_msg)) {
+                            co_return false;
+                        }
+                    }
+                }
 
-                        co_return true;
-                    });
-            }
-            co_return;
-        });
+                co_return true;
+            });
+        }
+        co_return;
+    });
 
     return true;
 }
@@ -182,8 +170,7 @@ bool RtmpToTs::on_video_packet(std::shared_ptr<RtmpMessage> video_pkt) {
             video_pid_ = TS_VIDEO_AVC_PID;
             video_type_ = TsStreamVideoH264;
             continuity_counter_[video_pid_] = 0;
-        } else if (header.get_codec_id() == VideoTagHeader::HEVC ||
-                   header.get_codec_id() == VideoTagHeader::HEVC_FOURCC) {
+        } else if (header.get_codec_id() == VideoTagHeader::HEVC || header.get_codec_id() == VideoTagHeader::HEVC_FOURCC) {
             video_codec_ = std::make_shared<HevcCodec>();
             video_pid_ = TS_VIDEO_HEVC_PID;
             video_type_ = TsStreamVideoH265;
@@ -211,19 +198,17 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     H264Codec *h264_codec = ((H264Codec *)video_codec_.get());
-    if (header.is_seq_header()) {  // 关键帧索引
+    if (header.is_seq_header()) { // 关键帧索引
         video_ready_ = true;
         video_header_ = video_pkt;
         // 解析avc configuration heade
         AVCDecoderConfigurationRecord avc_decoder_configuration_record;
-        int32_t consumed = avc_decoder_configuration_record.parse((uint8_t *)payload.data() + header_consumed,
-                                                                  payload.size() - header_consumed);
+        int32_t consumed = avc_decoder_configuration_record.parse((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed);
         if (consumed < 0) {
             return false;
         }
 
-        h264_codec->set_sps_pps(avc_decoder_configuration_record.get_sps(),
-                                avc_decoder_configuration_record.get_pps());
+        h264_codec->set_sps_pps(avc_decoder_configuration_record.get_sps(), avc_decoder_configuration_record.get_pps());
         nalu_length_size_ = avc_decoder_configuration_record.nalu_length_size_minus_one + 1;
         if (nalu_length_size_ == 3 || nalu_length_size_ > 4) {
             return false;
@@ -232,17 +217,16 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     bool is_key = header.is_key_frame() && !header.is_seq_header();
-    if (!curr_seg_ && !is_key) {  // 片段开始的帧，必须是关键帧
-        return false;
-    }
+    // if (!curr_seg_ && !is_key) { // 片段开始的帧，必须是关键帧
+    //     return false;
+    // }
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {
             curr_seg_->set_reaped();
             on_ts_segment(curr_seg_);
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", get_session_name(),
-                     curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
-                     curr_seg_->get_duration());
+            // HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", get_session_name(), curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
+                    //  curr_seg_->get_duration());
             curr_seg_ = nullptr;
         }
     }
@@ -255,13 +239,12 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         create_pmt(pmt_seg);
     }
 
-    auto pes_packet = std::make_shared<PESPacket>();  // pes_packet;
+    auto pes_packet = std::make_shared<PESPacket>(); // pes_packet;
     auto &pes_header = pes_packet->pes_header;
     memset((void *)&pes_header, 0, sizeof(pes_header));
     // 获取到nalus
     std::list<std::string_view> nalus;
-    auto consumed =
-        get_nalus((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed, nalus);
+    auto consumed = get_nalus((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed, nalus);
     if (consumed < 0) {
         return false;
     }
@@ -286,10 +269,8 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
             h264_codec->set_pps(std::string((it)->data(), (it)->size()));
         } else if (nalu_type == H264NaluTypeIDR) {
             if (!has_pps_nalu && !has_sps_nalu) {
-                it = nalus.insert(it, std::string_view(h264_codec->get_pps_nalu().data(),
-                                                       h264_codec->get_pps_nalu().size()));
-                it = nalus.insert(it, std::string_view(h264_codec->get_sps_nalu().data(),
-                                                       h264_codec->get_sps_nalu().size()));
+                it = nalus.insert(it, std::string_view(h264_codec->get_pps_nalu().data(), h264_codec->get_pps_nalu().size()));
+                it = nalus.insert(it, std::string_view(h264_codec->get_sps_nalu().data(), h264_codec->get_sps_nalu().size()));
                 has_pps_nalu = true;
                 has_sps_nalu = true;
             }
@@ -302,7 +283,7 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         nalus.push_front(aud_nalu);
     }
     // 计算payload长度(第一个nalu头部4个字节，后面的头部只需要3字节)
-    int32_t payload_size = nalus.size() * 3 + 1;  // 头部的总字节数
+    int32_t payload_size = nalus.size() * 3 + 1; // 头部的总字节数
     for (auto &nalu : nalus) {
         payload_size += nalu.size();
     }
@@ -312,24 +293,24 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     pes_header.stream_id = TsPESStreamIdVideoCommon;
 
     char *pes = video_pes_header_;
-    static char pes_start_prefix[3] = {0x00, 0x00, 0x01};  // 固定3字节头,跟annexb没什么关系
+    static char pes_start_prefix[3] = {0x00, 0x00, 0x01}; // 固定3字节头,跟annexb没什么关系
     memcpy(pes, pes_start_prefix, 3);
     pes += 3;
     // stream_id
     *pes++ = TsPESStreamIdVideoCommon;
     // PES_packet_length
     uint8_t PTS_DTS_flags = 0x03;
-    if (header.composition_time == 0) {  // dts = pts时，只需要dts
+    if (header.composition_time == 0) { // dts = pts时，只需要dts
         PTS_DTS_flags = 0x02;
     }
 
     // PES_header_data_length
     uint8_t PES_header_data_length = 0;
     if (PTS_DTS_flags == 0x02) {
-        PES_header_data_length = 5;  // DTS 5字节
+        PES_header_data_length = 5; // DTS 5字节
         pes_header.dts = pes_header.pts = video_pkt->timestamp_ * 90;
     } else if (PTS_DTS_flags == 0x03) {
-        PES_header_data_length = 10;  // PTS 5字节
+        PES_header_data_length = 10; // PTS 5字节
         pes_header.dts = video_pkt->timestamp_ * 90;
         pes_header.pts = (video_pkt->timestamp_ + header.composition_time) * 90;
     }
@@ -368,7 +349,7 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     *pes++ = PES_header_data_length;
-    if (PTS_DTS_flags & 0x02) {  // 填充pts
+    if (PTS_DTS_flags & 0x02) { // 填充pts
         uint64_t pts = (video_pkt->timestamp_ + header.composition_time) * 90;
         int32_t val = 0;
         val = int32_t(0x02 << 4 | (((pts >> 30) & 0x07) << 1) | 1);
@@ -383,7 +364,7 @@ bool RtmpToTs::process_h264_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         *pes++ = val;
     }
 
-    if (PTS_DTS_flags & 0x01) {  // 填充dts
+    if (PTS_DTS_flags & 0x01) { // 填充dts
         uint64_t dts = video_pkt->timestamp_ * 90;
         int32_t val = 0;
         val = int32_t(0x03 << 4 | (((dts >> 30) & 0x07) << 1) | 1);
@@ -448,13 +429,12 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     HevcCodec *hevc_codec = ((HevcCodec *)video_codec_.get());
-    if (header.is_seq_header()) {  // 关键帧索引
+    if (header.is_seq_header()) { // 关键帧索引
         video_ready_ = true;
         video_header_ = video_pkt;
         // 解析hvcc configuration heade
         HEVCDecoderConfigurationRecord hevc_decoder_configuration_record;
-        int32_t consumed = hevc_decoder_configuration_record.decode(
-            (uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed);
+        int32_t consumed = hevc_decoder_configuration_record.decode((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed);
         if (consumed == 0) {
             return false;
         }
@@ -468,7 +448,7 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     bool is_key = header.is_key_frame() && !header.is_seq_header();
-    if (!curr_seg_ && !is_key) {  // 片段开始的帧，必须是关键帧
+    if (!curr_seg_ && !is_key) { // 片段开始的帧，必须是关键帧
         return false;
     }
 
@@ -476,9 +456,8 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {
             curr_seg_->set_reaped();
             on_ts_segment(curr_seg_);
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", get_session_name(),
-                     curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
-                     curr_seg_->get_duration());
+            // HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by video", get_session_name(), curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
+                    //  curr_seg_->get_duration());
             curr_seg_ = nullptr;
         }
     }
@@ -491,14 +470,13 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         create_pmt(pmt_seg);
     }
 
-    auto pes_packet = std::make_shared<PESPacket>();  // pes_packet;
+    auto pes_packet = std::make_shared<PESPacket>(); // pes_packet;
     auto &pes_header = pes_packet->pes_header;
     memset((void *)&pes_header, 0, sizeof(pes_header));
 
     // 获取到nalus
     std::list<std::string_view> nalus;
-    auto consumed =
-        get_nalus((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed, nalus);
+    auto consumed = get_nalus((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed, nalus);
     if (consumed < 0) {
         return false;
     }
@@ -527,23 +505,20 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
 
     if (has_key_nalu) {
         if (!has_pps_nalu) {
-            nalus.insert(nalus.begin(), std::string_view(hevc_codec->get_pps_nalu().data(),
-                                                         hevc_codec->get_pps_nalu().size()));
+            nalus.insert(nalus.begin(), std::string_view(hevc_codec->get_pps_nalu().data(), hevc_codec->get_pps_nalu().size()));
         }
 
         if (!has_sps_nalu) {
-            nalus.insert(nalus.begin(), std::string_view(hevc_codec->get_sps_nalu().data(),
-                                                         hevc_codec->get_sps_nalu().size()));
+            nalus.insert(nalus.begin(), std::string_view(hevc_codec->get_sps_nalu().data(), hevc_codec->get_sps_nalu().size()));
         }
 
         if (!has_vps_nalu) {
-            nalus.insert(nalus.begin(), std::string_view(hevc_codec->get_vps_nalu().data(),
-                                                         hevc_codec->get_sps_nalu().size()));
+            nalus.insert(nalus.begin(), std::string_view(hevc_codec->get_vps_nalu().data(), hevc_codec->get_sps_nalu().size()));
         }
     }
 
     // 计算payload长度(第一个nalu头部4个字节，后面的头部只需要3字节)
-    int32_t payload_size = nalus.size() * 3 + 1;  // 头部的总字节数
+    int32_t payload_size = nalus.size() * 3 + 1; // 头部的总字节数
     for (auto &nalu : nalus) {
         payload_size += nalu.size();
     }
@@ -552,24 +527,24 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     // uint8_t *pes = video_pes_.get();
     pes_header.stream_id = TsPESStreamIdVideoCommon;
     char *pes = video_pes_header_;
-    static char pes_start_prefix[3] = {0x00, 0x00, 0x01};  // 固定3字节头,跟annexb没什么关系
+    static char pes_start_prefix[3] = {0x00, 0x00, 0x01}; // 固定3字节头,跟annexb没什么关系
     memcpy(pes, pes_start_prefix, 3);
     pes += 3;
     // stream_id
     *pes++ = TsPESStreamIdVideoCommon;
     // PES_packet_length
     uint8_t PTS_DTS_flags = 0x03;
-    if (header.composition_time == 0) {  // dts = pts时，只需要dts
+    if (header.composition_time == 0) { // dts = pts时，只需要dts
         PTS_DTS_flags = 0x02;
     }
 
     // PES_header_data_length
     uint8_t PES_header_data_length = 0;
     if (PTS_DTS_flags == 0x02) {
-        PES_header_data_length = 5;  // DTS 5字节
+        PES_header_data_length = 5; // DTS 5字节
         pes_header.dts = pes_header.pts = video_pkt->timestamp_ * 90;
     } else if (PTS_DTS_flags == 0x03) {
-        PES_header_data_length = 10;  // PTS 5字节
+        PES_header_data_length = 10; // PTS 5字节
         pes_header.dts = video_pkt->timestamp_ * 90;
         pes_header.pts = (video_pkt->timestamp_ + header.composition_time) * 90;
     }
@@ -606,7 +581,7 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
     }
 
     *pes++ = PES_header_data_length;
-    if (PTS_DTS_flags & 0x02) {  // 填充pts
+    if (PTS_DTS_flags & 0x02) { // 填充pts
         uint64_t pts = (video_pkt->timestamp_ + header.composition_time) * 90;
         int32_t val = 0;
         val = int32_t(0x02 << 4 | (((pts >> 30) & 0x07) << 1) | 1);
@@ -621,7 +596,7 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
         *pes++ = val;
     }
 
-    if (PTS_DTS_flags & 0x01) {  // 填充dts
+    if (PTS_DTS_flags & 0x01) { // 填充dts
         uint64_t dts = video_pkt->timestamp_ * 90;
         int32_t val = 0;
         val = int32_t(0x03 << 4 | (((dts >> 30) & 0x07) << 1) | 1);
@@ -676,7 +651,7 @@ bool RtmpToTs::process_h265_packet(std::shared_ptr<RtmpMessage> video_pkt) {
 void RtmpToTs::create_pat(std::string_view &data) {
     uint8_t *buf = (uint8_t *)data.data();
     /*********************** ts header *********************/
-    *buf++ = 0x47;  // ts header sync byte
+    *buf++ = 0x47; // ts header sync byte
     // transport_error_indicator(1b)        0
     // payload_unit_start_indicator(1b)     1
     // transport_priority(1b)               0
@@ -712,8 +687,8 @@ void RtmpToTs::create_pat(std::string_view &data) {
     // last_section_number + program_number
 
     // section_length
-    int16_t section_len = 5 + 4 + 4;  // transport_stream_id(2B) + current_next_indicator(1B) +
-                                      // section_number(1B) + last_section_number(1B) + crc
+    int16_t section_len = 5 + 4 + 4; // transport_stream_id(2B) + current_next_indicator(1B) +
+                                     // section_number(1B) + last_section_number(1B) + crc
     int16_t slv = section_len & 0x0FFF;
     slv |= (1 << 15) & 0x8000;
     slv |= (0 << 14) & 0x4000;
@@ -721,12 +696,12 @@ void RtmpToTs::create_pat(std::string_view &data) {
     *((uint16_t *)buf) = htons(slv);
     buf += 2;
     // transport_stream_id
-    *((uint16_t *)buf) = htons(0x0001);  // transport_stream_id
+    *((uint16_t *)buf) = htons(0x0001); // transport_stream_id
     buf += 2;
     // 1B
-    int8_t cniv = 0x01;       // current_next_indicator 1b 1
-    cniv |= (0 << 1) & 0x3E;  // version_number 5b 00000
-    cniv |= (3 << 6) & 0xC0;  // reserved 2b 11
+    int8_t cniv = 0x01;      // current_next_indicator 1b 1
+    cniv |= (0 << 1) & 0x3E; // version_number 5b 00000
+    cniv |= (3 << 6) & 0xC0; // reserved 2b 11
     *buf++ = cniv;
     // section_number
     *buf++ = 0;
@@ -750,7 +725,7 @@ void RtmpToTs::create_pat(std::string_view &data) {
 void RtmpToTs::create_pmt(std::string_view &pmt_seg) {
     uint8_t *buf = (uint8_t *)pmt_seg.data();
     /*********************** ts header *********************/
-    *buf = 0x47;  // ts header sync byte
+    *buf = 0x47; // ts header sync byte
     buf++;
     // transport_error_indicator(1b)        0
     // payload_unit_start_indicator(1b)     1
@@ -790,8 +765,7 @@ void RtmpToTs::create_pmt(std::string_view &pmt_seg) {
     // last_section_number + program_number
 
     // section_length
-    int16_t section_len =
-        5 + 4 + 4;  // 5 + PCR_PID(2B) + program_info_length(2B) + VIDEO(5B) + AUDIO(5B) + crc32(4B)
+    int16_t section_len = 5 + 4 + 4; // 5 + PCR_PID(2B) + program_info_length(2B) + VIDEO(5B) + AUDIO(5B) + crc32(4B)
     if (has_video_) {
         section_len += 5;
     }
@@ -807,12 +781,12 @@ void RtmpToTs::create_pmt(std::string_view &pmt_seg) {
     buf += 2;
 
     // program number
-    *((uint16_t *)buf) = htons(TS_PMT_NUMBER);  // program number
+    *((uint16_t *)buf) = htons(TS_PMT_NUMBER); // program number
     buf += 2;
     // 1B
-    int8_t cniv = 0x01;       // current_next_indicator 1b 1
-    cniv |= (0 << 1) & 0x3E;  // version_number 5b 00000
-    cniv |= (3 << 6) & 0xC0;  // reserved 2b 11
+    int8_t cniv = 0x01;      // current_next_indicator 1b 1
+    cniv |= (0 << 1) & 0x3E; // version_number 5b 00000
+    cniv |= (3 << 6) & 0xC0; // reserved 2b 11
     *buf = cniv;
     buf++;
     // section_number
@@ -893,10 +867,10 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
         std::string_view ts_seg = curr_seg_->alloc_ts_packet();
         ts_total_bytes += 188;
         uint8_t *buf = (uint8_t *)ts_seg.data();
-        *buf++ = 0x47;  // ts header sync byte
+        *buf++ = 0x47; // ts header sync byte
 
         uint8_t payload_unit_start_indicator = 0;
-        if (left_count == pes_len) {  // 第一个ts切片，置上标志位
+        if (left_count == pes_len) { // 第一个ts切片，置上标志位
             payload_unit_start_indicator = 1;
         }
         // transport_error_indicator(1b)        0
@@ -908,7 +882,7 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
         buf += 2;
 
         bool write_pcr = false;
-        if (left_count == pes_len) {  // 第一个切片
+        if (left_count == pes_len) { // 第一个切片
             if (PCR_PID == video_pid_ && is_key) {
                 write_pcr = true;
             }
@@ -925,15 +899,14 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
         if (write_pcr || write_padding) {
             *buf++ = (00 << 6) | (TsAdapationControlBoth << 4) | (continuity_counter_[video_pid_] & 0x0f);
         } else {
-            *buf++ =
-                (00 << 6) | (TsAdapationControlPayloadOnly << 4) | (continuity_counter_[video_pid_] & 0x0f);
+            *buf++ = (00 << 6) | (TsAdapationControlPayloadOnly << 4) | (continuity_counter_[video_pid_] & 0x0f);
         }
         continuity_counter_[video_pid_]++;
 
         int adaptation_field_total_length = 0;
         if (write_pcr) {
             // adaptation_field_length
-            adaptation_field_total_length = 8;  // adaptation_field_length(1) + flags(1) + PCR(6) = 8
+            adaptation_field_total_length = 8; // adaptation_field_length(1) + flags(1) + PCR(6) = 8
             int staffing_count = 0;
             if ((4 + adaptation_field_total_length + left_count) <= 188) {
                 staffing_count = 188 - (4 + adaptation_field_total_length + left_count);
@@ -944,11 +917,11 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
             if (staffing_count > 0) {
                 adaptation_field_total_length += staffing_count;
             }
-            int adaptation_field_length = adaptation_field_total_length - 1;  // 需要减掉自己的1字节
+            int adaptation_field_length = adaptation_field_total_length - 1; // 需要减掉自己的1字节
             *buf++ = adaptation_field_length;
-            *buf++ = 0x10;                 // (PCR_flag << 4) & 0x10; 有pcr，直接写成0x10
-            int64_t pcrv = (0) & 0x1ff;    // program_clock_reference_base
-            pcrv |= (0x3f << 9) & 0x7E00;  // reserved
+            *buf++ = 0x10;                // (PCR_flag << 4) & 0x10; 有pcr，直接写成0x10
+            int64_t pcrv = (0) & 0x1ff;   // program_clock_reference_base
+            pcrv |= (0x3f << 9) & 0x7E00; // reserved
             pcrv |= (pes_packet->pes_header.dts << 15) & 0xFFFFFFFF8000LL;
 
             char *pp = (char *)&pcrv;
@@ -965,7 +938,7 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
         }
 
         if (write_padding) {
-            adaptation_field_total_length = 2;  // adaptation_field_length + flags = 2
+            adaptation_field_total_length = 2; // adaptation_field_length + flags = 2
             int staffing_count = 0;
             if ((4 + adaptation_field_total_length + left_count) <= 188) {
                 staffing_count = 188 - (4 + adaptation_field_total_length + left_count);
@@ -978,7 +951,7 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
             }
             int adaptation_field_length = adaptation_field_total_length - 1;
             *buf++ = adaptation_field_length;
-            *buf++ = 0x00;  //(PCR_flag << 4) & 0x10;   末尾的，不需要pcr
+            *buf++ = 0x00; //(PCR_flag << 4) & 0x10;   末尾的，不需要pcr
             memset(buf, 0xff, staffing_count);
             buf += staffing_count;
         }
@@ -993,12 +966,12 @@ void RtmpToTs::create_video_ts(std::shared_ptr<PESPacket> pes_packet, int32_t pe
                 curr_pes_seg_index++;
                 left_consume -= curr_seg_size;
                 buff_off += curr_seg_size;
-            } else if (curr_seg_size == left_consume) {  // 可以覆盖
+            } else if (curr_seg_size == left_consume) { // 可以覆盖
                 memcpy(buf + buff_off, video_pes_segs_[curr_pes_seg_index].data(), left_consume);
                 curr_pes_seg_index++;
                 buff_off += left_consume;
                 left_consume = 0;
-            } else {  // curr_seg_size > left_consume
+            } else { // curr_seg_size > left_consume
                 memcpy(buf + buff_off, video_pes_segs_[curr_pes_seg_index].data(), left_consume);
                 video_pes_segs_[curr_pes_seg_index].remove_prefix(left_consume);
                 left_consume = 0;
@@ -1064,14 +1037,13 @@ bool RtmpToTs::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     AACCodec *aac_codec = ((AACCodec *)audio_codec_.get());
     bool sequence_header = false;
 
-    if (header.is_seq_header()) {  // 关键帧索引
+    if (header.is_seq_header()) { // 关键帧索引
         audio_ready_ = true;
         audio_header_ = audio_pkt;
         sequence_header = true;
         // 解析aac configuration header
         std::shared_ptr<AudioSpecificConfig> audio_config = std::make_shared<AudioSpecificConfig>();
-        int32_t consumed = audio_config->parse((uint8_t *)payload.data() + header_consumed,
-                                               payload.size() - header_consumed);
+        int32_t consumed = audio_config->parse((uint8_t *)payload.data() + header_consumed, payload.size() - header_consumed);
         if (consumed < 0) {
             CORE_ERROR("parse aac audio header failed, ret:{}", consumed);
             return false;
@@ -1092,14 +1064,13 @@ bool RtmpToTs::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(false, curr_seg_)) {
             on_ts_segment(curr_seg_);
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", get_session_name(),
-                     curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
-                     curr_seg_->get_duration());
+            // HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", get_session_name(), curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
+                    //  curr_seg_->get_duration());
             curr_seg_ = nullptr;
         }
     }
 
-    auto pes_packet = std::make_shared<PESPacket>();  // pes_packet;
+    auto pes_packet = std::make_shared<PESPacket>(); // pes_packet;
     auto &pes_header = pes_packet->pes_header;
     memset((void *)&pes_header, 0, sizeof(pes_header));
 
@@ -1144,10 +1115,9 @@ bool RtmpToTs::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     adts_header_index_++;
 
     audio_buf_.audio_pes_segs.emplace_back(std::string_view(adts_header.data, 7));
-    audio_buf_.audio_pes_segs.emplace_back(
-        std::string_view(payload.data() + header_consumed, audio_payload_size));
+    audio_buf_.audio_pes_segs.emplace_back(std::string_view(payload.data() + header_consumed, audio_payload_size));
     audio_buf_.audio_pes_len += (7 + audio_payload_size);
-    if (audio_buf_.audio_pes_len < 1400) {  // 至少1400字节，再一起送切片
+    if (audio_buf_.audio_pes_len < 1400) { // 至少1400字节，再一起送切片
         return true;
     }
 
@@ -1168,7 +1138,7 @@ bool RtmpToTs::process_aac_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     pes_header.stream_id = TsPESStreamIdAudioCommon;
     *pes++ = TsPESStreamIdAudioCommon;
     uint8_t PTS_DTS_flags = 0x02;
-    uint8_t PES_header_data_length = 5;  // 只有pts
+    uint8_t PES_header_data_length = 5; // 只有pts
     // int32_t payload_size = 7 + payload.size() - header_consumed;//adts header + payload
     int32_t payload_size = audio_buf_.audio_pes_len;
     uint32_t PES_packet_length_tmp = 3 + PES_header_data_length + payload_size;
@@ -1272,23 +1242,21 @@ bool RtmpToTs::process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
         return false;
     }
 
-    auto pes_packet = std::make_shared<PESPacket>();  // pes_packet;
+    auto pes_packet = std::make_shared<PESPacket>(); // pes_packet;
     auto &pes_header = pes_packet->pes_header;
     memset((void *)&pes_header, 0, sizeof(pes_header));
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(false, curr_seg_)) {
             on_ts_segment(curr_seg_);
-            HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", get_session_name(),
-                     curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
-                     curr_seg_->get_duration());
+            // HLS_INFO("session:{}, reap ts seq:{}, name:{}, bytes:{}k, dur:{} by audio", get_session_name(), curr_seg_->get_seqno(), curr_seg_->get_filename(), curr_seg_->get_ts_bytes() / 1024,
+                    //  curr_seg_->get_duration());
             curr_seg_ = nullptr;
         }
     }
 
     int32_t audio_payload_size = payload.size() - header_consumed;
-    audio_buf_.audio_pes_segs.emplace_back(
-        std::string_view(payload.data() + header_consumed, audio_payload_size));
+    audio_buf_.audio_pes_segs.emplace_back(std::string_view(payload.data() + header_consumed, audio_payload_size));
     audio_buf_.audio_pes_len += audio_payload_size;
 
     if (!curr_seg_) {
@@ -1307,7 +1275,7 @@ bool RtmpToTs::process_mp3_packet(std::shared_ptr<RtmpMessage> audio_pkt) {
     pes_header.stream_id = TsPESStreamIdAudioCommon;
     *pes++ = TsPESStreamIdAudioCommon;
     uint8_t PTS_DTS_flags = 0x02;
-    uint8_t PES_header_data_length = 5;  // 只有pts
+    uint8_t PES_header_data_length = 5; // 只有pts
 
     int32_t payload_size = audio_buf_.audio_pes_len;
     uint32_t PES_packet_length_tmp = 3 + PES_header_data_length + payload_size;
@@ -1382,7 +1350,7 @@ void RtmpToTs::create_audio_ts(std::shared_ptr<PESPacket> pes_packet) {
         std::string_view ts_seg = curr_seg_->alloc_ts_packet();
         ts_total_bytes += 188;
         uint8_t *buf = (uint8_t *)ts_seg.data();
-        *buf++ = 0x47;  // ts header sync byte
+        *buf++ = 0x47; // ts header sync byte
         // transport_error_indicator(1b)        0
         // payload_unit_start_indicator(1b)     1
         // transport_priority(1b)               0
@@ -1405,14 +1373,13 @@ void RtmpToTs::create_audio_ts(std::shared_ptr<PESPacket> pes_packet) {
         if (write_padding) {
             *buf++ = (00 << 6) | (TsAdapationControlBoth << 4) | (continuity_counter_[audio_pid_] & 0x0f);
         } else {
-            *buf++ =
-                (00 << 6) | (TsAdapationControlPayloadOnly << 4) | (continuity_counter_[audio_pid_] & 0x0f);
+            *buf++ = (00 << 6) | (TsAdapationControlPayloadOnly << 4) | (continuity_counter_[audio_pid_] & 0x0f);
         }
 
         continuity_counter_[audio_pid_]++;
         int adaptation_field_total_length = 0;
         if (write_padding) {
-            adaptation_field_total_length = 2;  // adaptation_field_length + flags = 2
+            adaptation_field_total_length = 2; // adaptation_field_length + flags = 2
             int staffing_count = 0;
             if ((4 + adaptation_field_total_length + left_count) <= 188) {
                 staffing_count = 188 - (4 + adaptation_field_total_length + left_count);
@@ -1425,7 +1392,7 @@ void RtmpToTs::create_audio_ts(std::shared_ptr<PESPacket> pes_packet) {
             }
             int adaptation_field_length = adaptation_field_total_length - 1;
             *buf++ = adaptation_field_length;
-            *buf++ = 0x00;  //(PCR_flag << 4) & 0x10;   末尾的，不需要pcr
+            *buf++ = 0x00; //(PCR_flag << 4) & 0x10;   末尾的，不需要pcr
             memset(buf, 0xff, staffing_count);
             buf += staffing_count;
         }
@@ -1441,12 +1408,12 @@ void RtmpToTs::create_audio_ts(std::shared_ptr<PESPacket> pes_packet) {
                 curr_pes_seg_index++;
                 left_consume -= curr_seg_size;
                 buff_off += curr_seg_size;
-            } else if (curr_seg_size == left_consume) {  // 可以覆盖
+            } else if (curr_seg_size == left_consume) { // 可以覆盖
                 memcpy(buf + buff_off, audio_buf_.audio_pes_segs[curr_pes_seg_index].data(), left_consume);
                 curr_pes_seg_index++;
                 buff_off += left_consume;
                 left_consume = 0;
-            } else {  // curr_seg_size > left_consume
+            } else { // curr_seg_size > left_consume
                 memcpy(buf + buff_off, audio_buf_.audio_pes_segs[curr_pes_seg_index].data(), left_consume);
                 audio_buf_.audio_pes_segs[curr_pes_seg_index].remove_prefix(left_consume);
                 left_consume = 0;
@@ -1482,6 +1449,7 @@ void RtmpToTs::close() {
                 rtmp_media_sink_->on_close({});
                 rtmp_media_sink_->on_rtmp_message({});
                 rtmp_media_sink_->on_close({});
+                rtmp_media_sink_->set_on_source_status_changed_cb({});
                 rtmp_media_sink_->close();
                 if (origin_source) {
                     origin_source->remove_media_sink(rtmp_media_sink_);
@@ -1490,7 +1458,7 @@ void RtmpToTs::close() {
             }
 
             if (origin_source) {
-                origin_source->remove_bridge(shared_from_this());
+                origin_source->remove_bridge(self);
             }
             co_return;
         },

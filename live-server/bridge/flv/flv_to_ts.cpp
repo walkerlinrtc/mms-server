@@ -230,9 +230,9 @@ bool FlvToTs::process_h264_packet(std::shared_ptr<FlvTag> video_pkt) {
     }
 
     bool is_key = header.is_key_frame() && !header.is_seq_header();
-    if (!curr_seg_ && !is_key) {  // 片段开始的帧，必须是关键帧
-        return false;
-    }
+    // if (!curr_seg_ && !is_key) {  // 片段开始的帧，必须是关键帧
+    //     return false;
+    // }
 
     auto pes_packet = std::make_shared<PESPacket>();  // pes_packet;
     auto &pes_header = pes_packet->pes_header;

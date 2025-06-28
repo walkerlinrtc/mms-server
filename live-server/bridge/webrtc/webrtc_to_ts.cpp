@@ -356,9 +356,9 @@ void WebRtcToTs::generate_h264_ts(int64_t timestamp, std::shared_ptr<RtpH264NALU
         wait_first_key_frame_ = false;
     }
 
-    if (!curr_seg_ && !is_key) {  // 片段开始的帧，必须是关键帧
-        return;
-    }
+    // if (!curr_seg_ && !is_key) {  // 片段开始的帧，必须是关键帧
+    //     return;
+    // }
 
     if (curr_seg_) {
         if (publish_app_->can_reap_ts(is_key, curr_seg_)) {

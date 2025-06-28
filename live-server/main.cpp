@@ -93,7 +93,6 @@ int main(int argc, char *argv[]) {
     }
 
     init_log(is_debug_mode);
-
     if (vm.count("help")) {  // 若参数中有help选项
         std::cerr << opts << std::endl;
         return -1;
