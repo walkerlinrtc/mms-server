@@ -12,7 +12,7 @@ apps:
         # - flv
     test_push_to_count: 200
     edge_push:
-      - enabled: true
+      - enabled: false
         protocol: rtmp
         url: rtmp://test2.publish.com/${app}/${stream_name}
     #   - protocol: rtmp

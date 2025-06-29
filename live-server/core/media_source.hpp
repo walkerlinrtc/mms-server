@@ -132,7 +132,7 @@ protected:
     std::atomic<uint32_t> sinks_count_{0};
     std::atomic<uint32_t> bridge_count_{0};
     std::mutex session_mutex_;
-    std::atomic<std::weak_ptr<StreamSession>> session_;
+    std::atomic<std::weak_ptr<StreamSession>> session_{std::weak_ptr<StreamSession>()};
     std::shared_ptr<PublishApp> app_;
     ThreadWorker *worker_ = nullptr;
 

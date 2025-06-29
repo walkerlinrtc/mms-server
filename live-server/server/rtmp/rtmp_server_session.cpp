@@ -177,7 +177,7 @@ void RtmpServerSession::start() {
     start_statistic_timer();
 }
 
-boost::asio::awaitable<void> RtmpServerSession::do_stop(WaitGroup *wg) {
+boost::asio::awaitable<void> RtmpServerSession::do_stop() {
     CORE_DEBUG("closing RtmpServerSession {} ..., count:{}", get_session_name(), ObjTracker<RtmpServerSession>::get_use_count());
     boost::system::error_code ec;
 
@@ -192,9 +192,7 @@ boost::asio::awaitable<void> RtmpServerSession::do_stop(WaitGroup *wg) {
     alive_timeout_timer_.cancel();
     statistic_timer_.cancel();
 
-    if (wg) {
-        co_await wg->wait();
-    }
+    co_await wg_.wait();
 
     if (rtmp_media_sink_) {
         auto play_app = std::static_pointer_cast<PlayApp>(get_app());
@@ -233,10 +231,11 @@ void RtmpServerSession::stop() {
     boost::asio::co_spawn(
         conn_->get_worker()->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
-            co_await do_stop(nullptr);
+            co_await do_stop();
         },
         boost::asio::detached);
 }
+
 boost::asio::awaitable<bool> RtmpServerSession::sync_stop(ThreadWorker *other_worker) {
     if (closed_.test_and_set(std::memory_order_acq_rel)) {
         co_return false;
@@ -248,8 +247,8 @@ boost::asio::awaitable<bool> RtmpServerSession::sync_stop(ThreadWorker *other_wo
 
     boost::asio::co_spawn(
         conn_->get_worker()->get_io_context(),
-        [this, self, &stop_wg]() -> boost::asio::awaitable<void> {
-            co_await do_stop(&stop_wg);
+        [this, self]() -> boost::asio::awaitable<void> {
+            co_await do_stop();
         },
         [&stop_wg](std::exception_ptr) {
             stop_wg.done();
@@ -347,6 +346,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_command(std::shared_
     }
 
     auto name = command_name.get_value();
+    spdlog::info("handle amf0:{}", name);
     if (name == "connect") {
         co_return co_await handle_amf0_connect_command(rtmp_msg);
     } else if (name == "releaseStream") {
@@ -496,6 +496,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
     }
 
     if (!rtmp_media_source_->set_session(self)) {
+        spdlog::info("set session failed");
         co_return false;
     }
 

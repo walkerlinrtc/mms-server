@@ -28,20 +28,14 @@ using namespace mms;
 
 MediaSource::MediaSource(const std::string & media_type, std::weak_ptr<StreamSession> session, std::shared_ptr<PublishApp> app, ThreadWorker *worker) : 
                                                                                                     media_type_(media_type), 
-                                                                                                    session_(session), 
                                                                                                     app_(app), 
                                                                                                     worker_(worker)
 {
-    
+    session_.store(session);
 }
 
 MediaSource::~MediaSource() {
 
-}
-
-std::shared_ptr<StreamSession> MediaSource::get_session() {
-    auto s = session_.load().lock();
-    return s;
 }
 
 Json::Value MediaSource::to_json() {
@@ -88,9 +82,15 @@ void MediaSource::notify_status(SourceStatus status) {
     }
 }
 
+std::shared_ptr<StreamSession> MediaSource::get_session() {
+    auto s = session_.load().lock();
+    return s;
+}
+
 bool MediaSource::set_session(std::shared_ptr<StreamSession> s) {
     std::lock_guard<std::mutex> lock(session_mutex_);
-    if (!session_.load().expired()) {
+    auto curr = session_.load().lock();
+    if (curr != nullptr && curr != s) {
         return false;
     }
 
