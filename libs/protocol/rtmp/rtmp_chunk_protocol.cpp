@@ -10,10 +10,10 @@
 using namespace mms;
 using namespace boost::asio::experimental::awaitable_operators;
 
-constexpr uint32_t MAX_BUFFER_BYTES = 2*1024*1024;
 
 RtmpChunkProtocol::RtmpChunkProtocol(std::shared_ptr<SocketInterface> conn):conn_(conn) {
-    recv_buffer_ = new uint8_t[MAX_BUFFER_BYTES];
+    recv_buffer_ = (uint8_t*)malloc(MIN_RTMP_BUF_BYTES);
+    max_buf_bytes_ = MIN_RTMP_BUF_BYTES;
     recv_len_ = 0;
 
     for (uint32_t cid = 0; cid < 256; cid++) {
@@ -29,7 +29,7 @@ RtmpChunkProtocol::RtmpChunkProtocol(std::shared_ptr<SocketInterface> conn):conn
 
 RtmpChunkProtocol::~RtmpChunkProtocol() {
     if (recv_buffer_) {
-        delete[] recv_buffer_;
+        free(recv_buffer_);
         recv_buffer_ = nullptr;
     }
 }
@@ -39,12 +39,15 @@ RtmpChunkProtocol::~RtmpChunkProtocol() {
 boost::asio::awaitable<int32_t> RtmpChunkProtocol::cycle_recv_rtmp_message(const std::function<boost::asio::awaitable<bool>(std::shared_ptr<RtmpMessage>)> & recv_handler) {
     recv_handler_ = recv_handler;
     while (1) {
-        if (MAX_BUFFER_BYTES - recv_len_ <= 0) {
-            spdlog::error("no enough buffer for rtmp");
-            co_return -3;
+        if (max_buf_bytes_ - recv_len_ <= 0) {//不够了扩容
+            if (max_buf_bytes_*2 >= MAX_RTMP_BUF_BYTES) {
+                co_return -3;
+            }
+            recv_buffer_ = (uint8_t*)realloc(recv_buffer_, max_buf_bytes_*2);
+            max_buf_bytes_ *= 2;
         }
 
-        auto s = co_await conn_->recv_some(recv_buffer_ + recv_len_, MAX_BUFFER_BYTES - recv_len_);
+        auto s = co_await conn_->recv_some(recv_buffer_ + recv_len_, max_buf_bytes_ - recv_len_);
         if (s < 0) {
             co_return s;
         }
@@ -476,7 +479,7 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
     // 重新记录前一个chunk
     recv_chunk_streams_[csid] = chunk;
     // 安全规则
-    if (chunk->chunk_message_header_.message_length_ >= 2*1024*1024) {// packet too big
+    if (chunk->chunk_message_header_.message_length_ >= MAX_RTMP_BUF_BYTES) {// packet too big
         co_return -14;
     }
     // 之前没有rtmp message记录，那么就需要创建一个
@@ -515,7 +518,7 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         }
 
         chunk->rtmp_message_ = nullptr;
-    } else if (chunk->rtmp_message_->get_total_data().size() >= 2*1024*1024) {//安全规则
+    } else if (chunk->rtmp_message_->get_total_data().size() >= MAX_RTMP_BUF_BYTES) {//安全规则
         spdlog::error("rtmp max bytes error");
         co_return -21;
     }

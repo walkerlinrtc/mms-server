@@ -41,6 +41,9 @@ namespace mms {
 class SocketInterface;
 class RtmpMessage;
 
+constexpr int64_t MAX_RTMP_BUF_BYTES = 2*1024*1024;
+constexpr int64_t MIN_RTMP_BUF_BYTES = 16*1024;
+
 class RtmpChunkProtocol {
 public:
     RtmpChunkProtocol(std::shared_ptr<SocketInterface> conn);
@@ -99,7 +102,8 @@ private:
 
     // 接收缓冲
     uint8_t *recv_buffer_ = nullptr;
-    uint32_t recv_len_ = 0;
+    int64_t max_buf_bytes_ = MIN_RTMP_BUF_BYTES;
+    int64_t recv_len_ = 0;
 
     int32_t in_chunk_size_ = 128;
     int32_t out_chunk_size_ = 128;
