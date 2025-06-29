@@ -90,6 +90,10 @@ public:
         return stream_resume_timeout_;
     }
 
+    const std::string & get_stream_conflict_policy() const {
+        return stream_conflict_policy_;
+    }
+
     Json::Value to_json();
 private:
     std::string domain_name_;
@@ -114,5 +118,7 @@ private:
     int64_t max_fmp4_seg_bytes_ = 10*1024*1024;//最大mp4 10M
     // 延迟删除
     uint32_t stream_resume_timeout_ = 10;//10秒删除流
+    // 流冲突策略
+    std::string stream_conflict_policy_ = "replace"; // replace or reject
 };
 };

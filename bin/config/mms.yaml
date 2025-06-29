@@ -1,7 +1,7 @@
 cert_root: "./certs" #证书存储根路径
 log_level: debug
 record_root_path: /data/record
-socket_timeout: 10s #socket没有数据收发的话，超时关闭
+socket_inactive_timeout: 60s #socket没有数据收发的话，超时关闭
 
 rtmp: 
   enabled: true               # 使能

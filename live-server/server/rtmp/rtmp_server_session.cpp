@@ -177,56 +177,86 @@ void RtmpServerSession::start() {
     start_statistic_timer();
 }
 
+boost::asio::awaitable<void> RtmpServerSession::do_stop(WaitGroup *wg) {
+    CORE_DEBUG("closing RtmpServerSession {} ..., count:{}", get_session_name(), ObjTracker<RtmpServerSession>::get_use_count());
+    boost::system::error_code ec;
+
+    if (conn_) {
+        conn_->close();
+    }
+
+    if (rtmp_msgs_channel_.is_open()) {
+        rtmp_msgs_channel_.close();
+    }
+
+    alive_timeout_timer_.cancel();
+    statistic_timer_.cancel();
+
+    if (wg) {
+        co_await wg->wait();
+    }
+
+    if (rtmp_media_sink_) {
+        auto play_app = std::static_pointer_cast<PlayApp>(get_app());
+        if (play_app) {
+            auto publish_app = play_app->get_publish_app();
+            auto s = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
+            if (s) {
+                s->remove_media_sink(rtmp_media_sink_);
+            }
+        }
+        rtmp_media_sink_->set_on_source_status_changed_cb({});
+        rtmp_media_sink_->on_rtmp_message({});
+        rtmp_media_sink_->on_close({});
+        rtmp_media_sink_->close();
+        rtmp_media_sink_ = nullptr;
+    }
+
+    if (rtmp_media_source_) {
+        auto publish_app = rtmp_media_source_->get_app();
+        rtmp_media_source_->set_session(nullptr);
+        start_delayed_source_check_and_delete(
+            publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
+        co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
+    }
+
+    CORE_DEBUG("close RtmpServerSession {} done, count:{}", get_session_name(), ObjTracker<RtmpServerSession>::get_use_count());
+    co_return;
+}
+
 void RtmpServerSession::stop() {
-    if (closed_.test_and_set(std::memory_order_acquire)) {
+    if (closed_.test_and_set(std::memory_order_acq_rel)) {
         return;
     }
 
-    auto self(this->shared_from_this());
+    auto self = shared_from_this();
     boost::asio::co_spawn(
         conn_->get_worker()->get_io_context(),
         [this, self]() -> boost::asio::awaitable<void> {
-            CORE_DEBUG("closing RtmpServerSession {} ...", get_session_name());
-            boost::system::error_code ec;
-            if (conn_) {
-                conn_->close();
-            }
-
-            if (rtmp_msgs_channel_.is_open()) {  // 结束发送协程
-                rtmp_msgs_channel_.close();
-            }
-
-            alive_timeout_timer_.cancel();
-            statistic_timer_.cancel();
-            co_await wg_.wait();
-
-            if (rtmp_media_sink_) {  // 如果是播放的session
-                auto play_app = std::static_pointer_cast<PlayApp>(get_app());
-                if (play_app) {
-                    auto publish_app = play_app->get_publish_app();
-                    auto s = SourceManager::get_instance().get_source(publish_app->get_domain_name(), get_app_name(), get_stream_name());
-                    if (s) {
-                        s->remove_media_sink(rtmp_media_sink_);
-                    }
-                }
-                rtmp_media_sink_->set_on_source_status_changed_cb({});
-                rtmp_media_sink_->on_rtmp_message({});
-                rtmp_media_sink_->on_close({});
-                rtmp_media_sink_->close();
-                rtmp_media_sink_ = nullptr;
-            }
-
-            if (rtmp_media_source_) {  // 如果是推流的session
-                auto publish_app = rtmp_media_source_->get_app();
-                rtmp_media_source_->set_session(nullptr);  // 解除绑定
-                start_delayed_source_check_and_delete(publish_app->get_conf()->get_stream_resume_timeout(), rtmp_media_source_);
-                co_await publish_app->on_unpublish(std::static_pointer_cast<StreamSession>(shared_from_this()));
-            }
-
-            CORE_DEBUG("close RtmpServerSession {} done", get_session_name());
-            co_return;
+            co_await do_stop(nullptr);
         },
         boost::asio::detached);
+}
+boost::asio::awaitable<bool> RtmpServerSession::sync_stop(ThreadWorker *other_worker) {
+    if (closed_.test_and_set(std::memory_order_acq_rel)) {
+        co_return false;
+    }
+
+    auto self = shared_from_this();
+    WaitGroup stop_wg(other_worker);
+    stop_wg.add(1);
+
+    boost::asio::co_spawn(
+        conn_->get_worker()->get_io_context(),
+        [this, self, &stop_wg]() -> boost::asio::awaitable<void> {
+            co_await do_stop(&stop_wg);
+        },
+        [&stop_wg](std::exception_ptr) {
+            stop_wg.done();
+        });
+
+    co_await stop_wg.wait();
+    co_return true;
 }
 
 Json::Value RtmpServerSession::to_json() {
@@ -440,6 +470,7 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
         co_return false;
     }
 
+    auto publish_app = std::static_pointer_cast<PublishApp>(app_);
     is_publisher_ = true;
     is_player_ = false;
     auto rtmp_media_source = SourceManager::get_instance().get_source(get_domain_name(), get_app_name(), get_stream_name());
@@ -447,8 +478,14 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
         rtmp_media_source_ = std::make_shared<RtmpMediaSource>(get_worker(), std::weak_ptr<StreamSession>(self), std::static_pointer_cast<PublishApp>(app_));
     } else {
         auto old_session = std::static_pointer_cast<RtmpServerSession>(rtmp_media_source->get_session());
-        if (old_session) {//    todo：根据配置，实现策略：1.踢掉老的session；2. 拒绝新的推流
-            co_return false; // 允许重推，但是得等老的还没关闭
+        if (old_session) {
+            if (publish_app->get_conf()->get_stream_conflict_policy() == "replace") {// 踢掉旧客户端，取而代之
+                if (!co_await old_session->sync_stop(worker_)) {
+                    co_return false;
+                }
+            } else {// 拒绝新流
+                co_return false;
+            }
         }
         rtmp_media_source_ = std::static_pointer_cast<RtmpMediaSource>(rtmp_media_source);
     }
@@ -458,11 +495,13 @@ boost::asio::awaitable<bool> RtmpServerSession::handle_amf0_publish_command(std:
         co_return false;
     }
 
+    if (!rtmp_media_source_->set_session(self)) {
+        co_return false;
+    }
+
     rtmp_media_source_->set_origin(true);
-    rtmp_media_source_->set_session(self);
     rtmp_media_source_->set_source_info(domain_name_, app_name_, stream_name_);
     // 通知app开始播放
-    auto publish_app = std::static_pointer_cast<PublishApp>(app_);
     auto err = co_await publish_app->on_publish(std::static_pointer_cast<StreamSession>(self));
     if (err.code != 0) {
         co_return false;

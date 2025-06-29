@@ -59,7 +59,7 @@ Json::Value RtmpMediaSource::to_json() {
         v["acodec"] = acodec->to_json();
     }
     
-    auto session = session_.lock();
+    auto session = get_session();
     if (session) {
         v["session"] = session->to_json();
     }
@@ -273,6 +273,7 @@ bool RtmpMediaSource::on_metadata(std::shared_ptr<RtmpMessage> metadata_pkt) {
     if (has_audio_) {
         auto audio_codec_id = metadata_->get_audio_codec_id();
         if (audio_codec_id == AudioTagHeader::AAC) {
+            CORE_INFO("create aac codec");
             audio_codec_ = std::make_shared<AACCodec>();
         } else if (audio_codec_id == AudioTagHeader::MP3) {
             audio_codec_ = std::make_shared<MP3Codec>();

@@ -55,7 +55,9 @@ public:
     RtmpServerSession(std::shared_ptr<SocketInterface> conn);
     virtual ~RtmpServerSession();
     void start() override;
+    boost::asio::awaitable<void> do_stop(WaitGroup *wg);
     void stop() override;
+    boost::asio::awaitable<bool> sync_stop(ThreadWorker *other_worker);
     Json::Value to_json() override;
 protected:
     // 同步方式发送rtmp消息，发送完成后会等待

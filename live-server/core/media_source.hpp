@@ -54,7 +54,7 @@ public:
     }
     
     std::shared_ptr<StreamSession> get_session();
-    void set_session(std::shared_ptr<StreamSession> s);
+    bool set_session(std::shared_ptr<StreamSession> s);
 
     virtual bool has_no_sinks_for_time(uint32_t milli_secs);
     void set_source_info(const std::string & domain, const std::string & app_name, const std::string & stream_name);
@@ -131,7 +131,8 @@ protected:
     bool stream_ready_ = false;
     std::atomic<uint32_t> sinks_count_{0};
     std::atomic<uint32_t> bridge_count_{0};
-    std::weak_ptr<StreamSession> session_;
+    std::mutex session_mutex_;
+    std::atomic<std::weak_ptr<StreamSession>> session_;
     std::shared_ptr<PublishApp> app_;
     ThreadWorker *worker_ = nullptr;
 

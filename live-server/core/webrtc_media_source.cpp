@@ -38,7 +38,7 @@ Json::Value WebRtcMediaSource::to_json() {
         v["acodec"] = acodec->to_json();
     }
 
-    auto session = session_.lock();
+    auto session = get_session();
     if (session) {
         v["session"] = session->to_json();
     }
@@ -49,7 +49,7 @@ Json::Value WebRtcMediaSource::to_json() {
 std::string WebRtcMediaSource::process_publish_sdp(const std::string & sdp) {
     CORE_DEBUG("publish sdp:");
     CORE_DEBUG("{}", sdp);
-    auto session = session_.lock();
+    auto session = get_session();
     std::shared_ptr<WebRtcServerSession> webrtc_session = std::static_pointer_cast<WebRtcServerSession>(session);
     if (!webrtc_session) {
         return "";
@@ -126,7 +126,7 @@ std::string WebRtcMediaSource::process_publish_sdp(const std::string & sdp) {
 
 int32_t WebRtcMediaSource::create_local_sdp()
 {
-    auto session = session_.lock();
+    auto session = get_session();
     std::shared_ptr<WebRtcServerSession> webrtc_session = std::static_pointer_cast<WebRtcServerSession>(session);
     if (!webrtc_session) {
         return -1;

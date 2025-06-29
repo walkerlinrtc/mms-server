@@ -15,7 +15,10 @@ RecorderDb::RecorderDb() {
 }
 
 RecorderDb::~RecorderDb() {
-
+    if (db_) {
+        delete db_;
+        db_ = nullptr;
+    }
 }
 
 bool RecorderDb::init() {

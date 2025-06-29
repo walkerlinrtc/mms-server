@@ -169,6 +169,11 @@ int32_t AppConfig::load_config(const YAML::Node & node)
         stream_resume_timeout_ = stream_resume_timeout.as<uint32_t>();
     }
 
+    auto stream_conflict_policy = node["stream_conflict_policy"];
+    if (stream_conflict_policy.IsDefined() && stream_conflict_policy.IsScalar()) {
+        stream_conflict_policy_ = stream_conflict_policy.as<std::string>();
+    }
+
     return 0;
 }
 

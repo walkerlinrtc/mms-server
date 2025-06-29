@@ -40,7 +40,7 @@ MediaSource::~MediaSource() {
 }
 
 std::shared_ptr<StreamSession> MediaSource::get_session() {
-    auto s = session_.lock();
+    auto s = session_.load().lock();
     return s;
 }
 
@@ -88,11 +88,17 @@ void MediaSource::notify_status(SourceStatus status) {
     }
 }
 
-void MediaSource::set_session(std::shared_ptr<StreamSession> s) {
-    session_ = std::weak_ptr<StreamSession>(s);
+bool MediaSource::set_session(std::shared_ptr<StreamSession> s) {
+    std::lock_guard<std::mutex> lock(session_mutex_);
+    if (!session_.load().expired()) {
+        return false;
+    }
+
+    session_.store(std::weak_ptr<StreamSession>(s));
     if (s) {
         worker_ = s->get_worker();
     }
+    return true;
 }
 
 void MediaSource::set_source_info(const std::string & domain, const std::string & app_name, const std::string & stream_name) {
@@ -235,7 +241,7 @@ void MediaSource::close() {
 
     auto self(shared_from_this());
     boost::asio::co_spawn(worker_->get_io_context(), [self, this]()->boost::asio::awaitable<void> {
-        auto session = session_.lock();
+        auto session = get_session();
         if (session) {
             session->stop(); 
         }
