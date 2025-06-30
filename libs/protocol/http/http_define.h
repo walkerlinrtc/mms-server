@@ -2,7 +2,6 @@
 #include <unordered_map>
 #include <string>
 namespace mms {
-#define HTTP_MAX_BUF (1024*8)
 // http method http1.1-rfc2616.txt @5.1.1
 #define HTTP_METHOD_OPTIONS     "OPTIONS"
 #define HTTP_METHOD_GET         "GET"

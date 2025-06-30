@@ -16,11 +16,16 @@ using namespace mms;
 HttpServerSession::HttpServerSession(HttpRequestHandler *request_handler, std::shared_ptr<SocketInterface> sock):
                     Session(sock->get_worker()), request_handler_(request_handler), sock_(sock), wg_(worker_) {
     set_session_type("http");
-    buf_ = std::make_unique<char[]>(HTTP_MAX_BUF);
+    buf_ = (char*)malloc(MIN_HTTP_BUF_BYTES);
+    max_buf_bytes_ = MIN_HTTP_BUF_BYTES;
 }
 
 HttpServerSession::~HttpServerSession() {
     // spdlog::debug("destroy HttpServerSession");
+    if (buf_) {
+        free(buf_);
+        buf_ = nullptr;
+    }
 }
 
 std::shared_ptr<SocketInterface> HttpServerSession::get_sock() {
@@ -65,7 +70,7 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
     int32_t consumed;
     if (buf_size_ > 0) {
         do {
-            std::tie(cont, consumed) = co_await parse_recv_buf((const char*)buf_.get(), buf_size_);
+            std::tie(cont, consumed) = co_await parse_recv_buf((const char*)buf_, buf_size_);
             if (consumed < 0) {
                 stop();
                 co_return;
@@ -73,7 +78,7 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
 
             if (consumed > 0) {
                 buf_size_ -= consumed;
-                memmove((void*)buf_.get(), (void*)(buf_.get() + consumed), buf_size_);
+                memmove((void*)buf_, (void*)(buf_ + consumed), buf_size_);
             }
 
             if (!cont) {
@@ -83,13 +88,21 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
     }
 
     while(1) {
-        auto recv_size = co_await sock_->recv_some((uint8_t*)buf_.get() + buf_size_, HTTP_MAX_BUF - buf_size_);
+        if (max_buf_bytes_ - buf_size_ <= 0) {
+            if (2*max_buf_bytes_ >= MAX_HTTP_BUF_BYTES) {
+                co_return;
+            }
+            buf_ = (char*)realloc(buf_, 2*max_buf_bytes_);
+            max_buf_bytes_ *= 2;
+        }
+
+        auto recv_size = co_await sock_->recv_some((uint8_t*)buf_ + buf_size_, max_buf_bytes_ - buf_size_);
         if (recv_size < 0) {
             break;
         }
 
         buf_size_ += recv_size;   
-        std::tie(cont, consumed) = co_await parse_recv_buf((const char*)buf_.get(), buf_size_);
+        std::tie(cont, consumed) = co_await parse_recv_buf((const char*)buf_, buf_size_);
         if (consumed < 0) {
             stop();
             co_return;
@@ -97,7 +110,7 @@ boost::asio::awaitable<void> HttpServerSession::cycle_recv() {
 
         if (consumed > 0) {
             buf_size_ -= consumed;
-            memmove((void*)buf_.get(), (void*)(buf_.get() + consumed), buf_size_);
+            memmove((void*)buf_, (void*)(buf_ + consumed), buf_size_);
         }
 
         if (!cont) {

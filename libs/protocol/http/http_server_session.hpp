@@ -31,6 +31,9 @@ namespace mms {
 class HttpServerSession;
 class SocketInterface;
 
+constexpr int64_t MIN_HTTP_BUF_BYTES = 1024;
+constexpr int64_t MAX_HTTP_BUF_BYTES = 1024*8;
+
 class HttpRequestHandler {
 public:
     virtual boost::asio::awaitable<bool> on_new_request(std::shared_ptr<HttpServerSession> session, 
@@ -62,7 +65,8 @@ protected:
     std::list<std::shared_ptr<HttpRequest>> reqs_;
     bool is_websocket_ = false;
 protected:
-    std::unique_ptr<char[]> buf_;
+    char *buf_ = nullptr;
+    int64_t max_buf_bytes_ = 0;
     int32_t buf_size_ = 0;
     int32_t buf_pos_ = 0;
     WaitGroup wg_;
