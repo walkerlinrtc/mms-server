@@ -27,6 +27,7 @@
 #include "obj_viewer.h"
 #include "recorder/recorder_manager.h"
 #include "recorder/recorder.h"
+#include "system/system.h"
 
 using namespace mms;
 bool HttpApiServer::register_route() {
@@ -71,6 +72,11 @@ bool HttpApiServer::register_route() {
         return false;
     }
 
+    ret = on_post("/api/get_mem_info", std::bind(&HttpApiServer::get_mem_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    if (!ret) {
+        return false;
+    }
+
     ret = on_options("/api/stop_recorder", [this](std::shared_ptr<HttpServerSession> session, 
                                                   std::shared_ptr<HttpRequest> req, 
                                                   std::shared_ptr<HttpResponse> resp)->boost::asio::awaitable<void> {
@@ -101,6 +107,11 @@ bool HttpApiServer::register_route() {
     }
 
     ret = on_get("/api/cut_off_stream", std::bind(&HttpApiServer::cut_off_stream, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    if (!ret) {
+        return false;
+    }
+
+    ret = on_get("/api/get_mem_info", std::bind(&HttpApiServer::get_mem_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
     }
@@ -448,6 +459,35 @@ boost::asio::awaitable<void> HttpApiServer::stop_recorder(std::shared_ptr<HttpSe
     co_return;
 }
 
+boost::asio::awaitable<void> HttpApiServer::get_mem_info(std::shared_ptr<HttpServerSession> session, 
+                                                            std::shared_ptr<HttpRequest> req, 
+                                                            std::shared_ptr<HttpResponse> resp) {
+    (void)session;
+    (void)req;
+    Json::Value root;
+        
+    resp->add_header("Content-type", "application/json");
+    resp->add_header("Access-Control-Allow-Origin", "*");
+    if (!(co_await resp->write_header(200, "OK"))) {
+        resp->close();
+        co_return;
+    }
+
+    auto mem_info = System::get_instance().get_mem_info();
+    root["code"] = 0;
+    Json::Value data;
+    data["mem_info"] = mem_info.to_json();
+    root["data"] = data;
+    auto body = root.toStyledString();
+    bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
+    if (!ret) {
+        resp->close();
+        co_return;
+    }
+
+    resp->close();
+    co_return;
+} 
 
 boost::asio::awaitable<void> HttpApiServer::response_json(std::shared_ptr<HttpResponse> resp, int32_t code, const std::string & msg) {
     Json::Value root;
