@@ -1,6 +1,9 @@
 #pragma once
 #include <memory>
 #include <queue>
+#include <map>
+#include <atomic>
+#include <mutex>
 #include <boost/asio/steady_timer.hpp>
 #include "json/json.h"
 
@@ -23,10 +26,7 @@ struct MemoryInfo {
     }
 };
 
-struct CpuInfo {
-    float usage_percent = 0.0f; // CPU 使用率百分比
-};
-
+constexpr size_t MAX_POINTS = 5*60;
 class System {
 public:
     static System & get_instance();
@@ -34,8 +34,7 @@ public:
     void uninit();
     void do_sample();
     MemoryInfo get_mem_info() const;
-    CpuInfo get_cpu_usage() const; // 新增
-    
+    Json::Value to_json() const;
     virtual ~System();
 private:
     System();
@@ -46,7 +45,11 @@ private:
     static System instance_;
     ThreadWorker *worker_;
 
-    std::deque<float> usage_history_; // 滚动窗口
-    size_t max_points_;
+    uint64_t idle_time_ = 0;
+    uint64_t total_time_ = 0;
+    std::atomic<float> curr_cpu_usage_;
+    std::atomic<float> curr_mem_usage_;
+    std::atomic<std::shared_ptr<std::map<int64_t, float>>> cpu_usages_;
+    std::atomic<std::shared_ptr<std::map<int64_t, float>>> mem_usages_;
 };
 };

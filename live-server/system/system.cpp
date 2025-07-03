@@ -1,7 +1,9 @@
 #include "system.h"
+#include "base/thread/thread_worker.hpp"
 
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
+#include <boost/asio/redirect_error.hpp>
 #include <boost/asio/experimental/awaitable_operators.hpp>
 #include <boost/asio/read.hpp>
 #include <fstream>
@@ -17,10 +19,12 @@ System::System() {}
 System::~System() {}
 
 void System::init(ThreadWorker *worker) {
+    cpu_usages_.store(std::make_shared<std::map<int64_t, float>>());
+    mem_usages_.store(std::make_shared<std::map<int64_t, float>>());
     worker_ = worker;
     boost::asio::co_spawn(
         worker_->get_io_context(),
-        [this, self]() -> boost::asio::awaitable<void> {
+        [this]() -> boost::asio::awaitable<void> {
             boost::system::error_code ec;
             timer_ = std::make_shared<boost::asio::steady_timer>(worker_->get_io_context());
             while (1) {
@@ -35,8 +39,50 @@ void System::init(ThreadWorker *worker) {
         }, boost::asio::detached);
 }
 
-void System::do_sample() {
+static bool read_cpu_stat(uint64_t &idle_time, uint64_t &total_time) {
+    std::ifstream stat("/proc/stat");
+    if (!stat.is_open()) return false;
 
+    std::string line;
+    std::getline(stat, line); // 只读取第一行
+    std::istringstream iss(line);
+
+    std::string cpu;
+    uint64_t user, nice, system, idle, iowait, irq, softirq, steal;
+    iss >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
+
+    idle_time = idle + iowait;
+    total_time = user + nice + system + idle + iowait + irq + softirq + steal;
+    return true;
+}
+
+void System::do_sample() {
+    auto now = time(NULL);
+    auto mem_info = get_mem_info();
+    auto mem_usage = mem_usages_.load();
+    (*mem_usage)[now] = mem_info.usage_percent;
+    if ((*mem_usage).size() >= MAX_POINTS) {
+        (*mem_usage).erase((*mem_usage).begin());
+    }
+    curr_mem_usage_.store(mem_info.usage_percent);
+
+    uint64_t idle_time;
+    uint64_t total_time;
+    if (read_cpu_stat(idle_time, total_time)) {
+        uint64_t idle_delta = idle_time - idle_time_;
+        uint64_t total_delta = total_time - total_time_;
+        float usage = (1.0f - static_cast<float>(idle_delta) / total_delta) * 1000.0f;
+        curr_cpu_usage_.store(usage);
+        auto cpu_usage = cpu_usages_.load();
+        (*cpu_usage)[now] = usage;
+        if ((*cpu_usage).size() >= MAX_POINTS) {
+            (*cpu_usage).erase((*cpu_usage).begin());
+        }
+    }
+}
+
+Json::Value System::to_json() const {
+    return Json::Value{};
 }
 
 void System::uninit() {
@@ -79,42 +125,4 @@ MemoryInfo System::get_mem_info() const {
     }
 
     return info;
-}
-
-static bool read_cpu_stat(uint64_t &idle_time, uint64_t &total_time) {
-    std::ifstream stat("/proc/stat");
-    if (!stat.is_open()) return false;
-
-    std::string line;
-    std::getline(stat, line); // 只读取第一行
-    std::istringstream iss(line);
-
-    std::string cpu;
-    uint64_t user, nice, system, idle, iowait, irq, softirq, steal;
-    iss >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
-
-    idle_time = idle + iowait;
-    total_time = user + nice + system + idle + iowait + irq + softirq + steal;
-    return true;
-}
-
-CpuInfo System::get_cpu_usage() const {
-    uint64_t idle1 = 0, total1 = 0;
-    uint64_t idle2 = 0, total2 = 0;
-
-    if (!read_cpu_stat(idle1, total1)) return CpuInfo{-1.0f};
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 采样间隔
-
-    if (!read_cpu_stat(idle2, total2)) return CpuInfo{-1.0f};
-
-    uint64_t idle_delta = idle2 - idle1;
-    uint64_t total_delta = total2 - total1;
-
-    float usage = 0.0f;
-    if (total_delta > 0) {
-        usage = (1.0f - static_cast<float>(idle_delta) / total_delta) * 100.0f;
-    }
-
-    return CpuInfo{usage};
 }
