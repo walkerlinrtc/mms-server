@@ -24,6 +24,7 @@
 #include "service/dns/dns_service.hpp"
 #include "version.h"
 #include "recorder/recorder_db.h"
+#include "system/system.h"
 
 using namespace mms;
 
@@ -104,6 +105,7 @@ int main(int argc, char *argv[]) {
     }
 
     thread_pool_inst::get_mutable_instance().start(std::thread::hardware_concurrency());
+    System::get_instance().init(thread_pool_inst::get_mutable_instance().get_worker(RAND_WORKER));
     HttpConnPools::get_instance().set_worker(thread_pool_inst::get_mutable_instance().get_worker(RAND_WORKER));
     
     std::string config_path = vm["config"].as<std::string>();
@@ -311,6 +313,7 @@ int main(int argc, char *argv[]) {
         CORE_INFO("stop http live server done");
     }
 
+    System::get_instance().uninit();
     thread_pool_inst::get_mutable_instance().stop();
     sleep(1);
     CORE_INFO("mms exit!!!");

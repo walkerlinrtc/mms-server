@@ -19,8 +19,6 @@ System::System() {}
 System::~System() {}
 
 void System::init(ThreadWorker *worker) {
-    cpu_usages_.store(std::make_shared<std::map<int64_t, float>>());
-    mem_usages_.store(std::make_shared<std::map<int64_t, float>>());
     worker_ = worker;
     boost::asio::co_spawn(
         worker_->get_io_context(),
@@ -59,10 +57,9 @@ static bool read_cpu_stat(uint64_t &idle_time, uint64_t &total_time) {
 void System::do_sample() {
     auto now = time(NULL);
     auto mem_info = get_mem_info();
-    auto mem_usage = mem_usages_.load();
-    (*mem_usage)[now] = mem_info.usage_percent;
-    if ((*mem_usage).size() >= MAX_POINTS) {
-        (*mem_usage).erase((*mem_usage).begin());
+    mem_usages_[now] = mem_info.usage_percent;
+    if (mem_usages_.size() >= MAX_POINTS) {
+        mem_usages_.erase(mem_usages_.begin());
     }
     curr_mem_usage_.store(mem_info.usage_percent);
 
@@ -73,16 +70,11 @@ void System::do_sample() {
         uint64_t total_delta = total_time - total_time_;
         float usage = (1.0f - static_cast<float>(idle_delta) / total_delta) * 1000.0f;
         curr_cpu_usage_.store(usage);
-        auto cpu_usage = cpu_usages_.load();
-        (*cpu_usage)[now] = usage;
-        if ((*cpu_usage).size() >= MAX_POINTS) {
-            (*cpu_usage).erase((*cpu_usage).begin());
+        cpu_usages_[now] = usage;
+        if (cpu_usages_.size() >= MAX_POINTS) {
+            cpu_usages_.erase(cpu_usages_.begin());
         }
     }
-}
-
-Json::Value System::to_json() const {
-    return Json::Value{};
 }
 
 void System::uninit() {
@@ -125,4 +117,28 @@ MemoryInfo System::get_mem_info() const {
     }
 
     return info;
+}
+
+Json::Value System::to_json() {
+    Json::Value v;
+    v["curr_cpu_usage"] = curr_cpu_usage_.load();
+    v["curr_mem_usage"] = curr_mem_usage_.load();
+    Json::Value jcpu_usages;
+    for (auto & p : cpu_usages_) {
+        Json::Value c;
+        c["t"] = p.first;
+        c["usage"] = p.second;
+        jcpu_usages.append(c);
+    }
+    v["cpu_usages"] = jcpu_usages;
+
+    Json::Value jmem_usages;
+    for (auto & p : mem_usages_) {
+        Json::Value c;
+        c["t"] = p.first;
+        c["usage"] = p.second;
+        jmem_usages.append(c);
+    }
+    v["mem_usages"] = jmem_usages;
+    return v;
 }

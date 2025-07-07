@@ -4,8 +4,12 @@
 #include <map>
 #include <atomic>
 #include <mutex>
+
+#include <boost/asio/awaitable.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include "json/json.h"
+#include "base/wait_group.h"
+#include "base/thread/thread_worker.hpp"
 
 namespace mms {
 class ThreadWorker;
@@ -34,8 +38,25 @@ public:
     void uninit();
     void do_sample();
     MemoryInfo get_mem_info() const;
-    Json::Value to_json() const;
     virtual ~System();
+    template <typename R> 
+    boost::asio::awaitable<R> sync_exec(const std::function<R()> & exec_func) {
+        WaitGroup wg(worker_);
+        std::shared_ptr<R> result = std::make_shared<R>();
+        wg.add(1);
+        boost::asio::co_spawn(worker_->get_io_context(), [this, &wg, &exec_func, result]()->boost::asio::awaitable<void> {
+            *result = exec_func();
+            co_return;
+        }, [this, &wg](std::exception_ptr exp) {
+            (void)exp;
+            wg.done();
+        });
+
+        co_await wg.wait();
+        co_return *result;
+    }
+
+    Json::Value to_json();
 private:
     System();
     System(const System &) = delete;            // 禁止拷贝
@@ -49,7 +70,7 @@ private:
     uint64_t total_time_ = 0;
     std::atomic<float> curr_cpu_usage_;
     std::atomic<float> curr_mem_usage_;
-    std::atomic<std::shared_ptr<std::map<int64_t, float>>> cpu_usages_;
-    std::atomic<std::shared_ptr<std::map<int64_t, float>>> mem_usages_;
+    std::map<int64_t, float> cpu_usages_;
+    std::map<int64_t, float> mem_usages_;
 };
 };

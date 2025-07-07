@@ -72,7 +72,7 @@ bool HttpApiServer::register_route() {
         return false;
     }
 
-    ret = on_post("/api/get_mem_info", std::bind(&HttpApiServer::get_mem_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    ret = on_post("/api/get_system_info", std::bind(&HttpApiServer::get_system_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
     }
@@ -111,7 +111,7 @@ bool HttpApiServer::register_route() {
         return false;
     }
 
-    ret = on_get("/api/get_mem_info", std::bind(&HttpApiServer::get_mem_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    ret = on_get("/api/get_system_info", std::bind(&HttpApiServer::get_system_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
     if (!ret) {
         return false;
     }
@@ -459,7 +459,7 @@ boost::asio::awaitable<void> HttpApiServer::stop_recorder(std::shared_ptr<HttpSe
     co_return;
 }
 
-boost::asio::awaitable<void> HttpApiServer::get_mem_info(std::shared_ptr<HttpServerSession> session, 
+boost::asio::awaitable<void> HttpApiServer::get_system_info(std::shared_ptr<HttpServerSession> session, 
                                                             std::shared_ptr<HttpRequest> req, 
                                                             std::shared_ptr<HttpResponse> resp) {
     (void)session;
@@ -473,10 +473,11 @@ boost::asio::awaitable<void> HttpApiServer::get_mem_info(std::shared_ptr<HttpSer
         co_return;
     }
 
-    auto mem_info = System::get_instance().get_mem_info();
+    auto data = co_await System::get_instance().sync_exec<Json::Value>([]()->Json::Value {
+        return System::get_instance().to_json();
+    });
+
     root["code"] = 0;
-    Json::Value data;
-    data["mem_info"] = mem_info.to_json();
     root["data"] = data;
     auto body = root.toStyledString();
     bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());

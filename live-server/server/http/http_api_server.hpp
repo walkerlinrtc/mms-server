@@ -48,7 +48,7 @@ private:
     boost::asio::awaitable<void> stop_recorder(std::shared_ptr<HttpServerSession> session, 
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);
-    boost::asio::awaitable<void> get_mem_info(std::shared_ptr<HttpServerSession> session, 
+    boost::asio::awaitable<void> get_system_info(std::shared_ptr<HttpServerSession> session, 
                                                  std::shared_ptr<HttpRequest> req, 
                                                  std::shared_ptr<HttpResponse> resp);
 };
