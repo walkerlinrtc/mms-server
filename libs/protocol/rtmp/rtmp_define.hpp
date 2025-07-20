@@ -195,18 +195,6 @@ namespace mms {
 #define RTMP_STATUS_STREAM_NOT_FOUND                "NetStream.Play.StreamNotFound"
 
 class RtmpChunk;
-class RtmpMessage : public Packet {
-public:
-    // todo payload最大长度和实际使用长度分开
-    RtmpMessage(int32_t payload_size);
-    virtual ~RtmpMessage();
-    uint8_t get_message_type();
-public:
-    uint8_t message_type_id_;
-    int32_t timestamp_;
-    int32_t message_stream_id_;
-    int32_t chunk_stream_id_ = 0;
-};
 
 class ChunkMessageHeader { 
 public:
@@ -224,6 +212,19 @@ public:
         message_type_id_ = 0;
         message_stream_id_ = 0;
     }
+};
+
+class RtmpMessage : public Packet {
+public:
+    // todo payload最大长度和实际使用长度分开
+    RtmpMessage(int32_t payload_size);
+    virtual ~RtmpMessage();
+    uint8_t get_message_type();
+public:
+    uint8_t message_type_id_;
+    int32_t timestamp_;
+    int32_t message_stream_id_;
+    int32_t chunk_stream_id_ = 0;
 };
 
 class RtmpChunk {

@@ -309,12 +309,21 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         chunk = std::make_shared<RtmpChunk>();
     }
 
+    if (prev_chunk && prev_chunk->rtmp_message_) {
+        chunk->rtmp_message_ = prev_chunk->rtmp_message_;
+    }
+
+    bool first_chunk_of_message = false;
+    if (!chunk->rtmp_message_) {
+        first_chunk_of_message = true;
+    }
+
     chunk->chunk_message_header_.fmt_ = fmt;
     if (fmt == RTMP_CHUNK_FMT_TYPE0) {
         if (left_size < 3) {
             co_return 0;
         }
-
+        chunk->chunk_message_header_.timestamp_delta_ = 0;
         uint8_t *p = (uint8_t*)&chunk->chunk_message_header_.timestamp_;
         p[0] = recv_buffer_[buf_pos + 2];
         p[1] = recv_buffer_[buf_pos + 1];
@@ -350,8 +359,7 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         p[3] = recv_buffer_[buf_pos + 0];
         buf_pos += 4;
         left_size -= 4;
-
-        if (chunk->chunk_message_header_.timestamp_ == 0x00ffffff) {
+        if (chunk->chunk_message_header_.timestamp_ >= 0x00ffffff) {
             if (left_size < 4) {
                 co_return 0;
             }
@@ -370,7 +378,6 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
             co_return -8;
         }
         chunk->chunk_message_header_.message_stream_id_ = prev_chunk->chunk_message_header_.message_stream_id_;
-        // *chunk = *prev_chunk;
         if (left_size < 3) {
             co_return 0;
         }
@@ -383,10 +390,14 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         buf_pos += 3;
         left_size -= 3;
 
-        if (time_delta != 0xffffff) {
-            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
-            chunk->chunk_message_header_.timestamp_delta_ = time_delta;
-        }
+        // if (time_delta != 0xffffff) {
+        //     if (first_chunk_of_message) {
+        //         chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
+        //     } else {
+        //         chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_;
+        //     }
+        //     chunk->chunk_message_header_.timestamp_delta_ = time_delta;
+        // }
         
         if (left_size < 3) {
             co_return 0;
@@ -406,7 +417,7 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         buf_pos++;
         left_size--;
 
-        if (time_delta == 0xffffff) {
+        if (time_delta >= 0xffffff) {
             if (left_size < 4) {
                 co_return 0;
             }
@@ -418,9 +429,15 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
             p[3] = recv_buffer_[buf_pos + 0];
             buf_pos += 4;
             left_size -= 4;
-            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
-            chunk->chunk_message_header_.timestamp_delta_ = time_delta;
         }
+
+        if (first_chunk_of_message) {
+            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
+        } else {
+            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_;
+        }
+        
+        chunk->chunk_message_header_.timestamp_delta_ = time_delta;
     } else if (fmt == RTMP_CHUNK_FMT_TYPE2) {//此时为time_delta
         if (!prev_chunk) {//type2 必须有前面的chunk作为基础
             co_return -12;
@@ -439,10 +456,8 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         p[2] = recv_buffer_[buf_pos + 0];
         buf_pos += 3;
         left_size -= 3;
-        if (time_delta != 0xffffff) {
-            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
-            chunk->chunk_message_header_.timestamp_delta_ = time_delta;
-        } else {
+
+        if (time_delta >= 0xffffff) {
             if (left_size < 4) {
                 co_return 0;
             }
@@ -454,9 +469,14 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
             p[3] = recv_buffer_[buf_pos + 0];
             buf_pos += 4;
             left_size -= 4;
-            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
-            chunk->chunk_message_header_.timestamp_delta_ = time_delta;
         }
+
+        if (first_chunk_of_message) {
+            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_ + time_delta;
+        } else {
+            chunk->chunk_message_header_.timestamp_ = prev_chunk->chunk_message_header_.timestamp_;
+        }
+        chunk->chunk_message_header_.timestamp_delta_ = time_delta;
     } else if (fmt == RTMP_CHUNK_FMT_TYPE3) {
         if (!prev_chunk) {
             co_return -13;
@@ -469,10 +489,8 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         chunk->chunk_message_header_.timestamp_delta_ = prev_chunk->chunk_message_header_.timestamp_delta_;
     }
 
-    // 前面有一个chunk，并且前面的chunk只要rtmp_message_变量非nullptr，则必然没有接收完整
-    if (prev_chunk && prev_chunk->rtmp_message_) {
-        chunk->rtmp_message_ = prev_chunk->rtmp_message_;
-        // chunk回收，不用每次解析够创建一个
+    // 清理前面的chunk
+    if (prev_chunk) {
         prev_chunk->clear();
         recv_chunk_cache_[csid] = prev_chunk;
     }
@@ -504,7 +522,6 @@ boost::asio::awaitable<int32_t> RtmpChunkProtocol::process_recv_buffer()
         chunk->rtmp_message_->timestamp_ = chunk->chunk_message_header_.timestamp_;
         chunk->rtmp_message_->message_type_id_ = chunk->chunk_message_header_.message_type_id_;
         chunk->rtmp_message_->message_stream_id_ = chunk->chunk_message_header_.message_stream_id_;
-
         if (!recv_handler_) {
             chunk->rtmp_message_ = nullptr;
             spdlog::error("no recv handler set for rtmp msg");
