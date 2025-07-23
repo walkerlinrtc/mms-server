@@ -116,6 +116,11 @@ bool HttpApiServer::register_route() {
         return false;
     }
 
+    ret = on_get("/api/get_mem_info", std::bind(&HttpApiServer::get_mem_info, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3));
+    if (!ret) {
+        return false;
+    }
+
     auto & static_file_server_cfg = Config::get_instance()->get_http_api_config().get_static_file_server_config();
     if (static_file_server_cfg.is_enabled()) {
         auto path_map = static_file_server_cfg.get_path_map();
@@ -475,6 +480,37 @@ boost::asio::awaitable<void> HttpApiServer::get_system_info(std::shared_ptr<Http
 
     auto data = co_await System::get_instance().sync_exec<Json::Value>([]()->Json::Value {
         return System::get_instance().to_json();
+    });
+
+    root["code"] = 0;
+    root["data"] = data;
+    auto body = root.toStyledString();
+    bool ret = co_await resp->write_data((const uint8_t*)(body.data()), body.size());
+    if (!ret) {
+        resp->close();
+        co_return;
+    }
+
+    resp->close();
+    co_return;
+} 
+
+boost::asio::awaitable<void> HttpApiServer::get_mem_info(std::shared_ptr<HttpServerSession> session, 
+                                                            std::shared_ptr<HttpRequest> req, 
+                                                            std::shared_ptr<HttpResponse> resp) {
+    (void)session;
+    (void)req;
+    Json::Value root;
+        
+    resp->add_header("Content-type", "application/json");
+    resp->add_header("Access-Control-Allow-Origin", "*");
+    if (!(co_await resp->write_header(200, "OK"))) {
+        resp->close();
+        co_return;
+    }
+
+    auto data = co_await System::get_instance().sync_exec<Json::Value>([]()->Json::Value {
+        return System::get_instance().get_mem_info().to_json();
     });
 
     root["code"] = 0;
